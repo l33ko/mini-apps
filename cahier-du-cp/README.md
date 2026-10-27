@@ -13,11 +13,12 @@ L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à to
 - **Phrases** : remettre des étiquettes dans l'ordre pour construire une phrase, avec la majuscule au début et le point à la fin. Chaque étiquette touchée est lue à voix haute.
 
 **Mathématiques**
-- **Additions** et **soustractions** jusqu'à 20.
+- **Additions** et **soustractions** : de 0 à 5 jusqu'à 99, avec le passage de la dizaine aux niveaux avancés.
+- **Compléments** : 7 + ? = 10, puis jusqu'à 20 et 100.
 - **Problèmes** : petites histoires de la vie courante (donner des pommes, la monnaie rendue par la marchande, des boîtes qui contiennent le même nombre d'objets), lues à voix haute sur demande.
 - **Compter** : dénombrer des objets à l'écran.
-- **Multiplications** avec les tables de 2, 3, 4, 5 et 10.
-- **Maths mélangées** : un défi qui combine additions, soustractions et multiplications.
+- **Doubles et moitiés** : doubles, moitiés, groupes égaux, puis les tables de 2, 3, 4, 5 et 10 aux derniers niveaux seulement.
+- **Maths mélangées** : un défi qui combine additions, soustractions, compléments et doubles.
 
 **Jeux**
 - **Memory** : associer chaque image à son mot.
@@ -33,20 +34,22 @@ L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à to
 | Écrire en cursive | L'enfant reconnaît les mots en cursive et en bâton, mais il ne les trace pas | Partiel |
 | Encoder et orthographier des mots | Lettres manquantes dans un mot | Partiel |
 | Phrase : majuscule, ponctuation, ordre des mots | Reconstruction de phrases avec étiquettes | Couvert en partie |
-| Nombres jusqu'à 100 | Les additions et soustractions s'arrêtent à 20 | À étendre |
+| Nombres jusqu'à 100 | Additions et soustractions jusqu'à 99, compter par dizaines et unités | Couvert en partie |
 | Problèmes additifs en une ou deux étapes | Problèmes en une étape | Partiel |
 | Problèmes multiplicatifs en une étape (nombres jusqu'à 30, sans les signes × et :) | Problèmes de boîtes à contenu égal, mais certains dépassent 30 | À ajuster |
-| Compléments à 10, doubles, moitiés | Pas encore proposés comme activités | À ajouter |
-| Tables de multiplication | Les tables de 2, 3, 4, 5 et 10 sont proposées | Au-delà du programme de CP |
+| Compléments à 10, doubles, moitiés | Activités « Compléments » et « Doubles et moitiés » | Couvert |
+| Tables de multiplication | Tables de 2, 3, 4, 5 et 10 aux derniers niveaux | Au-delà du programme de CP |
 
 Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de multiplication : le champ multiplicatif y apparaît seulement sous forme de problèmes. Cette activité est donc un bonus pour les enfants en avance, pas un attendu.
 
 ## Niveaux et progression
 
-- Chaque activité a trois niveaux : facile, moyen et difficile. L'enfant choisit son niveau avant de jouer.
+- Chaque activité a **10 niveaux** (🌱 1 à 3 facile, 🌿 4 à 7 moyen, 🌳 8 à 10 difficile). La difficulté monte toute seule, sans lien avec les semaines des manuels : l'enfant avance à son rythme, en complément de la classe.
+- Tous les niveaux restent accessibles : l'enfant peut aller plus vite ou reprendre un niveau plus facile quand il veut. Rejouer un niveau plus facile ne fait pas baisser son niveau.
+- Les anciens profils et codes de sauvegarde (3 niveaux) sont convertis automatiquement.
 - Une série compte 10 questions. Les étoiles (1 à 3) dépendent des bonnes réponses du premier coup.
 - Le niveau s'adapte aux résultats : il monte avec 9 bonnes réponses ou plus, et baisse avec 4 ou moins.
-- Aux niveaux 2 et 3 des maths, l'enfant tape la réponse sur un clavier de chiffres au lieu de choisir parmi des propositions.
+- À partir du niveau 4 en maths, l'enfant tape la réponse sur un clavier de chiffres au lieu de choisir parmi des propositions.
 - Un son distingue les bonnes et les mauvaises réponses, et un petit son accompagne chaque bouton.
 
 ## Joueurs et sauvegarde
@@ -78,9 +81,6 @@ Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de mul
 
 ## Idées pour la suite
 
-- Étendre les additions et soustractions jusqu'à 100, avec le franchissement de la dizaine.
-- Ajouter les compléments à 10, les doubles et les moitiés.
-- Proposer des problèmes en deux étapes.
 - Dictée de mots, copie de phrases, singulier et pluriel, accents.
 - Lecture de l'heure, rangement de nombres, labyrinthe.
 

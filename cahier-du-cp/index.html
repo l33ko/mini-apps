@@ -68,6 +68,11 @@ h1{font-size:2rem;margin:.2em 0 0;line-height:1.2}
 .inp{font:inherit;font-size:1.4rem;padding:10px 14px;border:3px solid var(--sh);border-radius:14px;background:var(--card);color:var(--ink);flex:1;min-width:0}
 .ptxt{font-size:1.25rem;line-height:1.5;margin:0}
 .mc:disabled{opacity:1}
+.lvgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.lvb{font:inherit;color:inherit;border:3px solid var(--sh);border-radius:16px;box-shadow:0 4px 0 var(--sh);font-size:1.5rem;font-weight:700;padding:12px 0;cursor:pointer}
+.lvb:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sh)}
+.lvb.t1{background:var(--c3)}.lvb.t2{background:var(--c4)}.lvb.t3{background:var(--c6)}
+.lvb.on{outline:4px solid var(--good);outline-offset:2px}
 .tm{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;font-weight:700;background:var(--c4);border:3px solid var(--sh);border-radius:99px;padding:4px 14px;box-shadow:0 3px 0 var(--sh)}
 .tm.low{background:var(--c6);border-color:var(--bad);color:var(--bad)}
 #ov{position:fixed;inset:0;z-index:50;background-color:var(--paper);overflow-y:auto;display:none;color:var(--ink)}
@@ -89,16 +94,22 @@ textarea.inp{width:100%;min-height:90px;font-size:1rem;word-break:break-all;disp
 <div id="tm" class="tm" style="display:none"></div>
 <div id="ov"><div class="in" id="ovc"></div></div>
 <script>
-const WORDS=[['chat','🐱'],['lune','🌙'],['maison','🏠'],['pomme','🍎'],['soleil','☀️'],['vélo','🚲'],['fleur','🌸'],['livre','📖'],['poisson','🐟'],['gâteau','🍰'],['étoile','⭐'],['lapin','🐰'],['banane','🍌'],['arbre','🌳'],['bateau','⛵'],['chien','🐶'],['voiture','🚗'],['glace','🍦']];
+const WT=[
+ [['lama','🦙'],['moto','🏍️'],['vélo','🚲'],['tomate','🍅'],['rose','🌹'],['lune','🌙'],['robe','👗'],['sac','🎒'],['lit','🛏️'],['bus','🚌'],['fée','🧚'],['rat','🐀']],
+ [['chat','🐱'],['chien','🐶'],['loup','🐺'],['lion','🦁'],['singe','🐒'],['lapin','🐰'],['cheval','🐴'],['vache','🐄'],['souris','🐭'],['avion','✈️'],['arbre','🌳'],['fleur','🌸'],['pomme','🍎'],['livre','📖'],['dent','🦷'],['main','✋'],['ballon','⚽'],['mouton','🐑'],['banane','🍌'],['citron','🍋'],['cerise','🍒'],['glace','🍦'],['fraise','🍓'],['nuage','☁️'],['tortue','🐢'],['fourmi','🐜'],['dragon','🐉'],['girafe','🦒']],
+ [['poisson','🐟'],['maison','🏠'],['gâteau','🍰'],['bateau','⛵'],['oiseau','🐦'],['soleil','☀️'],['étoile','⭐'],['voiture','🚗'],['éléphant','🐘'],['escargot','🐌'],['crocodile','🐊'],['champignon','🍄'],['papillon','🦋'],['grenouille','🐸'],['araignée','🕷️'],['montagne','⛰️'],['kangourou','🦘'],['ordinateur','💻'],['parapluie','☂️'],['hérisson','🦔'],['chocolat','🍫'],['camion','🚚'],['fusée','🚀'],['requin','🦈'],['pingouin','🐧'],['volcan','🌋'],['lunettes','👓'],['guitare','🎸']]];
+const wTier=L=>L<=2?[0]:L<=4?[0,1]:L<=6?[1]:L<=8?[1,2]:[2];
+const wpool=L=>wTier(L).flatMap(t=>WT[t]);
 const MENU=[
  {id:'lec',t:'Lecture',e:'📖',s:'mots et images',c:'--c1'},
  {id:'ecr',t:'Écriture',e:'✏️',s:'attachée ou bâton',c:'--c2'},
  {id:'pho',t:'Mots à compléter',e:'🔤',s:'lettres manquantes',c:'--c5'},
  {id:'phr',t:'Phrases',e:'🧩',s:'remets les étiquettes',c:'--c6'},
  {id:'mem',t:'Memory',e:'🃏',s:'image et mot',c:'--c2'},
- {id:'add',t:'Additions',e:'➕',s:'jusqu’à 20',c:'--c3'},
- {id:'sou',t:'Soustractions',e:'➖',s:'jusqu’à 20',c:'--c4'},
- {id:'mul',t:'Multiplications',e:'✖️',s:'tables de 2, 3, 4, 5, 10',c:'--c5'},
+ {id:'add',t:'Additions',e:'➕',s:'des petits aux grands nombres',c:'--c3'},
+ {id:'sou',t:'Soustractions',e:'➖',s:'des petits aux grands nombres',c:'--c4'},
+ {id:'cmp',t:'Compléments',e:'🧮',s:'7 + ? = 10, puis 20, 100',c:'--c3'},
+ {id:'mul',t:'Doubles et moitiés',e:'✖️',s:'puis les tables',c:'--c5'},
  {id:'pb',t:'Problèmes',e:'🛒',s:'pommes, monnaie…',c:'--c4'},
  {id:'cpt',t:'Compter',e:'🔢',s:'combien y en a-t-il ?',c:'--c3'},
  {id:'sui',t:'Suites',e:'🔗',s:'que vient ensuite ?',c:'--c5'},
@@ -106,9 +117,11 @@ const MENU=[
  {id:'int',t:'Intrus',e:'🕵️',s:'lequel est différent ?',c:'--c1'},
  {id:'mix',t:'Maths mélangées',e:'🎲',s:'le grand défi',c:'--c6'}];
 const app=document.getElementById('app');
-let stars=0,Q=null,LV={},P='',D={profiles:{},last:'',set:{min:15}},DBREF=null;const lv=id=>LV[id]||1;
+let stars=0,Q=null,LV={},P='',D={profiles:{},last:'',set:{min:15},ver:2},DBREF=null,PLAY={};const lvS=id=>Math.min(10,Math.max(1,parseInt(LV[id])||1)),lv=id=>PLAY[id]||lvS(id);
+const mig=ps=>{for(const k in ps){const l=(ps[k]&&ps[k].lv)||{};for(const id in l)l[id]=[1,4,7][(parseInt(l[id])||1)-1]||1}};
 try{D=JSON.parse(localStorage.getItem('cp-data'))||D}catch(e){}
 D.set=D.set||{min:15};D.profiles=D.profiles||{};
+if(!D.ver){mig(D.profiles);D.ver=2;try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}}
 if(D.last&&D.profiles[D.last]){P=D.last;stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}
 const rnd=n=>Math.floor(Math.random()*n),pick=a=>a[rnd(a.length)],shuffle=a=>[...a].sort(()=>Math.random()-.5);
 let AC=null;
@@ -120,33 +133,77 @@ try{loadVoice();speechSynthesis.onvoiceschanged=loadVoice}catch(e){}
 function say(t){try{const s=speechSynthesis;s.cancel();setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';if(VOICE)u.voice=VOICE;u.rate=.82;u.pitch=1.1;u.volume=1;s.resume();s.speak(u)},80)}catch(e){}}
 
 function menu(){
- Q=null;setTimeout(tick,0);
+ Q=null;PLAY={};setTimeout(tick,0);
  app.innerHTML=`<div class="top"><h1>Salut ${esc(P)} ! 👋</h1><span class="stars">⭐ ${stars}</span></div>
  <button class="chip" onclick="parents()">⚙️ Parents</button> <button class="chip" onclick="backup()">💾 Sauvegarde</button> <button class="chip" onclick="who()">👤 Changer de joueur</button><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
- MENU.map(m=>`<button class="card" style="background:var(${m.c})" onclick="lvl('${m.id}')"><span class="e">${m.e}</span>${m.t}<small>${m.s}</small><small>Niveau ${'●'.repeat(lv(m.id))}${'○'.repeat(3-lv(m.id))}</small></button>`).join('')+`</div>`;
+ MENU.map(m=>`<button class="card" style="background:var(${m.c})" onclick="lvl('${m.id}')"><span class="e">${m.e}</span>${m.t}<small>${m.s}</small><small>${lvS(m.id)<=3?'🌱':lvS(m.id)<=7?'🌿':'🌳'} Niveau ${lvS(m.id)}</small></button>`).join('')+`</div>`;
 }
 
+const R=(a,b)=>a+rnd(b-a+1);
+const gl=f=>{let r,i=0;do{r=f();i++}while(!r&&i<80);return r};
 function genLec(){
- const L=lv('lec'),w=pick(WORDS.filter(x=>L>1||x[0].length<=5)),listen=Math.random()<.35&&!!window.speechSynthesis;
- const opts=shuffle([w,...shuffle(WORDS.filter(x=>x!==w)).sort((a,b)=>L>2?Math.abs(a[0].length-w[0].length)-Math.abs(b[0].length-w[0].length):0).slice(0,L>2?3:2)]).map(o=>({h:o[0],ok:o===w,f:'script'}));
- return {q:listen?`<button class="big" onclick="say('${w[0]}')" aria-label="Écouter">🔊</button><p>Écoute, puis trouve le mot</p>`:`<div class="emo">${w[1]}</div><p>Quel est ce mot ?</p>`,opts,say:listen?w[0]:null,hint:listen?w[1]:null,three:L<3};
+ const L=lv('lec'),pool=wpool(L),w=pick(pool),listen=Math.random()<(L>=5?.45:.3)&&!!window.speechSynthesis;
+ const sc=x=>(x[0][0]===w[0][0]?0:3)+Math.abs(x[0].length-w[0].length)+Math.random();
+ let dis=shuffle(pool.filter(x=>x!==w));
+ if(L>=6)dis=dis.map(x=>[sc(x),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+ dis=dis.slice(0,L>=5?3:2);
+ const opts=shuffle([w,...dis]).map(o=>({h:o[0],ok:o===w,f:'script'}));
+ return {q:listen?`<button class="big" onclick="say('${w[0]}')" aria-label="Écouter">🔊</button><p>Écoute, puis trouve le mot</p>`:`<div class="emo">${w[1]}</div><p>Quel est ce mot ?</p>`,opts,say:listen?w[0]:null,hint:listen?w[1]:null,three:opts.length===3};
 }
 function genEcr(){
- const list=['chat','lune','rose','vélo','fleur','livre','lapin','pomme','soleil','arbre','papa','mamie'];
- const L=lv('ecr'),w=pick(list.filter(x=>x.length<=(L<2?4:L<3?5:9))),toCur=Math.random()<.5;
- const opts=shuffle([w,...shuffle(list.filter(x=>x!==w&&(L<3||Math.abs(x.length-w.length)<2))).slice(0,2)]).map(o=>({h:o,ok:o===w,f:toCur?'cursive':'script'}));
- return {q:`<div class="word ${toCur?'script':'cursive'}">${w}</div><p>Trouve le même mot en écriture ${toCur?'attachée':'bâton'}</p>`,opts,three:true};
+ const L=lv('ecr'),mx=L<=2?4:L<=4?5:L<=6?7:12,all=wpool(L).map(x=>x[0]),w=pick(all.filter(x=>x.length<=mx)),toCur=Math.random()<.5;
+ let dis=shuffle(all.filter(x=>x!==w));
+ if(L>=5)dis.sort((a,b)=>Math.abs(a.length-w.length)-Math.abs(b.length-w.length));
+ dis=dis.slice(0,L>=6?3:2);
+ const opts=shuffle([w,...dis]).map(o=>({h:o,ok:o===w,f:toCur?'cursive':'script'}));
+ return {q:`<div class="word ${toCur?'script':'cursive'}">${w}</div><p>Trouve le même mot en écriture ${toCur?'attachée':'bâton'}</p>`,opts,three:opts.length===3};
 }
 function genMath(op,L){L=L||1;
- let a,b,ans,txt;
- if(op==='add'){a=L<2?rnd(6):rnd(11);b=L<2?rnd(6):L<3?rnd(11):1+rnd(10);if(L>2)a=5+rnd(11);ans=a+b;txt=`${a} + ${b}`}
- else if(op==='sou'){a=L<2?1+rnd(10):5+rnd(16);b=rnd(Math.min(a,L>2?15:10)+1);ans=a-b;txt=`${a} − ${b}`}
- else{a=pick(L<2?[2,10]:L<3?[2,5,10]:[2,3,4,5,10]);b=1+rnd(L<2?5:10);ans=a*b;txt=`${a} × ${b}`}
- const s=new Set([ans]);
- while(s.size<4){const d=ans+pick([-10,-3,-2,-1,1,2,3,10]);if(d>=0)s.add(d)}
- return {q:`<div class="math">${txt} = ?</div>`,opts:shuffle([...s]).map(n=>({h:n,ok:n===ans})),key:L>1?{txt,ans,v:''}:null};
+ let ans,txt,a,b,t,cm=false;
+ if(op==='add'){[a,b]=gl(()=>{let x,y;
+   if(L<=1){x=R(0,5);y=R(0,5);return x+y<=5&&[x,y]}
+   if(L===2){x=R(0,9);y=R(0,9);return x+y<=9&&[x,y]}
+   if(L===3){x=R(1,9);y=R(1,9);return x+y<=10&&[x,y]}
+   if(L===4){x=R(10,18);y=R(1,9);return x%10+y<10&&[x,y]}
+   if(L===5){x=R(2,9);y=R(2,9);return x+y>10&&x+y<=18&&[x,y]}
+   if(L===6){x=R(20,39);y=R(1,9);return x%10+y<10&&[x,y]}
+   if(L===7){if(Math.random()<.5){x=10*R(1,6);y=10*R(1,9-x/10);return [x,y]}x=R(21,89);return x%10>0&&[x,10-x%10]}
+   if(L===8){x=R(21,54);y=R(2,9);return x%10+y>=10&&x+y<=60&&[x,y]}
+   if(L===9){x=R(10,79);y=R(10,89);return x%10+y%10<10&&x+y<=99&&[x,y]}
+   x=R(11,79);y=R(11,89);return x%10+y%10>=10&&x+y<=99&&[x,y]})||[1,1];ans=a+b;txt=`${a} + ${b}`}
+ else if(op==='sou'){[a,b]=gl(()=>{let x,y;
+   if(L<=1){x=R(1,5);return [x,R(0,x)]}
+   if(L===2){x=R(2,9);return [x,R(0,x)]}
+   if(L===3){x=R(5,10);return [x,R(1,x)]}
+   if(L===4){x=R(11,19);return x%10>0&&[x,R(1,x%10)]}
+   if(L===5){x=R(11,18);y=R(2,9);return y>x%10&&[x,y]}
+   if(L===6){x=R(21,49);return x%10>0&&[x,R(1,x%10)]}
+   if(L===7){if(Math.random()<.5){x=10*R(3,9);return [x,10*R(1,x/10-1)]}x=R(24,99);return [x,10*R(1,Math.floor(x/10)-1)]}
+   if(L===8){x=R(21,60);y=R(2,9);return y>x%10&&[x,y]}
+   if(L===9){x=R(30,99);y=R(10,x-1);return x%10>=y%10&&[x,y]}
+   x=R(30,99);y=R(11,x-1);return x%10<y%10&&[x,y]})||[9,4];ans=a-b;txt=`${a} − ${b}`}
+ else if(op==='cmp'){cm=true;
+   if(L<=1){a=R(5,9);t=10}else if(L<=3){a=R(1,9);t=10}
+   else if(L===4){a=R(11,19);t=20}else if(L===5){a=R(1,19);t=20}
+   else if(L<=7){a=gl(()=>{const x=L===6?R(21,59):R(21,89);return x%10>0&&x})||23;t=a+10-a%10}
+   else if(L===8){a=10*R(1,9);t=100}else if(L===9){a=5*R(2,19);t=100}else{a=R(11,95);t=100}
+   ans=t-a;txt=`${a} + ? = ${t}`}
+ else{ // doubles, moitiés, puis tables
+   if(L<=1){const n=R(1,5);txt=`Le double de ${n}`;ans=2*n}
+   else if(L===2){if(Math.random()<.5){const n=R(3,10);txt=`Le double de ${n}`;ans=2*n}else{const n=2*R(1,5);txt=`La moitié de ${n}`;ans=n/2}}
+   else if(L===3){if(Math.random()<.5){const n=R(5,10);txt=`Le double de ${n}`;ans=2*n}else{const n=2*R(2,10);txt=`La moitié de ${n}`;ans=n/2}}
+   else if(L===4){if(Math.random()<.5){const n=10*R(1,5);txt=`Le double de ${n}`;ans=2*n}else{const n=2*R(3,10);txt=`La moitié de ${n}`;ans=n/2}}
+   else if(L===5){if(Math.random()<.5){const n=R(11,25);txt=`Le double de ${n}`;ans=2*n}else{const n=2*R(5,25);txt=`La moitié de ${n}`;ans=n/2}}
+   else if(L===6){[a,b]=gl(()=>{const g=R(2,5),e=pick([2,3,5,10]);return g*e<=30&&[g,e]})||[2,5];txt=`${a} groupes de ${b}`;ans=a*b}
+   else{const A=L===7?[2,5,10]:L===8?[2,5,10]:L===9?[2,3,4,5,10]:[2,3,4,5,10];a=pick(A);b=L===7?R(1,5):R(1,10);if(L>=9&&a<=5&&Math.random()<.5)a=pick([3,4]);txt=`${a} × ${b}`;ans=a*b}
+ }
+ const s2=new Set([ans]);let g=0;
+ while(s2.size<4&&g++<200){const d=ans+pick([-10,-3,-2,-1,1,2,3,10]);if(d>=0)s2.add(d)}
+ const opts=shuffle([...s2]).map(n=>({h:n,ok:n===ans})),kb=L>=4,fs=txt.length>13?' style="font-size:2.2rem"':'';
+ if(cm)return {q:`<div class="math">${a} + ? = ${t}</div>`,opts,key:kb?{ml:`${a} +`,mr:`= ${t}`,ans,v:''}:null};
+ return {q:`<div class="math"${fs}>${txt} = ?</div>`,opts,key:kb?{txt,ans,v:''}:null};
 }
-function gen(id){return id==='lec'?genLec():id==='ecr'?genEcr():id==='pho'?genPho():id==='phr'?genPhr():id==='sui'?genSui():id==='pb'?genPb():id==='cpt'?genCpt():id==='int'?genInt():genMath(id==='mix'?pick(['add','sou','mul']):id,lv(id))}
+function gen(id){return id==='lec'?genLec():id==='ecr'?genEcr():id==='pho'?genPho():id==='phr'?genPhr():id==='sui'?genSui():id==='pb'?genPb():id==='cpt'?genCpt():id==='int'?genInt():genMath(id==='mix'?pick(['add','sou','cmp','mul']):id,lv(id))}
 
 function start(id){if(STARTERS[id])return STARTERS[id]();Q={id,n:0,score:0,N:10};next()}
 function next(){if(Q.n>=Q.N)return end();Q.cur=gen(Q.id);Q.tries=0;Q.done=false;Q.hinted=false;draw()}
@@ -172,16 +229,19 @@ function ans(i,btn){
 }
 function end(){
  const sc=Q.score,st=sc>=9?3:sc>=6?2:1,id=Q.id;
- stars+=st;const o=lv(id),nl=sc>=9?Math.min(3,o+1):sc<=4?Math.max(1,o-1):o;LV[id]=nl;persist();
+ stars+=st;const pl=lv(id),sv=lvS(id);let nl=sv;
+ if(sc>=9){if(pl>=sv)nl=Math.min(10,pl+1)}else if(sc<=4){if(pl===sv)nl=Math.max(1,sv-1)}
+ LV[id]=nl;if(pl===sv)PLAY[id]=nl;persist();
+ const msg=nl>sv?'⬆️ Niveau supérieur !':nl<sv?'On s’entraîne encore un peu 🌱':pl<sv?'Bravo pour ce rappel ! Ton niveau reste le même.':'Même niveau, continue !';
  app.innerHTML=`<div class="end"><h1>${sc>=9?'Champion !':sc>=6?'Très bien !':'Continue !'}</h1>
- <div class="s">${'⭐'.repeat(st)}</div><p class="sub">${GAMES.includes(id)?`Score : ${sc} sur ${Q.N}`:`${sc} bonnes réponses du premier coup sur ${Q.N}`}</p><p class="sub">${nl>o?'⬆️ Niveau supérieur !':nl<o?'On s’entraîne encore un peu 🌱':'Même niveau, continue !'} (niveau ${nl}/3)</p>
- ${DUR()&&SS&&LEFT()<=0?'<p class="sub">⏰ Le temps de jeu est terminé. À bientôt !</p>':`<button class="again" onclick="start('${id}')">🔁 Rejouer</button>`}<button class="again" onclick="menu()">🏠 Menu</button></div>`;
+ <div class="s">${'⭐'.repeat(st)}</div><p class="sub">${GAMES.includes(id)?`Score : ${sc} sur ${Q.N}`:`${sc} bonnes réponses du premier coup sur ${Q.N}`}</p><p class="sub">${msg} (niveau ${nl}/10)</p>
+ ${DUR()&&SS&&LEFT()<=0?'<p class="sub">⏰ Le temps de jeu est terminé. À bientôt !</p>':`<button class="again" onclick="start('${id}')">🔁 Rejouer</button><button class="again" onclick="lvl('${id}')">🎚️ Niveau</button>`}<button class="again" onclick="menu()">🏠 Menu</button></div>`;
 }
 const hdr=(p,l)=>`<div class="top"><button class="back" onclick="menu()" aria-label="Retour">←</button><div class="bar"><i style="width:${p*100}%"></i></div><span class="stars">${l}</span></div>`;
 const fbk=t=>{const e=document.getElementById('fb');if(e)e.textContent=t};
 const curM=()=>MENU.find(x=>x.id===Q.id);
 /* clavier */
-function drawKey(c,m){app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c});min-height:130px">${c.key.html||''}<div class="math">${c.key.html?'':c.key.txt+' '}= <span class="kv">${c.key.v||'?'}</span></div></div><div class="keys">`+[1,2,3,4,5,6,7,8,9,'⌫',0,'✔'].map(k=>`<button class="opt k${k==='✔'?' go':''}" onclick="key('${k}')">${k}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
+function drawKey(c,m){const k=c.key,fs=k.txt&&k.txt.length>13?' style="font-size:2.2rem"':'',v=`<span class="kv">${k.v||'?'}</span>`;app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c});min-height:130px">${k.html||''}<div class="math"${fs}>${k.ml!==undefined?k.ml+' '+v+' '+k.mr:(k.html?'':k.txt+' ')+'= '+v}</div></div><div class="keys">`+[1,2,3,4,5,6,7,8,9,'⌫',0,'✔'].map(x=>`<button class="opt k${x==='✔'?' go':''}" onclick="key('${x}')">${x}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
 const rk=()=>drawKey(Q.cur,curM());
 function key(k){if(Q.done)return;const c=Q.cur.key;
  if(k==='✔'){if(!c.v)return;
@@ -191,20 +251,33 @@ function key(k){if(Q.done)return;const c=Q.cur.key;
  if(k==='⌫')c.v=c.v.slice(0,-1);else if(c.v.length<3)c.v+=k;
  rk()}
 /* mots à compléter */
-function genPho(){const L=lv('pho'),w=pick(WORDS.filter(x=>L>1||x[0].length<=5)),t=w[0],k=L>2?2:1,idx=[...t].map((c,i)=>i),p=k>1?rnd(t.length-1):pick(L>1?idx:idx.filter(i=>/[aeiouéâ]/.test(t[i]))),miss=t.slice(p,p+k),A='aeioulrstmnpcdbv',s=new Set([miss]);
- while(s.size<4)s.add(k<2?pick(A):Math.random()<.5?pick(A)+miss[1]:miss[0]+pick(A));
- return {q:`<div class="emo">${w[1]}</div><div class="word script">${t.slice(0,p)}<span class="blank">${miss}</span>${t.slice(p+k)}</div><p>${k>1?'Quelles lettres manquent ?':'Quelle lettre manque ?'}</p>`,opts:shuffle([...s]).map(x=>({h:x,ok:x===miss,f:'script'}))}}
+const DG=['ou','on','an','in','ch','oi','ai','au','eu','gn','ui','ei','ph','qu','en','eau','ill','ain','oin','ion','ail','eil'];
+function genPho(){const L=lv('pho'),w=pick(wpool(L)),t=w[0];let p,k;
+ const dgs=DG.filter(d=>t.includes(d)).sort((a,b)=>b.length-a.length);
+ if(L>=5&&dgs.length&&(L>=7||Math.random()<.6)){k=dgs[0].length;p=t.indexOf(dgs[0])}
+ else if(L>=5){k=2;p=rnd(t.length-1)}
+ else{k=1;const idx=[...t].map((c,i)=>i);p=pick(L<=2?idx.filter(i=>/[aeiouéèêâ]/.test(t[i])):idx)}
+ const miss=t.slice(p,p+k),s2=new Set([miss]);let g=0;
+ const isDG=DG.includes(miss),pl=isDG?DG.filter(d=>d.length===k&&d!==miss):null,V='aeiouéè',C='lrstmnpcdbvfgj',vow=k===1&&/[aeiouéèêâ]/.test(miss);
+ while(s2.size<4&&g++<300){
+  if(isDG&&pl.length)s2.add(pick(pl));
+  else if(k===1)s2.add(pick([...(vow?V:C)]));
+  else s2.add(Math.random()<.5?pick([...C+V])+miss.slice(1):miss.slice(0,-1)+pick([...C+V]))}
+ return {q:`<div class="emo">${w[1]}</div><div class="word script">${t.slice(0,p)}<span class="blank">${miss}</span>${t.slice(p+k)}</div><p>${k>1?'Quelles lettres manquent ?':'Quelle lettre manque ?'}</p>`,opts:shuffle([...s2]).map(x=>({h:x,ok:x===miss,f:'script'}))}}
 /* phrases */
-const SENT={1:[['Le chat dort','🐱'],['Le chien court','🐶'],['La lune brille','🌙'],['Le soleil brille','☀️'],['Le bateau flotte','⛵']],2:[['Papa lit un livre','📖'],['Maman mange une pomme','🍎'],['Léa fait du vélo','🚲'],['Le poisson nage vite','🐟'],['Maman fait un gâteau','🍰']],3:[['Le lapin mange une banane','🐰'],['Léa mange une grosse glace','🍦'],['Le petit chat boit du lait','🐱'],['Papa roule en voiture rouge','🚗'],['La fleur pousse dans le jardin','🌸']]};
-function genPhr(){const [s,e]=pick(SENT[lv('phr')]);const ws=s.split(' ').map((w,i,a)=>i===a.length-1?w+'.':w);let t;do{t=shuffle(ws.map((w,i)=>({w,i})))}while(t.every((x,i)=>x.i===i));return {type:'phr',emo:e,ws,tiles:t,placed:[]}}
+const SENT={1:[['Le chat dort','🐱'],['Le chien court','🐶'],['La lune brille','🌙'],['Le soleil brille','☀️'],['Le bateau flotte','⛵'],['Le lion rugit','🦁'],['La vache mange','🐄']],
+2:[['Papa lit un livre','📖'],['Maman mange une pomme','🍎'],['Léa fait du vélo','🚲'],['Le poisson nage vite','🐟'],['Maman fait un gâteau','🍰']],
+3:[['Le lapin mange une banane','🐰'],['Léa mange une grosse glace','🍦'],['Le petit chat boit du lait','🐱'],['Papa roule en voiture rouge','🚗'],['La fleur pousse dans le jardin','🌸']],
+4:[['Où est le chat ?','🐱'],['Qui mange la pomme ?','🍎'],['Que fait le lapin ?','🐰'],['Quel beau soleil !','☀️'],['Le chien court vite !','🐶'],['Vive les vacances !','🏖️']]};
+function genPhr(){const L=lv('phr'),[s,e]=pick(SENT[L<=2?1:L<=4?2:L<=7?3:4]);const ws=s.split(' ');if(!/[.?!]$/.test(s))ws[ws.length-1]+='.';let t;do{t=shuffle(ws.map((w,i)=>({w,i})))}while(t.every((x,i)=>x.i===i));return {type:'phr',emo:e,ws,tiles:t,placed:[]}}
 function drawPhr(c,m){app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c})"><div class="emo">${c.emo}</div><p>Remets les étiquettes dans l’ordre</p><div class="line">`+c.placed.map(i=>`<button class="tile" onclick="unplace(${i})">${c.ws[i]}</button>`).join('')+`</div></div><div class="pool">`+c.tiles.map(t=>`<button class="tile" ${c.placed.includes(t.i)?'disabled':''} onclick="place(${t.i})">${t.w}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
 const rp=()=>drawPhr(Q.cur,curM());
-function place(i){const c=Q.cur;if(Q.done||c.placed.includes(i))return;c.placed.push(i);say(c.ws[i].replace('.',''));rp();if(c.placed.length<c.ws.length)return;Q.done=true;
+function place(i){const c=Q.cur;if(Q.done||c.placed.includes(i))return;c.placed.push(i);if(/[A-Za-zÀ-ÿ]/.test(c.ws[i]))say(c.ws[i].replace('.',''));rp();if(c.placed.length<c.ws.length)return;Q.done=true;
  if(c.placed.every((v,k)=>v===k)){if(!Q.tries)Q.score++;sfx(true);fbk('Bravo ! 🎉');setTimeout(()=>say(c.ws.join(' ')),500);setTimeout(()=>{Q.n++;next()},2400)}
  else{Q.tries++;sfx(false);fbk('Essaie encore 💪');setTimeout(()=>{c.placed=[];Q.done=false;rp()},1300)}}
 function unplace(i){const c=Q.cur;if(Q.done)return;c.placed=c.placed.filter(x=>x!==i);rp()}
 /* memory */
-function startMem(){const n=[3,4,6][lv('mem')-1],ps=shuffle(WORDS).slice(0,n);
+function startMem(){const L=lv('mem'),n=[3,3,4,4,5,6,6,7,8,8][L-1],ps=shuffle(wpool(L)).slice(0,n);
  Q={id:'mem',n:0,score:0,N:10,pairs:n,found:0,err:0,sel:[],lock:false,cards:shuffle(ps.flatMap((p,k)=>[{k,h:p[1],w:0},{k,h:p[0],w:1}])).map((c,i)=>({...c,i,up:false,ok:false}))};drawMem()}
 function drawMem(){app.innerHTML=hdr(Q.found/Q.pairs,`${Q.found}/${Q.pairs}`)+`<div class="q" style="background:var(--c2);min-height:0"><p>Retrouve chaque image avec son mot</p></div><div class="mem ${Q.cards.length>6?'c4':''}">`+Q.cards.map(c=>{const s=c.up||c.ok;return `<button class="mc ${c.w?'w':''} ${s?'up':''} ${c.ok?'ok':''}" onclick="flip(${c.i})" ${c.ok?'disabled':''}>${s?c.h:'?'}</button>`}).join('')+`</div>`}
 function flip(i){if(Q.lock)return;const c=Q.cards[i];if(c.up||c.ok)return;c.up=true;Q.sel.push(c);if(c.w)say(c.h);
@@ -216,52 +289,69 @@ function flip(i){if(Q.lock)return;const c=Q.cards[i];if(c.up||c.ok)return;c.up=t
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const near=ans=>{const s=new Set([ans]);while(s.size<4){const d=ans+pick([-3,-2,-1,1,2,3]);if(d>=0)s.add(d)}return shuffle([...s]).map(x=>({h:x,ok:x===ans}))};
 /* joueurs et sauvegarde */
-function persist(){if(!P)return;D.profiles[P]={stars,lv:LV};D.last=P;try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}if(DBREF)DBREF.set({profiles:D.profiles,last:D.last,set:D.set}).catch(()=>{})}
+function persist(){if(!P)return;D.profiles[P]={stars,lv:LV};D.last=P;try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}if(DBREF)DBREF.set({profiles:D.profiles,last:D.last,set:D.set,ver:2}).catch(()=>{})}
 function who(){app.innerHTML=`<h1>Qui joue ?</h1><div class="grid">`+Object.keys(D.profiles).map(n=>`<button class="card" style="background:var(--c2)" data-n="${esc(n)}" onclick="pickP(this.dataset.n)"><span class="e">🧒</span>${esc(n)}<small>⭐ ${D.profiles[n].stars||0}</small></button>`).join('')+`</div><p class="sub" style="margin-top:18px">Nouveau joueur :</p><div class="top"><input id="nm" class="inp" maxlength="16" placeholder="Ton prénom" autocomplete="off"><button class="again" onclick="newP()">OK</button></div><p class="sub" style="margin-top:22px"><button class="chip" onclick="backup()">💾 Retrouver mes données</button></p>`}
 function pickP(n){P=n;D.last=n;initSession();D.profiles[n]=D.profiles[n]||{stars:0,lv:{}};stars=D.profiles[n].stars||0;LV=D.profiles[n].lv||{};persist();menu()}
 function newP(){const n=document.getElementById('nm').value.trim().slice(0,16);if(n)pickP(n)}
 (async()=>{try{if(typeof claude==='undefined')return;const db=await claude.use('db'),us=await claude.use('user');if(!db||!us)return;const uid=await us.id();if(!uid)return;DBREF=db.collection('data/users/'+uid).doc('cp');const s=await DBREF.get(),r=s.exists?s.data():null;
- if(r&&r.profiles){for(const n in r.profiles){const a=D.profiles[n],b=r.profiles[n];if(!a||(b.stars||0)>(a.stars||0))D.profiles[n]=b}
+ if(r&&r.profiles){if(r.ver!==2)mig(r.profiles);for(const n in r.profiles){const a=D.profiles[n],b=r.profiles[n];if(!a||(b.stars||0)>(a.stars||0))D.profiles[n]=b}
   if(P&&D.profiles[P]){stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}
   try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}
   if(!P)who()}
 }catch(e){}})();
 /* choix du niveau */
-function lvl(id){const m=MENU.find(x=>x.id===id),c=lv(id);app.innerHTML=hdr(0,'⭐ '+stars)+`<h1>${m.t}</h1><p class="sub">Choisis ton niveau</p><div class="grid" style="grid-template-columns:1fr">`+[['🌱','Facile','--c3'],['🌿','Moyen','--c4'],['🌳','Difficile','--c6']].map((x,i)=>`<button class="card" style="background:var(${x[2]})" onclick="setL('${id}',${i+1})"><span class="e">${x[0]}</span>Niveau ${i+1} · ${x[1]}<small>${c===i+1?'⭐ conseillé pour toi':''}</small></button>`).join('')+`</div>`}
-function setL(id,n){LV[id]=n;persist();start(id)}
+function lvl(id){PLAY={};const m=MENU.find(x=>x.id===id),c=lvS(id);
+ app.innerHTML=hdr(0,'⭐ '+stars)+`<h1>${m.t}</h1><button class="card" style="background:var(--c3);width:100%;margin-top:10px" onclick="setL('${id}',${c})"><span class="e">▶️</span>Jouer au niveau ${c}<small>Le niveau monte quand tu réussis !</small></button><p class="sub" style="margin-top:22px">Ou choisis un autre niveau :</p><div class="lvgrid">`+[...Array(10)].map((_,i)=>`<button class="lvb t${i<3?1:i<7?2:3} ${i+1===c?'on':''}" onclick="setL('${id}',${i+1})">${i+1}</button>`).join('')+`</div><p class="sub" style="margin-top:14px">🌱 1 à 3 : facile · 🌿 4 à 7 : moyen · 🌳 8 à 10 : difficile</p><p class="sub">Tu peux reprendre un niveau plus facile quand tu veux.</p>`}
+function setL(id,n){PLAY[id]=n;start(id)}
 /* problèmes */
 const HEROES=['Léa','Tom','Lola','Théo','Zoé','Nina'],NAMES=['Maman','Papa','Mamie','Papi','Lucie','Max'],ITEMS=[['pommes','🍎'],['billes','🔵'],['bonbons','🍬'],['crayons','✏️'],['fleurs','🌸'],['gâteaux','🍰'],['ballons','🎈']],BUY=[['une pomme','🍎'],['un gâteau','🍰'],['une glace','🍦'],['un livre','📖'],['un ballon','🎈']];
-function genPb(){const L=lv('pb'),n=pick(HEROES),f=pick(NAMES),[it,em0]=pick(ITEMS),T=pick(L<2?['s','a']:L<3?['s','a','m']:['m','x','s']);let t,ans,em=em0;
- if(T==='s'){const a=L<2?5+rnd(6):10+rnd(11),b=1+rnd(Math.min(a-1,L<2?5:9));ans=a-b;t=`${n} a ${a} ${it}. ${n} en donne ${b} à ${f}. Combien de ${it} reste-t-il à ${n} ?`}
- else if(T==='a'){const a=L<2?1+rnd(6):5+rnd(10),b=1+rnd(L<2?10-a:10);ans=a+b;t=`${n} a ${a} ${it}. ${f} donne ${b} ${it} de plus à ${n}. Combien de ${it} y a-t-il en tout ?`}
- else if(T==='m'){const [o,e]=pick(BUY),d=L<3?10:pick([5,10,20]),c=1+rnd(d-1);em=e;ans=d-c;t=`${n} achète ${o} qui coûte ${c} euro${c>1?'s':''}. ${n} donne ${d} euros à la marchande. Combien d’euros la marchande rend-elle ?`}
- else{const k=pick([2,5,10]),m=2+rnd(4);ans=m*k;t=`Il y a ${m} boîtes. Dans chaque boîte, il y a ${k} ${it}. Combien de ${it} y a-t-il en tout ?`}
+function genPb(){const L=lv('pb'),n=pick(HEROES),f=pick(NAMES),[it,em0]=pick(ITEMS),MX=[5,9,12,19,20,25,30,40,60,99][L-1];
+ const T=pick(L<=4?['s','a']:L<=6?['s','a','m']:L<=8?['s','a','m','x']:['s','a','m','x','t','d']);let t,ans,em=em0;
+ if(T==='s'){const a=R(Math.max(3,Math.floor(MX/2)),MX),b=R(1,Math.min(a-1,Math.max(2,Math.floor(MX/2))));ans=a-b;t=`${n} a ${a} ${it}. ${n} en donne ${b} à ${f}. Combien de ${it} reste-t-il à ${n} ?`}
+ else if(T==='a'){const a=R(1,Math.max(1,Math.floor(MX/2))),b=R(1,Math.max(1,MX-a));ans=a+b;t=`${n} a ${a} ${it}. ${f} donne ${b} ${it} de plus à ${n}. Combien de ${it} y a-t-il en tout ?`}
+ else if(T==='m'){const [o,e]=pick(BUY),d=pick(L<=6?[5,10]:L<=8?[10,20]:[10,20,50]),c=R(1,d-1);em=e;ans=d-c;t=`${n} achète ${o} qui coûte ${c} euro${c>1?'s':''}. ${n} donne ${d} euros à la marchande. Combien d’euros la marchande rend-elle ?`}
+ else if(T==='x'){const [m,k]=gl(()=>{const m=R(2,5),k=pick([2,3,5,10]);return m*k<=30&&[m,k]});ans=m*k;t=`Il y a ${m} boîtes. Dans chaque boîte, il y a ${k} ${it}. Combien de ${it} y a-t-il en tout ?`}
+ else if(T==='t'){const g=pick(NAMES.filter(x=>x!==f)),a=R(12,Math.min(MX,60)),b=R(2,Math.floor(a/3)),c=R(2,Math.floor(a/3));ans=a-b-c;t=`${n} a ${a} ${it}. ${n} en donne ${b} à ${f}, puis ${c} à ${g}. Combien de ${it} reste-t-il à ${n} ?`}
+ else{const [g,e]=gl(()=>{const g=R(2,5),e=R(2,6);return g*e<=30&&[g,e]});ans=e;t=`${g*e} ${it} sont partagés équitablement entre ${g} enfants. Combien de ${it} chaque enfant reçoit-il ?`}
  const h=`<div class="emo" style="font-size:3rem">${em}</div><p class="ptxt">${t}</p><button class="tile" onclick="say(Q.cur.say)">🔊 Écouter</button>`;
- return {q:h,opts:near(ans),say:t,key:L>1?{html:h,ans,v:''}:null}}
+ return {q:h,opts:near(ans),say:t,key:L>=4?{html:h,ans,v:''}:null}}
 /* compter */
-function genCpt(){const L=lv('cpt'),n=L<2?3+rnd(8):L<3?8+rnd(13):15+rnd(16),e=pick(['🍎','⭐','🐟','🎈','🌸','🚗']),h=`<div class="word" style="font-size:1.8rem;line-height:1.3">${e.repeat(n)}</div><p>Combien y en a-t-il ?</p>`;return {q:h,opts:near(n),key:L>1?{html:h,ans:n,v:''}:null}}
+function genCpt(){const L=lv('cpt'),n=[R(1,5),R(4,9),R(8,12),R(10,19),R(15,25),R(20,30),R(10,39),R(20,59),R(30,99),R(30,99)][L-1];let h;
+ if(L<=6){const e=pick(['🍎','⭐','🐟','🎈','🌸','🚗']);h=`<div class="word" style="font-size:${n>20?1.5:1.8}rem;line-height:1.3">${e.repeat(n)}</div><p>Combien y en a-t-il ?</p>`}
+ else{const d=Math.floor(n/10),u=n%10;h=`<div class="word" style="font-size:2rem;line-height:1.4">${'📦'.repeat(d)} ${'🔹'.repeat(u)}</div><p>📦 = 10 · 🔹 = 1</p><p>Combien y en a-t-il ?</p>`}
+ return {q:h,opts:near(n),key:L>=4?{html:h,ans:n,v:''}:null}}
 /* suites */
 const EMS=['🍎','🐱','⭐','🌙','🚗','🎈','🐟','🌸','🐶','🍌'];
+const PT={1:[[0,1]],2:[[0,0,1],[0,1,1]],3:[[0,1,2],[0,0,1]],4:[[0,1,1],[0,0,1,1],[0,1,2]],5:[[0,1,0,2],[0,0,1,1],[0,1,2,1]],6:[[0,1,2,0,1,3],[0,0,1,0,0,2],[0,1,0,2,0,3]]};
 function genSui(){const L=lv('sui');
- if(L>2&&Math.random()<.5){const d=pick([2,3,5,10]),s0=1+rnd(8),seq=[0,1,2,3].map(i=>s0+i*d),ans=s0+4*d,s=new Set([ans]);while(s.size<4){const x=ans+pick([-d,d,-1,1,2]);if(x>0)s.add(x)}return {q:`<div class="word" style="font-size:2.4rem">${seq.join(' , ')} , <span class="kv">?</span></div><p>Quel nombre vient ensuite ?</p>`,opts:shuffle([...s]).map(x=>({h:x,ok:x===ans}))}}
- const S=shuffle(EMS).slice(0,3),U=L<2?[0,1]:pick(L<3?[[0,1,2],[0,0,1],[0,1,1]]:[[0,1,0,2],[0,0,1,1],[0,1,2,1]]),len=L<2?5:U.length*2+rnd(U.length),sh=Array.from({length:len},(_,i)=>S[U[i%U.length]]),ans=S[U[len%U.length]],pool=L>2?[...S,pick(EMS.filter(e=>!S.includes(e)))]:S;
+ if(L>=7){let d,s0,up=true;
+  if(L===7){d=1;s0=R(1,15)}else if(L===8){d=pick([2,5,10]);s0=R(0,10)}else if(L===9){d=pick([1,2,5,10]);up=false;s0=R(40,60)}else{d=pick([2,3,4,5,10]);up=Math.random()<.6;s0=up?R(0,20):R(40,70)}
+  const seq=[0,1,2,3].map(i=>up?s0+i*d:s0-i*d),ans=up?s0+4*d:s0-4*d,s2=new Set([ans]);let g=0;
+  while(s2.size<4&&g++<200){const x=ans+pick([-d,d,-1,1,2,-2]);if(x>=0)s2.add(x)}
+  return {q:`<div class="word" style="font-size:2.4rem">${seq.join(' , ')} , <span class="kv">?</span></div><p>Quel nombre vient ensuite ?</p>`,opts:shuffle([...s2]).map(x=>({h:x,ok:x===ans}))}}
+ const S=shuffle(EMS).slice(0,4),U=pick(PT[L]),len=Math.min(10,U.length*2+rnd(U.length)),sh=Array.from({length:len},(_,i)=>S[U[i%U.length]]),ans=S[U[len%U.length]],pool=[...new Set(U.map(i=>S[i]))];
+ while(pool.length<(L<=2?3:4))pool.push(pick(EMS.filter(e=>!pool.includes(e))));
  return {q:`<div class="word" style="font-size:2.2rem;line-height:1.5">${sh.join(' ')} <span class="kv">❓</span></div><p>Que vient ensuite ?</p>`,opts:shuffle(pool).map(x=>({h:x,ok:x===ans}))}}
 /* morpion */
 const WL=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]],win=(b,s)=>WL.some(l=>l.every(i=>b[i]===s));
 function startMor(){Q={id:'mor',n:0,score:0,N:10,b:Array(9).fill(''),over:false,busy:false};drawMor()}
 function drawMor(msg){app.innerHTML=hdr(Q.b.filter(x=>x).length/9,'Morpion')+`<div class="q" style="background:var(--c6);min-height:0"><p>${msg||'À toi : tu es 🐱 !'}</p></div><div class="mem">`+Q.b.map((v,i)=>`<button class="mc" onclick="mor(${i})" ${v||Q.over?'disabled':''}>${v}</button>`).join('')+`</div>`}
 function mor(i){if(Q.over||Q.busy||Q.b[i])return;Q.b[i]='🐱';if(win(Q.b,'🐱'))return fin('win');if(Q.b.every(x=>x))return fin('draw');Q.busy=true;drawMor('Au tour de 🐶…');setTimeout(comp,700)}
-function comp(){const b=Q.b,L=lv('mor'),sure=Math.random()<[.6,.9,.95][L-1],f=s=>{for(const l of WL){const e=l.filter(i=>!b[i]);if(e.length===1&&l.filter(i=>b[i]===s).length===2)return e[0]}return -1};
+function comp(){const b=Q.b,L=lv('mor'),sure=Math.random()<[.3,.4,.5,.6,.7,.8,.85,.9,.95,1][L-1],f=s=>{for(const l of WL){const e=l.filter(i=>!b[i]);if(e.length===1&&l.filter(i=>b[i]===s).length===2)return e[0]}return -1};
  let m=-1;if(sure){m=f('🐶');if(m<0)m=f('🐱')}
- if(m<0&&L>1&&sure){const cs=[0,2,6,8].filter(i=>!b[i]);m=!b[4]?4:cs.length?pick(cs):-1}
+ if(m<0&&L>2&&sure){const cs=[0,2,6,8].filter(i=>!b[i]);m=!b[4]?4:cs.length?pick(cs):-1}
  if(m<0)m=pick(b.map((v,i)=>v?-1:i).filter(i=>i>=0));
  b[m]='🐶';Q.busy=false;if(win(b,'🐶'))return fin('lose');if(b.every(x=>x))return fin('draw');drawMor()}
-function fin(r){Q.over=true;Q.score=r==='win'?10:r==='draw'?7:5;drawMor(r==='win'?'Bravo, tu as gagné ! 🎉':r==='draw'?'Égalité !':'🐶 a gagné… retente !');sfx(r==='win');setTimeout(end,1800)}
+function fin(r){Q.over=true;Q.score=r==='win'?10:r==='draw'?7:4;drawMor(r==='win'?'Bravo, tu as gagné ! 🎉':r==='draw'?'Égalité !':'🐶 a gagné… retente !');sfx(r==='win');setTimeout(end,1800)}
 /* intrus */
 const GR={fruits:['🍎','🍌','🍇','🍓','🍊','🍒'],legumes:['🥕','🌽','🥦','🥔','🧅'],ferme:['🐄','🐷','🐔','🐑','🐴'],sauvages:['🦁','🐘','🦒','🐯','🐒'],mer:['🐟','🐙','🐬','🦀','🐳'],vehicules:['🚗','🚌','🚲','🚂','🚑'],vetements:['👕','👖','🧦','🧢','👗']};
 function genInt(){const L=lv('int'),top='<div class="emo" style="font-size:3rem">🕵️</div>';
- if(L>2&&Math.random()<.4){const ev=Math.random()<.5,pool=[...Array(19)].map((_,i)=>i+2),same=shuffle(pool.filter(x=>(x%2===0)===ev)).slice(0,3),odd=pick(pool.filter(x=>(x%2===0)!==ev));return {q:top+'<p>Trouve le nombre qui n’est pas comme les autres !</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
- const subtle=[['ferme','sauvages'],['fruits','legumes'],['mer','sauvages'],['mer','ferme']],[a,b]=L<2?shuffle(['fruits','vehicules','vetements','ferme']).slice(0,2):L<3?shuffle(Object.keys(GR)).slice(0,2):shuffle(pick(subtle)),same=shuffle(GR[a]).slice(0,3),odd=pick(GR[b]);
+ if(L>=7&&Math.random()<.5){const rule=pick(L>=9?['par','m5','m10']:['par']),pool=[...Array(L>=9?98:19)].map((_,i)=>i+2);let same,odd;
+  if(rule==='par'){const ev=Math.random()<.5;same=shuffle(pool.filter(x=>(x%2===0)===ev)).slice(0,3);odd=pick(pool.filter(x=>(x%2===0)!==ev))}
+  else if(rule==='m5'){same=shuffle(pool.filter(x=>x%5===0)).slice(0,3);odd=pick(pool.filter(x=>x%5!==0))}
+  else{same=shuffle(pool.filter(x=>x%10===0)).slice(0,3);odd=pick(pool.filter(x=>x%10!==0))}
+  return {q:top+'<p>Trouve le nombre qui n’est pas comme les autres !</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
+ const subtle=[['ferme','sauvages'],['fruits','legumes'],['mer','sauvages'],['mer','ferme']],[a,b]=L<=2?shuffle(['fruits','vehicules','vetements','ferme']).slice(0,2):L<=4?shuffle(Object.keys(GR)).slice(0,2):shuffle(pick(subtle)),same=shuffle(GR[a]).slice(0,3),odd=pick(GR[b]);
  return {q:top+'<p>Trouve l’intrus : lequel n’est pas comme les autres ?</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
 /* temps de jeu, espace parents, sauvegarde */
 const DURS=[5,10,15,20,30,45,60,0];
@@ -301,11 +391,11 @@ function parentPanel(){const cur=DUR(),left=SS?LEFT():0;
 function setDur(m){D.set={min:m};saveD();persist();if(!SS)newSession();parentPanel()}
 function startSess(){newSession();closeOvT()}
 /* code de sauvegarde */
-function mkCode(){return 'CP1-'+btoa(unescape(encodeURIComponent(JSON.stringify({p:D.profiles,s:D.set}))))}
+function mkCode(){return 'CP1-'+btoa(unescape(encodeURIComponent(JSON.stringify({p:D.profiles,s:D.set,v:2}))))}
 function readCode(c){try{c=String(c).replace(/\s+/g,'');if(c.indexOf('CP1-')!==0)return null;const o=JSON.parse(decodeURIComponent(escape(atob(c.slice(4)))));return o&&typeof o.p==='object'&&o.p?o:null}catch(e){return null}}
 function applyCode(o){let n=0;const ids=MENU.map(x=>x.id);
  for(const k in o.p){const nm=String(k).trim().slice(0,16);if(!nm||nm==='__proto__')continue;const b=o.p[k]||{},st=Math.min(99999,Math.max(0,parseInt(b.stars)||0)),l={};
-  for(const id of ids){const v=parseInt((b.lv||{})[id]);if(v>=1&&v<=3)l[id]=v}
+  for(const id of ids){let v=parseInt((b.lv||{})[id]);if(!(v>=1))continue;if(o.v!==2)v=[1,4,7][v-1]||1;if(v>=1&&v<=10)l[id]=v}
   const a=D.profiles[nm];if(!a||st>(a.stars||0))D.profiles[nm]={stars:st,lv:l};n++}
  if(o.s&&DURS.includes(+o.s.min))D.set={min:+o.s.min};
  if(P&&D.profiles[P]){stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}
