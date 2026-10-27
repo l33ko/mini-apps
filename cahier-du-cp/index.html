@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mon cahier du CP</title>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Playwrite+FR+Trad&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#fffdf5;--line:#cfdcf3;--margin:#f0a8b8;--ink:#2b2d6e;--card:#fff;--c1:#ffd6e0;--c2:#d4ecff;--c3:#d7f5d0;--c4:#fff0b8;--c5:#e6dcff;--c6:#ffe0c2;--good:#2e9e4f;--bad:#d8553d;--sh:#2b2d6e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--paper:#191b3a;--line:#2b3066;--margin:#7d3a58;--ink:#f1efff;--card:#262a5a;--c1:#5c2a43;--c2:#233f66;--c3:#24502f;--c4:#5a4a1c;--c5:#3d3270;--c6:#5c3a1f;--good:#5ed17f;--bad:#ff8a70;--sh:#0c0d22}}
+:root[data-theme="dark"]{color-scheme:dark;--paper:#191b3a;--line:#2b3066;--margin:#7d3a58;--ink:#f1efff;--card:#262a5a;--c1:#5c2a43;--c2:#233f66;--c3:#24502f;--c4:#5a4a1c;--c5:#3d3270;--c6:#5c3a1f;--good:#5ed17f;--bad:#ff8a70;--sh:#0c0d22}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:'Andika','Comic Sans MS',sans-serif;color:var(--ink);background-color:var(--paper);
+background-image:linear-gradient(90deg,transparent 47px,var(--margin) 47px,var(--margin) 49px,transparent 49px),linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 100%,100% 32px;-webkit-tap-highlight-color:transparent}
+#app{max-width:620px;margin:0 auto;padding:16px 16px 32px 60px}
+h1{font-size:2rem;margin:.2em 0 0;line-height:1.2}
+.sub{margin:0 0 18px;font-size:1.1rem}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.stars{margin-left:auto;font-weight:700;background:var(--c4);border:3px solid var(--sh);border-radius:99px;padding:4px 14px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card,.opt,.back,.big,.again{font:inherit;color:inherit;cursor:pointer;border:3px solid var(--sh);box-shadow:0 5px 0 var(--sh);transition:transform .08s,box-shadow .08s}
+.card:active,.opt:active,.big:active,.again:active,.back:active{transform:translateY(4px);box-shadow:0 1px 0 var(--sh)}
+.card{border-radius:22px;padding:18px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:1.15rem;font-weight:700;min-height:140px;justify-content:center}
+.card .e{font-size:2.4rem;line-height:1}
+.card:last-child{grid-column:1/-1}
+.card{min-height:112px}
+.card small{font-weight:400;font-size:.85rem}
+.back{border-radius:14px;background:var(--card);font-size:1.4rem;padding:6px 14px}
+.bar{flex:1;height:18px;border:3px solid var(--sh);border-radius:99px;background:var(--card);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--good);transition:width .3s}
+.q{background:var(--card);border:3px solid var(--sh);border-radius:24px;padding:18px;text-align:center;margin-bottom:18px;min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.q p{margin:0;font-size:1.15rem}
+.emo{font-size:5.5rem;line-height:1.1}
+.big{background:var(--c2);border-radius:99px;font-size:2.6rem;width:92px;height:92px}
+.word{font-size:3rem;line-height:1.6}
+.math{font-size:3.4rem;font-weight:700;letter-spacing:.04em}
+.cursive{font-family:'Playwrite FR Trad','Brush Script MT',cursive;line-height:1.7}
+.script{font-family:'Andika','Comic Sans MS',sans-serif}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.opts.three{grid-template-columns:1fr}
+.opt{background:var(--card);border-radius:20px;padding:12px 6px;font-size:2rem;font-weight:700;min-height:76px}
+.opt.cursive{font-weight:400;font-size:1.9rem}
+.opt.good{background:var(--c3);border-color:var(--good);animation:pop .4s}
+.opt.bad{background:var(--c6);border-color:var(--bad);opacity:.6;animation:shake .3s}
+.fb{text-align:center;font-size:1.5rem;font-weight:700;min-height:44px;margin-top:14px}
+.end{text-align:center}
+.end .s{font-size:4rem;letter-spacing:.1em}
+.again{border-radius:99px;background:var(--c4);font-size:1.3rem;font-weight:700;padding:12px 26px;margin:6px}
+.line{min-height:70px;width:100%;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;border-bottom:3px dashed var(--sh);padding:6px 0}
+.pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.tile{font:inherit;color:inherit;background:var(--card);border:3px solid var(--sh);border-radius:14px;box-shadow:0 4px 0 var(--sh);padding:8px 14px;font-size:1.5rem;font-weight:700;cursor:pointer}
+.tile:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sh)}
+.tile:disabled{opacity:.2;box-shadow:none}
+.blank{display:inline-block;min-width:1em;border-bottom:5px solid var(--bad);color:transparent}
+.mem{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mem.c4{grid-template-columns:repeat(4,1fr)}
+.mc{aspect-ratio:1;border-radius:16px;border:3px solid var(--sh);box-shadow:0 4px 0 var(--sh);background:var(--c5);font:inherit;color:inherit;font-size:2.2rem;font-weight:700;cursor:pointer;padding:2px;display:flex;align-items:center;justify-content:center}
+.mc.w{font-size:.95rem;word-break:break-word}
+.mc.up{background:var(--card)}
+.mc.ok{background:var(--c3);border-color:var(--good)}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.opt.k{min-height:64px;font-size:1.9rem}
+.opt.go{background:var(--c3)}
+.kv{display:inline-block;min-width:2ch;border-bottom:5px solid var(--sh)}
+.chip{font:inherit;color:inherit;background:var(--card);border:3px solid var(--sh);border-radius:99px;padding:6px 16px;margin:0 0 14px;cursor:pointer}
+.inp{font:inherit;font-size:1.4rem;padding:10px 14px;border:3px solid var(--sh);border-radius:14px;background:var(--card);color:var(--ink);flex:1;min-width:0}
+.ptxt{font-size:1.25rem;line-height:1.5;margin:0}
+.mc:disabled{opacity:1}
+@keyframes pop{50%{transform:scale(1.07)}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:focus-visible{outline:4px solid var(--good);outline-offset:3px}
+@media (max-width:380px){#app{padding-left:54px}.opt{font-size:1.6rem}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const WORDS=[['chat','🐱'],['lune','🌙'],['maison','🏠'],['pomme','🍎'],['soleil','☀️'],['vélo','🚲'],['fleur','🌸'],['livre','📖'],['poisson','🐟'],['gâteau','🍰'],['étoile','⭐'],['lapin','🐰'],['banane','🍌'],['arbre','🌳'],['bateau','⛵'],['chien','🐶'],['voiture','🚗'],['glace','🍦']];
+const MENU=[
+ {id:'lec',t:'Lecture',e:'📖',s:'mots et images',c:'--c1'},
+ {id:'ecr',t:'Écriture',e:'✏️',s:'attachée ou bâton',c:'--c2'},
+ {id:'pho',t:'Mots à compléter',e:'🔤',s:'lettres manquantes',c:'--c5'},
+ {id:'phr',t:'Phrases',e:'🧩',s:'remets les étiquettes',c:'--c6'},
+ {id:'mem',t:'Memory',e:'🃏',s:'image et mot',c:'--c2'},
+ {id:'add',t:'Additions',e:'➕',s:'jusqu’à 20',c:'--c3'},
+ {id:'sou',t:'Soustractions',e:'➖',s:'jusqu’à 20',c:'--c4'},
+ {id:'mul',t:'Multiplications',e:'✖️',s:'tables de 2, 3, 4, 5, 10',c:'--c5'},
+ {id:'pb',t:'Problèmes',e:'🛒',s:'pommes, monnaie…',c:'--c4'},
+ {id:'cpt',t:'Compter',e:'🔢',s:'combien y en a-t-il ?',c:'--c3'},
+ {id:'sui',t:'Suites',e:'🔗',s:'que vient ensuite ?',c:'--c5'},
+ {id:'mor',t:'Morpion',e:'⭕',s:'contre l’ordinateur',c:'--c6'},
+ {id:'int',t:'Intrus',e:'🕵️',s:'lequel est différent ?',c:'--c1'},
+ {id:'mix',t:'Maths mélangées',e:'🎲',s:'le grand défi',c:'--c6'}];
+const app=document.getElementById('app');
+let stars=0,Q=null,LV={},P='',D={profiles:{},last:''},DBREF=null;const lv=id=>LV[id]||1;
+try{D=JSON.parse(localStorage.getItem('cp-data'))||D}catch(e){}
+if(D.last&&D.profiles[D.last]){P=D.last;stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}
+const rnd=n=>Math.floor(Math.random()*n),pick=a=>a[rnd(a.length)],shuffle=a=>[...a].sort(()=>Math.random()-.5);
+let AC=null;
+function tone(f,t0,d,type,v){const c=AC,n=c.currentTime+t0,o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(v||.18,n+.02);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(c.destination);o.start(n);o.stop(n+d+.05)}
+function sfx(ok){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();if(ok){[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,i*.09,.4))}else{tone(220,0,.25,'triangle',.2);tone(174.6,.16,.4,'triangle',.2)}}catch(e){}}
+let VOICE=null;
+function loadVoice(){try{const v=speechSynthesis.getVoices();const fr=v.filter(x=>/^fr/i.test(x.lang)),ok=x=>!/Thomas|Daniel|Paul|Henri|Claude|Nicolas|Male/i.test(x.name);VOICE=fr.find(x=>/Aur[ée]lie|Audrey|Marie|Am[ée]lie|Julie|Denise|Google/i.test(x.name)&&ok(x))||fr.find(x=>/^fr[-_]FR/i.test(x.lang)&&ok(x))||fr.find(ok)||fr[0]||null}catch(e){}}
+try{loadVoice();speechSynthesis.onvoiceschanged=loadVoice}catch(e){}
+function say(t){try{const s=speechSynthesis;s.cancel();setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';if(VOICE)u.voice=VOICE;u.rate=.82;u.pitch=1.1;u.volume=1;s.resume();s.speak(u)},80)}catch(e){}}
+
+function menu(){
+ Q=null;
+ app.innerHTML=`<div class="top"><h1>Salut ${esc(P)} ! 👋</h1><span class="stars">⭐ ${stars}</span></div>
+ <button class="chip" onclick="who()">👤 Changer de joueur</button><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
+ MENU.map(m=>`<button class="card" style="background:var(${m.c})" onclick="lvl('${m.id}')"><span class="e">${m.e}</span>${m.t}<small>${m.s}</small><small>Niveau ${'●'.repeat(lv(m.id))}${'○'.repeat(3-lv(m.id))}</small></button>`).join('')+`</div>`;
+}
+
+function genLec(){
+ const L=lv('lec'),w=pick(WORDS.filter(x=>L>1||x[0].length<=5)),listen=Math.random()<.35&&!!window.speechSynthesis;
+ const opts=shuffle([w,...shuffle(WORDS.filter(x=>x!==w)).sort((a,b)=>L>2?Math.abs(a[0].length-w[0].length)-Math.abs(b[0].length-w[0].length):0).slice(0,L>2?3:2)]).map(o=>({h:o[0],ok:o===w,f:'script'}));
+ return {q:listen?`<button class="big" onclick="say('${w[0]}')" aria-label="Écouter">🔊</button><p>Écoute, puis trouve le mot</p>`:`<div class="emo">${w[1]}</div><p>Quel est ce mot ?</p>`,opts,say:listen?w[0]:null,hint:listen?w[1]:null,three:L<3};
+}
+function genEcr(){
+ const list=['chat','lune','rose','vélo','fleur','livre','lapin','pomme','soleil','arbre','papa','mamie'];
+ const L=lv('ecr'),w=pick(list.filter(x=>x.length<=(L<2?4:L<3?5:9))),toCur=Math.random()<.5;
+ const opts=shuffle([w,...shuffle(list.filter(x=>x!==w&&(L<3||Math.abs(x.length-w.length)<2))).slice(0,2)]).map(o=>({h:o,ok:o===w,f:toCur?'cursive':'script'}));
+ return {q:`<div class="word ${toCur?'script':'cursive'}">${w}</div><p>Trouve le même mot en écriture ${toCur?'attachée':'bâton'}</p>`,opts,three:true};
+}
+function genMath(op,L){L=L||1;
+ let a,b,ans,txt;
+ if(op==='add'){a=L<2?rnd(6):rnd(11);b=L<2?rnd(6):L<3?rnd(11):1+rnd(10);if(L>2)a=5+rnd(11);ans=a+b;txt=`${a} + ${b}`}
+ else if(op==='sou'){a=L<2?1+rnd(10):5+rnd(16);b=rnd(Math.min(a,L>2?15:10)+1);ans=a-b;txt=`${a} − ${b}`}
+ else{a=pick(L<2?[2,10]:L<3?[2,5,10]:[2,3,4,5,10]);b=1+rnd(L<2?5:10);ans=a*b;txt=`${a} × ${b}`}
+ const s=new Set([ans]);
+ while(s.size<4){const d=ans+pick([-10,-3,-2,-1,1,2,3,10]);if(d>=0)s.add(d)}
+ return {q:`<div class="math">${txt} = ?</div>`,opts:shuffle([...s]).map(n=>({h:n,ok:n===ans})),key:L>1?{txt,ans,v:''}:null};
+}
+function gen(id){return id==='lec'?genLec():id==='ecr'?genEcr():id==='pho'?genPho():id==='phr'?genPhr():id==='sui'?genSui():id==='pb'?genPb():id==='cpt'?genCpt():id==='int'?genInt():genMath(id==='mix'?pick(['add','sou','mul']):id,lv(id))}
+
+function start(id){if(STARTERS[id])return STARTERS[id]();Q={id,n:0,score:0,N:10};next()}
+function next(){if(Q.n>=Q.N)return end();Q.cur=gen(Q.id);Q.tries=0;Q.done=false;Q.hinted=false;draw()}
+function draw(){
+ const c=Q.cur,m=MENU.find(x=>x.id===Q.id);if(c.type==='phr')return drawPhr(c,m);if(c.key)return drawKey(c,m);
+ app.innerHTML=`<div class="top"><button class="back" onclick="menu()" aria-label="Retour">←</button><div class="bar"><i style="width:${Q.n/Q.N*100}%"></i></div><span class="stars">${Q.n+1}/${Q.N}</span></div>
+ <div class="q" style="background:var(${m.c})">${c.q}</div>
+ <div class="opts ${c.three?'three':''}">`+c.opts.map((o,i)=>`<button class="opt ${o.f||''}" onclick="ans(${i},this)">${o.h}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`;
+ if(c.say)setTimeout(()=>say(c.say),300);
+}
+function ans(i,btn){
+ if(Q.done)return;
+ const o=Q.cur.opts[i],fb=document.getElementById('fb');
+ if(o.ok){
+  Q.done=true;btn.classList.add('good');sfx(true);
+  if(Q.tries===0)Q.score++;
+  fb.textContent=pick(['Bravo ! 🎉','Super ! ⭐','Génial ! 🌟','Bien joué ! 👏']);
+  setTimeout(()=>{Q.n++;next()},1100);
+ }else{
+  Q.tries++;btn.classList.add('bad');btn.disabled=true;sfx(false);fb.textContent='Essaie encore 💪';
+  if(Q.cur.hint&&!Q.hinted){Q.hinted=true;document.querySelector('.q').insertAdjacentHTML('beforeend',`<div class="emo">${Q.cur.hint}</div>`)}
+ }
+}
+function end(){
+ const sc=Q.score,st=sc>=9?3:sc>=6?2:1,id=Q.id;
+ stars+=st;const o=lv(id),nl=sc>=9?Math.min(3,o+1):sc<=4?Math.max(1,o-1):o;LV[id]=nl;persist();
+ app.innerHTML=`<div class="end"><h1>${sc>=9?'Champion !':sc>=6?'Très bien !':'Continue !'}</h1>
+ <div class="s">${'⭐'.repeat(st)}</div><p class="sub">${GAMES.includes(id)?`Score : ${sc} sur ${Q.N}`:`${sc} bonnes réponses du premier coup sur ${Q.N}`}</p><p class="sub">${nl>o?'⬆️ Niveau supérieur !':nl<o?'On s’entraîne encore un peu 🌱':'Même niveau, continue !'} (niveau ${nl}/3)</p>
+ <button class="again" onclick="start('${id}')">🔁 Rejouer</button><button class="again" onclick="menu()">🏠 Menu</button></div>`;
+}
+const hdr=(p,l)=>`<div class="top"><button class="back" onclick="menu()" aria-label="Retour">←</button><div class="bar"><i style="width:${p*100}%"></i></div><span class="stars">${l}</span></div>`;
+const fbk=t=>{const e=document.getElementById('fb');if(e)e.textContent=t};
+const curM=()=>MENU.find(x=>x.id===Q.id);
+/* clavier */
+function drawKey(c,m){app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c});min-height:130px">${c.key.html||''}<div class="math">${c.key.html?'':c.key.txt+' '}= <span class="kv">${c.key.v||'?'}</span></div></div><div class="keys">`+[1,2,3,4,5,6,7,8,9,'⌫',0,'✔'].map(k=>`<button class="opt k${k==='✔'?' go':''}" onclick="key('${k}')">${k}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
+const rk=()=>drawKey(Q.cur,curM());
+function key(k){if(Q.done)return;const c=Q.cur.key;
+ if(k==='✔'){if(!c.v)return;
+  if(+c.v===c.ans){Q.done=true;if(!Q.tries)Q.score++;sfx(true);rk();fbk(pick(['Bravo ! 🎉','Super ! ⭐','Génial ! 🌟']));setTimeout(()=>{Q.n++;next()},1100)}
+  else{Q.tries++;sfx(false);c.v='';rk();fbk('Essaie encore 💪')}
+  return}
+ if(k==='⌫')c.v=c.v.slice(0,-1);else if(c.v.length<3)c.v+=k;
+ rk()}
+/* mots à compléter */
+function genPho(){const L=lv('pho'),w=pick(WORDS.filter(x=>L>1||x[0].length<=5)),t=w[0],k=L>2?2:1,idx=[...t].map((c,i)=>i),p=k>1?rnd(t.length-1):pick(L>1?idx:idx.filter(i=>/[aeiouéâ]/.test(t[i]))),miss=t.slice(p,p+k),A='aeioulrstmnpcdbv',s=new Set([miss]);
+ while(s.size<4)s.add(k<2?pick(A):Math.random()<.5?pick(A)+miss[1]:miss[0]+pick(A));
+ return {q:`<div class="emo">${w[1]}</div><div class="word script">${t.slice(0,p)}<span class="blank">${miss}</span>${t.slice(p+k)}</div><p>${k>1?'Quelles lettres manquent ?':'Quelle lettre manque ?'}</p>`,opts:shuffle([...s]).map(x=>({h:x,ok:x===miss,f:'script'}))}}
+/* phrases */
+const SENT={1:[['Le chat dort','🐱'],['Le chien court','🐶'],['La lune brille','🌙'],['Le soleil brille','☀️'],['Le bateau flotte','⛵']],2:[['Papa lit un livre','📖'],['Maman mange une pomme','🍎'],['Léa fait du vélo','🚲'],['Le poisson nage vite','🐟'],['Maman fait un gâteau','🍰']],3:[['Le lapin mange une banane','🐰'],['Léa mange une grosse glace','🍦'],['Le petit chat boit du lait','🐱'],['Papa roule en voiture rouge','🚗'],['La fleur pousse dans le jardin','🌸']]};
+function genPhr(){const [s,e]=pick(SENT[lv('phr')]);const ws=s.split(' ').map((w,i,a)=>i===a.length-1?w+'.':w);let t;do{t=shuffle(ws.map((w,i)=>({w,i})))}while(t.every((x,i)=>x.i===i));return {type:'phr',emo:e,ws,tiles:t,placed:[]}}
+function drawPhr(c,m){app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c})"><div class="emo">${c.emo}</div><p>Remets les étiquettes dans l’ordre</p><div class="line">`+c.placed.map(i=>`<button class="tile" onclick="unplace(${i})">${c.ws[i]}</button>`).join('')+`</div></div><div class="pool">`+c.tiles.map(t=>`<button class="tile" ${c.placed.includes(t.i)?'disabled':''} onclick="place(${t.i})">${t.w}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
+const rp=()=>drawPhr(Q.cur,curM());
+function place(i){const c=Q.cur;if(Q.done||c.placed.includes(i))return;c.placed.push(i);say(c.ws[i].replace('.',''));rp();if(c.placed.length<c.ws.length)return;Q.done=true;
+ if(c.placed.every((v,k)=>v===k)){if(!Q.tries)Q.score++;sfx(true);fbk('Bravo ! 🎉');setTimeout(()=>say(c.ws.join(' ')),500);setTimeout(()=>{Q.n++;next()},2400)}
+ else{Q.tries++;sfx(false);fbk('Essaie encore 💪');setTimeout(()=>{c.placed=[];Q.done=false;rp()},1300)}}
+function unplace(i){const c=Q.cur;if(Q.done)return;c.placed=c.placed.filter(x=>x!==i);rp()}
+/* memory */
+function startMem(){const n=[3,4,6][lv('mem')-1],ps=shuffle(WORDS).slice(0,n);
+ Q={id:'mem',n:0,score:0,N:10,pairs:n,found:0,err:0,sel:[],lock:false,cards:shuffle(ps.flatMap((p,k)=>[{k,h:p[1],w:0},{k,h:p[0],w:1}])).map((c,i)=>({...c,i,up:false,ok:false}))};drawMem()}
+function drawMem(){app.innerHTML=hdr(Q.found/Q.pairs,`${Q.found}/${Q.pairs}`)+`<div class="q" style="background:var(--c2);min-height:0"><p>Retrouve chaque image avec son mot</p></div><div class="mem ${Q.cards.length>6?'c4':''}">`+Q.cards.map(c=>{const s=c.up||c.ok;return `<button class="mc ${c.w?'w':''} ${s?'up':''} ${c.ok?'ok':''}" onclick="flip(${c.i})" ${c.ok?'disabled':''}>${s?c.h:'?'}</button>`}).join('')+`</div>`}
+function flip(i){if(Q.lock)return;const c=Q.cards[i];if(c.up||c.ok)return;c.up=true;Q.sel.push(c);if(c.w)say(c.h);
+ if(Q.sel.length<2)return drawMem();
+ const [a,b]=Q.sel;Q.sel=[];
+ if(a.k===b.k){a.ok=b.ok=true;a.up=b.up=false;Q.found++;sfx(true);drawMem();if(Q.found===Q.pairs){Q.score=Q.err<=2?10:Math.max(0,11-Q.err);setTimeout(end,1000)}}
+ else{Q.err++;Q.lock=true;drawMem();sfx(false);setTimeout(()=>{a.up=b.up=false;Q.lock=false;drawMem()},1000)}}
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const near=ans=>{const s=new Set([ans]);while(s.size<4){const d=ans+pick([-3,-2,-1,1,2,3]);if(d>=0)s.add(d)}return shuffle([...s]).map(x=>({h:x,ok:x===ans}))};
+/* joueurs et sauvegarde */
+function persist(){if(!P)return;D.profiles[P]={stars,lv:LV};D.last=P;try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}if(DBREF)DBREF.set({profiles:D.profiles,last:D.last}).catch(()=>{})}
+function who(){app.innerHTML=`<h1>Qui joue ?</h1><div class="grid">`+Object.keys(D.profiles).map(n=>`<button class="card" style="background:var(--c2)" data-n="${esc(n)}" onclick="pickP(this.dataset.n)"><span class="e">🧒</span>${esc(n)}<small>⭐ ${D.profiles[n].stars||0}</small></button>`).join('')+`</div><p class="sub" style="margin-top:18px">Nouveau joueur :</p><div class="top"><input id="nm" class="inp" maxlength="16" placeholder="Ton prénom" autocomplete="off"><button class="again" onclick="newP()">OK</button></div>`}
+function pickP(n){P=n;D.last=n;D.profiles[n]=D.profiles[n]||{stars:0,lv:{}};stars=D.profiles[n].stars||0;LV=D.profiles[n].lv||{};persist();menu()}
+function newP(){const n=document.getElementById('nm').value.trim().slice(0,16);if(n)pickP(n)}
+(async()=>{try{if(typeof claude==='undefined')return;const db=await claude.use('db'),us=await claude.use('user');if(!db||!us)return;const uid=await us.id();if(!uid)return;DBREF=db.collection('data/users/'+uid).doc('cp');const s=await DBREF.get(),r=s.exists?s.data():null;
+ if(r&&r.profiles){for(const n in r.profiles){const a=D.profiles[n],b=r.profiles[n];if(!a||(b.stars||0)>(a.stars||0))D.profiles[n]=b}
+  if(P&&D.profiles[P]){stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}
+  try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}
+  if(!P)who()}
+}catch(e){}})();
+/* choix du niveau */
+function lvl(id){const m=MENU.find(x=>x.id===id),c=lv(id);app.innerHTML=hdr(0,'⭐ '+stars)+`<h1>${m.t}</h1><p class="sub">Choisis ton niveau</p><div class="grid" style="grid-template-columns:1fr">`+[['🌱','Facile','--c3'],['🌿','Moyen','--c4'],['🌳','Difficile','--c6']].map((x,i)=>`<button class="card" style="background:var(${x[2]})" onclick="setL('${id}',${i+1})"><span class="e">${x[0]}</span>Niveau ${i+1} · ${x[1]}<small>${c===i+1?'⭐ conseillé pour toi':''}</small></button>`).join('')+`</div>`}
+function setL(id,n){LV[id]=n;persist();start(id)}
+/* problèmes */
+const NAMES=['Lucie','Noé','Maman','Papa','Mamie','Inès'],ITEMS=[['pommes','🍎'],['billes','🔵'],['bonbons','🍬'],['crayons','✏️'],['fleurs','🌸'],['gâteaux','🍰'],['ballons','🎈']],BUY=[['une pomme','🍎'],['un gâteau','🍰'],['une glace','🍦'],['un livre','📖'],['un ballon','🎈']];
+function genPb(){const L=lv('pb'),n=P||'Léa',f=pick(NAMES),[it,em0]=pick(ITEMS),T=pick(L<2?['s','a']:L<3?['s','a','m']:['m','x','s']);let t,ans,em=em0;
+ if(T==='s'){const a=L<2?5+rnd(6):10+rnd(11),b=1+rnd(Math.min(a-1,L<2?5:9));ans=a-b;t=`${n} a ${a} ${it}. ${n} en donne ${b} à ${f}. Combien de ${it} reste-t-il à ${n} ?`}
+ else if(T==='a'){const a=L<2?1+rnd(6):5+rnd(10),b=1+rnd(L<2?10-a:10);ans=a+b;t=`${n} a ${a} ${it}. ${f} donne ${b} ${it} de plus à ${n}. Combien de ${it} y a-t-il en tout ?`}
+ else if(T==='m'){const [o,e]=pick(BUY),d=L<3?10:pick([5,10,20]),c=1+rnd(d-1);em=e;ans=d-c;t=`${n} achète ${o} qui coûte ${c} euro${c>1?'s':''}. ${n} donne ${d} euros à la marchande. Combien d’euros la marchande rend-elle ?`}
+ else{const k=pick([2,5,10]),m=2+rnd(4);ans=m*k;t=`Il y a ${m} boîtes. Dans chaque boîte, il y a ${k} ${it}. Combien de ${it} y a-t-il en tout ?`}
+ const h=`<div class="emo" style="font-size:3rem">${em}</div><p class="ptxt">${t}</p><button class="tile" onclick="say(Q.cur.say)">🔊 Écouter</button>`;
+ return {q:h,opts:near(ans),say:t,key:L>1?{html:h,ans,v:''}:null}}
+/* compter */
+function genCpt(){const L=lv('cpt'),n=L<2?3+rnd(8):L<3?8+rnd(13):15+rnd(16),e=pick(['🍎','⭐','🐟','🎈','🌸','🚗']),h=`<div class="word" style="font-size:1.8rem;line-height:1.3">${e.repeat(n)}</div><p>Combien y en a-t-il ?</p>`;return {q:h,opts:near(n),key:L>1?{html:h,ans:n,v:''}:null}}
+/* suites */
+const EMS=['🍎','🐱','⭐','🌙','🚗','🎈','🐟','🌸','🐶','🍌'];
+function genSui(){const L=lv('sui');
+ if(L>2&&Math.random()<.5){const d=pick([2,3,5,10]),s0=1+rnd(8),seq=[0,1,2,3].map(i=>s0+i*d),ans=s0+4*d,s=new Set([ans]);while(s.size<4){const x=ans+pick([-d,d,-1,1,2]);if(x>0)s.add(x)}return {q:`<div class="word" style="font-size:2.4rem">${seq.join(' , ')} , <span class="kv">?</span></div><p>Quel nombre vient ensuite ?</p>`,opts:shuffle([...s]).map(x=>({h:x,ok:x===ans}))}}
+ const S=shuffle(EMS).slice(0,3),U=L<2?[0,1]:pick(L<3?[[0,1,2],[0,0,1],[0,1,1]]:[[0,1,0,2],[0,0,1,1],[0,1,2,1]]),len=L<2?5:U.length*2+rnd(U.length),sh=Array.from({length:len},(_,i)=>S[U[i%U.length]]),ans=S[U[len%U.length]],pool=L>2?[...S,pick(EMS.filter(e=>!S.includes(e)))]:S;
+ return {q:`<div class="word" style="font-size:2.2rem;line-height:1.5">${sh.join(' ')} <span class="kv">❓</span></div><p>Que vient ensuite ?</p>`,opts:shuffle(pool).map(x=>({h:x,ok:x===ans}))}}
+/* morpion */
+const WL=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]],win=(b,s)=>WL.some(l=>l.every(i=>b[i]===s));
+function startMor(){Q={id:'mor',n:0,score:0,N:10,b:Array(9).fill(''),over:false,busy:false};drawMor()}
+function drawMor(msg){app.innerHTML=hdr(Q.b.filter(x=>x).length/9,'Morpion')+`<div class="q" style="background:var(--c6);min-height:0"><p>${msg||'À toi : tu es 🐱 !'}</p></div><div class="mem">`+Q.b.map((v,i)=>`<button class="mc" onclick="mor(${i})" ${v||Q.over?'disabled':''}>${v}</button>`).join('')+`</div>`}
+function mor(i){if(Q.over||Q.busy||Q.b[i])return;Q.b[i]='🐱';if(win(Q.b,'🐱'))return fin('win');if(Q.b.every(x=>x))return fin('draw');Q.busy=true;drawMor('Au tour de 🐶…');setTimeout(comp,700)}
+function comp(){const b=Q.b,L=lv('mor'),sure=Math.random()<[.6,.9,.95][L-1],f=s=>{for(const l of WL){const e=l.filter(i=>!b[i]);if(e.length===1&&l.filter(i=>b[i]===s).length===2)return e[0]}return -1};
+ let m=-1;if(sure){m=f('🐶');if(m<0)m=f('🐱')}
+ if(m<0&&L>1&&sure){const cs=[0,2,6,8].filter(i=>!b[i]);m=!b[4]?4:cs.length?pick(cs):-1}
+ if(m<0)m=pick(b.map((v,i)=>v?-1:i).filter(i=>i>=0));
+ b[m]='🐶';Q.busy=false;if(win(b,'🐶'))return fin('lose');if(b.every(x=>x))return fin('draw');drawMor()}
+function fin(r){Q.over=true;Q.score=r==='win'?10:r==='draw'?7:5;drawMor(r==='win'?'Bravo, tu as gagné ! 🎉':r==='draw'?'Égalité !':'🐶 a gagné… retente !');sfx(r==='win');setTimeout(end,1800)}
+/* intrus */
+const GR={fruits:['🍎','🍌','🍇','🍓','🍊','🍒'],legumes:['🥕','🌽','🥦','🥔','🧅'],ferme:['🐄','🐷','🐔','🐑','🐴'],sauvages:['🦁','🐘','🦒','🐯','🐒'],mer:['🐟','🐙','🐬','🦀','🐳'],vehicules:['🚗','🚌','🚲','🚂','🚑'],vetements:['👕','👖','🧦','🧢','👗']};
+function genInt(){const L=lv('int'),top='<div class="emo" style="font-size:3rem">🕵️</div>';
+ if(L>2&&Math.random()<.4){const ev=Math.random()<.5,pool=[...Array(19)].map((_,i)=>i+2),same=shuffle(pool.filter(x=>(x%2===0)===ev)).slice(0,3),odd=pick(pool.filter(x=>(x%2===0)!==ev));return {q:top+'<p>Trouve le nombre qui n’est pas comme les autres !</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
+ const subtle=[['ferme','sauvages'],['fruits','legumes'],['mer','sauvages'],['mer','ferme']],[a,b]=L<2?shuffle(['fruits','vehicules','vetements','ferme']).slice(0,2):L<3?shuffle(Object.keys(GR)).slice(0,2):shuffle(pick(subtle)),same=shuffle(GR[a]).slice(0,3),odd=pick(GR[b]);
+ return {q:top+'<p>Trouve l’intrus : lequel n’est pas comme les autres ?</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
+/* sons des boutons */
+function tap(k){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();if(k==='card')[440,660].forEach((f,i)=>tone(f,i*.06,.12,'sine',.12));else if(k==='back')tone(330,0,.12,'sine',.12);else tone(620,0,.07,'triangle',.12)}catch(e){}}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(!b||b.disabled)return;const cl=b.classList;if(cl.contains('opt')&&!cl.contains('k'))return;tap(cl.contains('card')||cl.contains('again')||cl.contains('chip')?'card':cl.contains('back')?'back':'pop')},true);
+const STARTERS={mem:startMem,mor:startMor},GAMES=['mem','mor'];
+
+P?menu():who();
+</script>
+</body>
+</html>
