@@ -128,17 +128,20 @@ let AC=null;
 function tone(f,t0,d,type,v){const c=AC,n=c.currentTime+t0,o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(v||.18,n+.02);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(c.destination);o.start(n);o.stop(n+d+.05)}
 function sfx(ok){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();if(ok){[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,i*.09,.4))}else{tone(220,0,.25,'triangle',.2);tone(174.6,.16,.4,'triangle',.2)}}catch(e){}}
 let VOICE=null;
-function loadVoice(){try{const v=speechSynthesis.getVoices();const fr=v.filter(x=>/^fr/i.test(x.lang)),ok=x=>!/Thomas|Daniel|Paul|Henri|Claude|Nicolas|Male/i.test(x.name);VOICE=fr.find(x=>/Aur[ée]lie|Audrey|Marie|Am[ée]lie|Julie|Denise|Google/i.test(x.name)&&ok(x))||fr.find(x=>/^fr[-_]FR/i.test(x.lang)&&ok(x))||fr.find(ok)||fr[0]||null}catch(e){}}
+function loadVoice(){try{const v=speechSynthesis.getVoices();const fr=v.filter(x=>/^fr/i.test(x.lang)).sort((a,b)=>(b.localService?1:0)-(a.localService?1:0)),ok=x=>!/Thomas|Daniel|Paul|Henri|Claude|Nicolas|Male/i.test(x.name);VOICE=fr.find(x=>/Aur[ée]lie|Audrey|Marie|Am[ée]lie|Julie|Denise/i.test(x.name)&&ok(x))||fr.find(x=>/^fr[-_]FR/i.test(x.lang)&&ok(x))||fr.find(ok)||fr[0]||null}catch(e){}}
 try{loadVoice();speechSynthesis.onvoiceschanged=loadVoice}catch(e){}
 const NAR=()=>{try{return localStorage.getItem('cp-nar')!=='0'}catch(e){return true}};
 function togNar(){try{localStorage.setItem('cp-nar',NAR()?'0':'1')}catch(e){}menu()}
 const SPK='<button class="tile" onclick="say(Q.cur.nr)" aria-label="Écouter la consigne">🔊 Écouter</button>';
-function say(t){try{const s=speechSynthesis;s.cancel();setTimeout(()=>{s.resume();[].concat(t).forEach(x=>{const u=new SpeechSynthesisUtterance(x);u.lang='fr-FR';if(VOICE)u.voice=VOICE;u.rate=.82;u.pitch=1.1;u.volume=1;s.speak(u)})},80)}catch(e){}}
+let VERR='';
+function say(t){try{const s=speechSynthesis;if(!VOICE)loadVoice();if(s.speaking||s.pending)s.cancel();setTimeout(()=>{s.resume();[].concat(t).forEach(x=>{const u=new SpeechSynthesisUtterance(x);u.lang='fr-FR';if(VOICE)u.voice=VOICE;u.rate=.82;u.pitch=1.1;u.volume=1;u.onerror=e=>{VERR=e.error||'erreur'};s.speak(u)})},120)}catch(e){VERR=String(e)}}
+document.addEventListener('pointerdown',()=>{if(window.__vu)return;window.__vu=1;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}},true);
+function testVoice(){VERR='';say('Bonjour ! Je suis la voix de ton cahier.');setTimeout(()=>{const m=document.getElementById('vm'),n=(()=>{try{return speechSynthesis.getVoices().length}catch(e){return 0}})();if(m)m.textContent=!window.speechSynthesis?'Ce navigateur ne sait pas parler.':`Voix : ${VOICE?VOICE.name:'aucune voix française trouvée'} (${n} voix sur l’appareil)${VERR?' · erreur : '+VERR:''}`},900)}
 
 function menu(){
  Q=null;PLAY={};setTimeout(tick,0);
  app.innerHTML=`<div class="top"><h1>Salut ${esc(P)} ! 👋</h1><span class="stars">⭐ ${stars}</span></div>
- <button class="chip" onclick="parents()">⚙️ Parents</button> <button class="chip" onclick="backup()">💾 Sauvegarde</button> <button class="chip" onclick="who()">👤 Changer de joueur</button> <button class="chip" onclick="togNar()">${NAR()?'🔊 Consignes : oui':'🔇 Consignes : non'}</button><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
+ <button class="chip" onclick="parents()">⚙️ Parents</button> <button class="chip" onclick="backup()">💾 Sauvegarde</button> <button class="chip" onclick="who()">👤 Changer de joueur</button> <button class="chip" onclick="testVoice()">🔈 Tester la voix</button> <button class="chip" onclick="togNar()">${NAR()?'🔊 Consignes : oui':'🔇 Consignes : non'}</button><p class="msg" id="vm" style="font-size:.85rem;font-weight:400"></p><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
  MENU.map(m=>`<button class="card" style="background:var(${m.c})" onclick="lvl('${m.id}')"><span class="e">${m.e}</span>${m.t}<small>${m.s}</small><small>${lvS(m.id)<=3?'🌱':lvS(m.id)<=7?'🌿':'🌳'} Niveau ${lvS(m.id)}</small></button>`).join('')+`</div>`;
 }
 
