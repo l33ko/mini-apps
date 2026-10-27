@@ -330,7 +330,7 @@ function genPb(){const L=lv('pb'),n=pick(HEROES),f=pick(NAMES),[it,em0]=pick(ITE
 function genCpt(){const L=lv('cpt'),n=[R(1,5),R(4,9),R(8,12),R(10,19),R(15,25),R(20,30),R(10,39),R(20,59),R(30,99),R(30,99)][L-1];let h;
  if(L<=6){const e=pick(['🍎','⭐','🐟','🎈','🌸','🚗']);h=`<div class="word" style="font-size:${n>20?1.5:1.8}rem;line-height:1.3">${e.repeat(n)}</div><p>Combien y en a-t-il ?</p>`}
  else{const d=Math.floor(n/10),u=n%10;h=`<div class="word" style="font-size:2rem;line-height:1.4">${'📦'.repeat(d)} ${'🔹'.repeat(u)}</div><p>📦 = 10 · 🔹 = 1</p><p>Combien y en a-t-il ?</p>`}
- return {nr:L<=6?'Combien y en a-t-il ? Compte bien.':'Un paquet vaut dix. Un petit carré vaut un. Combien y en a-t-il ?',q:h,opts:near(n),key:L>=4?{html:h,ans:n,v:''}:null}}
+ return {nb:true,nr:L<=6?'Combien y en a-t-il ?':'Un paquet vaut dix. Un petit carré vaut un. Combien y en a-t-il ?',q:h,opts:near(n),key:L>=4?{html:h,ans:n,v:''}:null}}
 /* suites */
 const EMS=['🍎','🐱','⭐','🌙','🚗','🎈','🐟','🌸','🐶','🍌'];
 const PT={1:[[0,1]],2:[[0,0,1],[0,1,1]],3:[[0,1,2],[0,0,1]],4:[[0,1,1],[0,0,1,1],[0,1,2]],5:[[0,1,0,2],[0,0,1,1],[0,1,2,1]],6:[[0,1,2,0,1,3],[0,0,1,0,0,2],[0,1,0,2,0,3]]};
@@ -339,10 +339,10 @@ function genSui(){const L=lv('sui');
   if(L===7){d=1;s0=R(1,15)}else if(L===8){d=pick([2,5,10]);s0=R(0,10)}else if(L===9){d=pick([1,2,5,10]);up=false;s0=R(40,60)}else{d=pick([2,3,4,5,10]);up=Math.random()<.6;s0=up?R(0,20):R(40,70)}
   const seq=[0,1,2,3].map(i=>up?s0+i*d:s0-i*d),ans=up?s0+4*d:s0-4*d,s2=new Set([ans]);let g=0;
   while(s2.size<4&&g++<200){const x=ans+pick([-d,d,-1,1,2,-2]);if(x>=0)s2.add(x)}
-  return {nr:'Complète la suite.',q:`<div class="word" style="font-size:2.4rem">${seq.join(' , ')} , <span class="kv">?</span></div><p>Quel nombre vient ensuite ?</p>`,opts:shuffle([...s2]).map(x=>({h:x,ok:x===ans}))}}
+  return {nb:true,nr:'Complète la suite.',q:`<div class="word" style="font-size:2.4rem">${seq.join(' , ')} , <span class="kv">?</span></div><p>Quel nombre vient ensuite ?</p>`,opts:shuffle([...s2]).map(x=>({h:x,ok:x===ans}))}}
  const S=shuffle(EMS).slice(0,4),U=pick(PT[L]),len=Math.min(10,U.length*2+rnd(U.length)),sh=Array.from({length:len},(_,i)=>S[U[i%U.length]]),ans=S[U[len%U.length]],pool=[...new Set(U.map(i=>S[i]))];
  while(pool.length<(L<=2?3:4))pool.push(pick(EMS.filter(e=>!pool.includes(e))));
- return {nr:'Complète la suite.',q:`<div class="word" style="font-size:2.2rem;line-height:1.5">${sh.join(' ')} <span class="kv">❓</span></div><p>Que vient ensuite ?</p>`,opts:shuffle(pool).map(x=>({h:x,ok:x===ans}))}}
+ return {nb:true,nr:'Complète la suite.',q:`<div class="word" style="font-size:2.2rem;line-height:1.5">${sh.join(' ')} <span class="kv">❓</span></div><p>Que vient ensuite ?</p>`,opts:shuffle(pool).map(x=>({h:x,ok:x===ans}))}}
 /* morpion */
 const WL=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]],win=(b,s)=>WL.some(l=>l.every(i=>b[i]===s));
 function startMor(){Q={id:'mor',n:0,score:0,N:10,b:Array(9).fill(''),over:false,busy:false};drawMor();if(NAR())say('À toi de jouer ! Tu es le chat.')}
