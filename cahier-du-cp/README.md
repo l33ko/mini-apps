@@ -50,6 +50,7 @@ Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de mul
 - Une série compte 10 questions. Les étoiles (1 à 3) dépendent des bonnes réponses du premier coup.
 - Le niveau s'adapte aux résultats : il monte avec 9 bonnes réponses ou plus, et baisse avec 4 ou moins.
 - À partir du niveau 4 en maths, l'enfant tape la réponse sur un clavier de chiffres au lieu de choisir parmi des propositions.
+- **Mode clair ou sombre** : un bouton du menu change les couleurs (clair, pastel et coloré par défaut).
 - **Consignes audio** : chaque énoncé est lu à voix haute automatiquement, et un bouton 🔊 Écouter permet de le réécouter. Les « Bravo » et « Essaie encore » sont aussi dits, pour les enfants qui ne lisent pas encore. L'option « Consignes » du menu permet de couper la lecture automatique.
 - Un son distingue les bonnes et les mauvaises réponses, et un petit son accompagne chaque bouton.
 
@@ -62,7 +63,7 @@ Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de mul
 ## Espace parents
 
 - Un compteur affiche le temps de jeu restant. Par défaut, une session dure **15 minutes**.
-- À la fin, l'écran se verrouille. Un adulte doit résoudre une multiplication (par exemple 17 × 8) pour accéder à l'espace parents.
+- À la fin, l'écran se verrouille. Un adulte doit résoudre un petit calcul (par exemple 7 × 4) pour accéder à l'espace parents.
 - Les parents peuvent choisir la durée (5, 10, 15, 20, 30, 45 ou 60 minutes, ou sans limite), relancer une session ou gérer la sauvegarde.
 - Une nouvelle session démarre automatiquement chaque jour.
 - Ce contrôle n'est pas une protection absolue : vider les données du navigateur ou changer de navigateur remet le compteur à zéro.
