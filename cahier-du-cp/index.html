@@ -74,6 +74,7 @@ h1{font-size:2rem;margin:.2em 0 0;line-height:1.2}
 .lvb:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sh)}
 .lvb.t1{background:var(--c3)}.lvb.t2{background:var(--c4)}.lvb.t3{background:var(--c6)}
 .lvb.on{outline:4px solid var(--good);outline-offset:2px}
+:root[data-theme="light"] .stars{background:#2b2d6e;color:#fff}
 .tm{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;font-weight:700;background:var(--c4);border:3px solid var(--sh);border-radius:99px;padding:4px 14px;box-shadow:0 3px 0 var(--sh)}
 .tm.low{background:var(--c6);border-color:var(--bad);color:var(--bad)}
 #ov{position:fixed;inset:0;z-index:50;background-color:var(--paper);overflow-y:auto;display:none;color:var(--ink)}
@@ -114,9 +115,9 @@ const MENU=[
  {id:'pb',t:'Problèmes',e:'🛒',s:'pommes, monnaie…',c:'--c4'},
  {id:'cpt',t:'Compter',e:'🔢',s:'combien y en a-t-il ?',c:'--c3'},
  {id:'sui',t:'Suites',e:'🔗',s:'que vient ensuite ?',c:'--c5'},
- {id:'mor',t:'Morpion',e:'⭕',s:'contre l’ordinateur',c:'--c6'},
+ {id:'mix',t:'Maths mélangées',e:'🎲',s:'le grand défi',c:'--c6'},
  {id:'int',t:'Intrus',e:'🕵️',s:'lequel est différent ?',c:'--c1'},
- {id:'mix',t:'Maths mélangées',e:'🎲',s:'le grand défi',c:'--c6'}];
+ {id:'mor',t:'Morpion',e:'⭕',s:'contre l’ordinateur',c:'--c6'}];
 const app=document.getElementById('app');
 let TH=(()=>{try{return localStorage.getItem('cp-theme')||'light'}catch(e){return'light'}})();document.documentElement.dataset.theme=TH;
 function togTheme(){TH=TH==='dark'?'light':'dark';try{localStorage.setItem('cp-theme',TH)}catch(e){}document.documentElement.dataset.theme=TH;menu()}
@@ -310,7 +311,7 @@ function newP(){const n=document.getElementById('nm').value.trim().slice(0,16);i
 }catch(e){}})();
 /* choix du niveau */
 function lvl(id){PLAY={};const m=MENU.find(x=>x.id===id),c=lvS(id);if(NAR())say(m.t);
- app.innerHTML=hdr(0,'⭐ '+stars)+`<h1>${m.t}</h1><button class="card" style="background:var(--c3);width:100%;margin-top:10px" onclick="setL('${id}',${c})"><span class="e">▶️</span>Jouer au niveau ${c}<small>Le niveau monte quand tu réussis !</small></button><p class="sub" style="margin-top:22px">Ou choisis un autre niveau :</p><div class="lvgrid">`+[...Array(10)].map((_,i)=>`<button class="lvb t${i<3?1:i<7?2:3} ${i+1===c?'on':''}" onclick="setL('${id}',${i+1})">${i+1}</button>`).join('')+`</div><p class="sub" style="margin-top:14px">🌱 1 à 3 : facile · 🌿 4 à 7 : moyen · 🌳 8 à 10 : difficile</p><p class="sub">Tu peux reprendre un niveau plus facile quand tu veux.</p>`}
+ app.innerHTML=hdr(0,'⭐ '+stars)+`<h1>${m.t}</h1><button class="card" style="background:var(--c3);width:100%;margin-top:10px" onclick="setL('${id}',${c})"><span class="e">▶️</span>Jouer au niveau ${c}<small>Le niveau monte quand tu réussis !</small></button><p class="sub" style="margin-top:22px">Ou choisis un autre niveau :</p><div class="lvgrid">`+[...Array(10)].map((_,i)=>`<button class="lvb t${i<3?1:i<7?2:3} ${i+1===c?'on':''}" onclick="setL('${id}',${i+1})">${i+1}</button>`).join('')+`</div><p class="sub">Tu peux reprendre un niveau plus facile quand tu veux.</p>`}
 function setL(id,n){PLAY[id]=n;start(id)}
 /* problèmes */
 const HEROES=['Léa','Tom','Lola','Théo','Zoé','Nina'],NAMES=['Maman','Papa','Mamie','Papi','Lucie','Max'],ITEMS=[['pommes','🍎'],['billes','🔵'],['bonbons','🍬'],['crayons','✏️'],['fleurs','🌸'],['gâteaux','🍰'],['ballons','🎈']],BUY=[['une pomme','🍎'],['un gâteau','🍰'],['une glace','🍦'],['un livre','📖'],['un ballon','🎈']];
