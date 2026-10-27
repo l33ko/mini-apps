@@ -230,7 +230,7 @@ function ans(i,btn){
  if(o.ok){
   Q.done=true;btn.classList.add('good');sfx(true);
   if(Q.tries===0)Q.score++;
-  fbk(pick(['Bravo ! 🎉','Super ! ⭐','Génial ! 🌟','Bien joué ! 👏']));
+  
   setTimeout(()=>{Q.n++;next()},1100);
  }else{
   Q.tries++;btn.classList.add('bad');btn.disabled=true;sfx(false);fbk('Essaie encore 💪');
@@ -255,7 +255,7 @@ function drawKey(c,m){const k=c.key,fs=k.txt&&k.txt.length>13?' style="font-size
 const rk=()=>drawKey(Q.cur,curM());
 function key(k){if(Q.done)return;const c=Q.cur.key;
  if(k==='✔'){if(!c.v)return;
-  if(+c.v===c.ans){Q.done=true;if(!Q.tries)Q.score++;sfx(true);rk();fbk(pick(['Bravo ! 🎉','Super ! ⭐','Génial ! 🌟']));setTimeout(()=>{Q.n++;next()},1100)}
+  if(+c.v===c.ans){Q.done=true;if(!Q.tries)Q.score++;sfx(true);rk();setTimeout(()=>{Q.n++;next()},1100)}
   else{Q.tries++;sfx(false);c.v='';rk();fbk('Essaie encore 💪')}
   return}
  if(k==='⌫')c.v=c.v.slice(0,-1);else if(c.v.length<3)c.v+=k;
@@ -283,7 +283,7 @@ function genPhr(){const L=lv('phr'),[s,e]=pick(SENT[L<=2?1:L<=4?2:L<=7?3:4]);con
 function drawPhr(c,m){app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c})"><div class="emo">${c.emo}</div><p>Remets les étiquettes dans l’ordre</p><div class="line">`+c.placed.map(i=>`<button class="tile" onclick="unplace(${i})">${c.ws[i]}</button>`).join('')+`</div></div><div class="pool">`+c.tiles.map(t=>`<button class="tile" ${c.placed.includes(t.i)?'disabled':''} onclick="place(${t.i})">${t.w}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
 const rp=()=>drawPhr(Q.cur,curM());
 function place(i){const c=Q.cur;if(Q.done||c.placed.includes(i))return;c.placed.push(i);if(/[A-Za-zÀ-ÿ]/.test(c.ws[i]))say(c.ws[i].replace('.',''));rp();if(c.placed.length<c.ws.length)return;Q.done=true;
- if(c.placed.every((v,k)=>v===k)){if(!Q.tries)Q.score++;sfx(true);fbk('Bravo ! 🎉');setTimeout(()=>say(c.ws.join(' ')),500);setTimeout(()=>{Q.n++;next()},2400)}
+ if(c.placed.every((v,k)=>v===k)){if(!Q.tries)Q.score++;sfx(true);setTimeout(()=>say(c.ws.join(' ')),500);setTimeout(()=>{Q.n++;next()},2400)}
  else{Q.tries++;sfx(false);fbk('Essaie encore 💪');setTimeout(()=>{c.placed=[];Q.done=false;rp()},1300)}}
 function unplace(i){const c=Q.cur;if(Q.done)return;c.placed=c.placed.filter(x=>x!==i);rp()}
 /* memory */
