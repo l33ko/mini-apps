@@ -1,8 +1,8 @@
 # Mon cahier du CP
 
-Petite application web éducative pour une enfant de 6 ans en CP. Elle s'ouvre dans n'importe quel navigateur (iPhone, iPad, ordinateur), tient dans un seul fichier `index.html` et n'a besoin ni d'installation ni de compte.
+Application web éducative pour les enfants de CP (6-7 ans). Elle s'ouvre dans n'importe quel navigateur (iPhone, iPad, ordinateur), tient dans un seul fichier `index.html` et n'a besoin ni d'installation ni de compte.
 
-L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à toucher, des sons et une voix qui lit les mots à voix haute.
+L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à toucher, des sons et une voix qui lit les mots à voix haute. Les activités s'inspirent du programme de CP (cycle 2) du ministère de l'Éducation nationale. Le tableau ci-dessous dit honnêtement ce qui correspond au programme et ce qui reste à faire.
 
 ## Les activités
 
@@ -10,20 +10,36 @@ L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à to
 - **Lecture** : retrouver le mot qui correspond à une image, ou écouter un mot et le retrouver.
 - **Écriture** : reconnaître un mot en écriture attachée (cursive) ou en écriture bâton.
 - **Mots à compléter** : retrouver la ou les lettres manquantes d'un mot.
-- **Phrases** : remettre des étiquettes dans l'ordre pour construire une phrase. Chaque étiquette touchée est lue à voix haute.
+- **Phrases** : remettre des étiquettes dans l'ordre pour construire une phrase, avec la majuscule au début et le point à la fin. Chaque étiquette touchée est lue à voix haute.
 
 **Mathématiques**
 - **Additions** et **soustractions** jusqu'à 20.
-- **Multiplications** avec les tables de 2, 3, 4, 5 et 10.
-- **Problèmes** : petites histoires de la vie courante (partager des pommes, la monnaie rendue par la marchande), lues à voix haute sur demande.
+- **Problèmes** : petites histoires de la vie courante (donner des pommes, la monnaie rendue par la marchande, des boîtes qui contiennent le même nombre d'objets), lues à voix haute sur demande.
 - **Compter** : dénombrer des objets à l'écran.
-- **Maths mélangées** : un défi qui combine les trois opérations.
+- **Multiplications** avec les tables de 2, 3, 4, 5 et 10.
+- **Maths mélangées** : un défi qui combine additions, soustractions et multiplications.
 
 **Jeux**
 - **Memory** : associer chaque image à son mot.
 - **Suites** : trouver ce qui vient ensuite dans une suite d'images ou de nombres.
 - **Morpion** : jouer contre l'ordinateur.
 - **Intrus** : trouver l'élément qui n'est pas comme les autres.
+
+## Lien avec le programme de CP
+
+| Domaine du programme | Ce que fait l'application | État |
+| --- | --- | --- |
+| Lire des mots, mots fréquents | Lecture de mots à partir d'images ou d'un mot entendu | Couvert en partie |
+| Écrire en cursive | L'enfant reconnaît les mots en cursive et en bâton, mais il ne les trace pas | Partiel |
+| Encoder et orthographier des mots | Lettres manquantes dans un mot | Partiel |
+| Phrase : majuscule, ponctuation, ordre des mots | Reconstruction de phrases avec étiquettes | Couvert en partie |
+| Nombres jusqu'à 100 | Les additions et soustractions s'arrêtent à 20 | À étendre |
+| Problèmes additifs en une ou deux étapes | Problèmes en une étape | Partiel |
+| Problèmes multiplicatifs en une étape (nombres jusqu'à 30, sans les signes × et :) | Problèmes de boîtes à contenu égal, mais certains dépassent 30 | À ajuster |
+| Compléments à 10, doubles, moitiés | Pas encore proposés comme activités | À ajouter |
+| Tables de multiplication | Les tables de 2, 3, 4, 5 et 10 sont proposées | Au-delà du programme de CP |
+
+Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de multiplication : le champ multiplicatif y apparaît seulement sous forme de problèmes. Cette activité est donc un bonus pour les enfants en avance, pas un attendu.
 
 ## Niveaux et progression
 
@@ -55,12 +71,20 @@ L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à to
 ## Notes techniques
 
 - Un seul fichier HTML avec son CSS et son JavaScript, sans dépendance ni outil de build.
-- Seule la police Andika (et Playwrite FR Trad pour l'écriture cursive) vient de Google Fonts. Sans connexion, le navigateur utilise une police de secours.
+- Seules les polices Andika et Playwrite FR Trad (écriture cursive) viennent de Google Fonts. Sans connexion, le navigateur utilise une police de secours.
 - La voix utilise la synthèse vocale du navigateur (`speechSynthesis`), en choisissant de préférence une voix française féminine. Les sons sont générés avec l'API Web Audio.
-- Pour que l'appli joue des sons et parle sur iPhone, le bouton de sourdine doit être désactivé et le volume média monté.
+- Pour que l'application joue des sons et parle sur iPhone, le bouton de sourdine doit être désactivé et le volume média monté.
 - Les données sont dans le `localStorage` du navigateur : elles disparaissent si on vide les données du site ou en navigation privée.
 
 ## Idées pour la suite
 
-- Dictée de mots, lecture de l'heure, rangement de nombres, labyrinthe.
-- Davantage de mots, de phrases et de problèmes.
+- Étendre les additions et soustractions jusqu'à 100, avec le franchissement de la dizaine.
+- Ajouter les compléments à 10, les doubles et les moitiés.
+- Proposer des problèmes en deux étapes.
+- Dictée de mots, copie de phrases, singulier et pluriel, accents.
+- Lecture de l'heure, rangement de nombres, labyrinthe.
+
+## Sources
+
+- Attendus de fin d'année de CP en mathématiques : [ministère de l'Éducation nationale](https://education.gouv.fr/media/28958/download)
+- Résumé des attendus de français au CP : [résumé par niveaux du programme de français du cycle 2](https://maitresselunicole.fr/wp-content/uploads/2025/03/resume-par-niveaux-programme-de-francais-cycle-2-2024-3.pdf) (document d'une enseignante, à comparer avec le texte officiel)
