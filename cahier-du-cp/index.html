@@ -14,7 +14,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;font-family:'Andika','Comic Sans MS',sans-serif;color:var(--ink);background-color:var(--paper);
 background-image:linear-gradient(90deg,transparent 47px,var(--margin) 47px,var(--margin) 49px,transparent 49px),linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 100%,100% 32px;-webkit-tap-highlight-color:transparent}
-#app{max-width:620px;margin:0 auto;padding:16px 16px 32px 60px}
+#app{max-width:620px;margin:0 auto;padding:16px 16px 70px 60px}
 h1{font-size:2rem;margin:.2em 0 0;line-height:1.2}
 .sub{margin:0 0 18px;font-size:1.1rem}
 .top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
@@ -68,6 +68,15 @@ h1{font-size:2rem;margin:.2em 0 0;line-height:1.2}
 .inp{font:inherit;font-size:1.4rem;padding:10px 14px;border:3px solid var(--sh);border-radius:14px;background:var(--card);color:var(--ink);flex:1;min-width:0}
 .ptxt{font-size:1.25rem;line-height:1.5;margin:0}
 .mc:disabled{opacity:1}
+.tm{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;font-weight:700;background:var(--c4);border:3px solid var(--sh);border-radius:99px;padding:4px 14px;box-shadow:0 3px 0 var(--sh)}
+.tm.low{background:var(--c6);border-color:var(--bad);color:var(--bad)}
+#ov{position:fixed;inset:0;z-index:50;background-color:var(--paper);overflow-y:auto;display:none;color:var(--ink)}
+#ov .in{max-width:520px;margin:0 auto;padding:24px 16px 40px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.row .chip{margin:0}
+.chip.on{background:var(--c3);border-color:var(--good);font-weight:700}
+textarea.inp{width:100%;min-height:90px;font-size:1rem;word-break:break-all;display:block;margin-bottom:10px}
+.msg{min-height:1.6em;font-weight:700;margin:8px 0}
 @keyframes pop{50%{transform:scale(1.07)}}
 @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -77,6 +86,8 @@ h1{font-size:2rem;margin:.2em 0 0;line-height:1.2}
 </head>
 <body>
 <div id="app"></div>
+<div id="tm" class="tm" style="display:none"></div>
+<div id="ov"><div class="in" id="ovc"></div></div>
 <script>
 const WORDS=[['chat','🐱'],['lune','🌙'],['maison','🏠'],['pomme','🍎'],['soleil','☀️'],['vélo','🚲'],['fleur','🌸'],['livre','📖'],['poisson','🐟'],['gâteau','🍰'],['étoile','⭐'],['lapin','🐰'],['banane','🍌'],['arbre','🌳'],['bateau','⛵'],['chien','🐶'],['voiture','🚗'],['glace','🍦']];
 const MENU=[
@@ -95,8 +106,9 @@ const MENU=[
  {id:'int',t:'Intrus',e:'🕵️',s:'lequel est différent ?',c:'--c1'},
  {id:'mix',t:'Maths mélangées',e:'🎲',s:'le grand défi',c:'--c6'}];
 const app=document.getElementById('app');
-let stars=0,Q=null,LV={},P='',D={profiles:{},last:''},DBREF=null;const lv=id=>LV[id]||1;
+let stars=0,Q=null,LV={},P='',D={profiles:{},last:'',set:{min:15}},DBREF=null;const lv=id=>LV[id]||1;
 try{D=JSON.parse(localStorage.getItem('cp-data'))||D}catch(e){}
+D.set=D.set||{min:15};D.profiles=D.profiles||{};
 if(D.last&&D.profiles[D.last]){P=D.last;stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}
 const rnd=n=>Math.floor(Math.random()*n),pick=a=>a[rnd(a.length)],shuffle=a=>[...a].sort(()=>Math.random()-.5);
 let AC=null;
@@ -110,7 +122,7 @@ function say(t){try{const s=speechSynthesis;s.cancel();setTimeout(()=>{const u=n
 function menu(){
  Q=null;
  app.innerHTML=`<div class="top"><h1>Salut ${esc(P)} ! 👋</h1><span class="stars">⭐ ${stars}</span></div>
- <button class="chip" onclick="who()">👤 Changer de joueur</button><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
+ <button class="chip" onclick="parents()">⚙️ Parents</button> <button class="chip" onclick="backup()">💾 Sauvegarde</button> <button class="chip" onclick="who()">👤 Changer de joueur</button><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
  MENU.map(m=>`<button class="card" style="background:var(${m.c})" onclick="lvl('${m.id}')"><span class="e">${m.e}</span>${m.t}<small>${m.s}</small><small>Niveau ${'●'.repeat(lv(m.id))}${'○'.repeat(3-lv(m.id))}</small></button>`).join('')+`</div>`;
 }
 
@@ -204,9 +216,9 @@ function flip(i){if(Q.lock)return;const c=Q.cards[i];if(c.up||c.ok)return;c.up=t
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const near=ans=>{const s=new Set([ans]);while(s.size<4){const d=ans+pick([-3,-2,-1,1,2,3]);if(d>=0)s.add(d)}return shuffle([...s]).map(x=>({h:x,ok:x===ans}))};
 /* joueurs et sauvegarde */
-function persist(){if(!P)return;D.profiles[P]={stars,lv:LV};D.last=P;try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}if(DBREF)DBREF.set({profiles:D.profiles,last:D.last}).catch(()=>{})}
-function who(){app.innerHTML=`<h1>Qui joue ?</h1><div class="grid">`+Object.keys(D.profiles).map(n=>`<button class="card" style="background:var(--c2)" data-n="${esc(n)}" onclick="pickP(this.dataset.n)"><span class="e">🧒</span>${esc(n)}<small>⭐ ${D.profiles[n].stars||0}</small></button>`).join('')+`</div><p class="sub" style="margin-top:18px">Nouveau joueur :</p><div class="top"><input id="nm" class="inp" maxlength="16" placeholder="Ton prénom" autocomplete="off"><button class="again" onclick="newP()">OK</button></div>`}
-function pickP(n){P=n;D.last=n;D.profiles[n]=D.profiles[n]||{stars:0,lv:{}};stars=D.profiles[n].stars||0;LV=D.profiles[n].lv||{};persist();menu()}
+function persist(){if(!P)return;D.profiles[P]={stars,lv:LV};D.last=P;try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}if(DBREF)DBREF.set({profiles:D.profiles,last:D.last,set:D.set}).catch(()=>{})}
+function who(){app.innerHTML=`<h1>Qui joue ?</h1><div class="grid">`+Object.keys(D.profiles).map(n=>`<button class="card" style="background:var(--c2)" data-n="${esc(n)}" onclick="pickP(this.dataset.n)"><span class="e">🧒</span>${esc(n)}<small>⭐ ${D.profiles[n].stars||0}</small></button>`).join('')+`</div><p class="sub" style="margin-top:18px">Nouveau joueur :</p><div class="top"><input id="nm" class="inp" maxlength="16" placeholder="Ton prénom" autocomplete="off"><button class="again" onclick="newP()">OK</button></div><p class="sub" style="margin-top:22px"><button class="chip" onclick="backup()">💾 Retrouver mes données</button></p>`}
+function pickP(n){P=n;D.last=n;initSession();D.profiles[n]=D.profiles[n]||{stars:0,lv:{}};stars=D.profiles[n].stars||0;LV=D.profiles[n].lv||{};persist();menu()}
 function newP(){const n=document.getElementById('nm').value.trim().slice(0,16);if(n)pickP(n)}
 (async()=>{try{if(typeof claude==='undefined')return;const db=await claude.use('db'),us=await claude.use('user');if(!db||!us)return;const uid=await us.id();if(!uid)return;DBREF=db.collection('data/users/'+uid).doc('cp');const s=await DBREF.get(),r=s.exists?s.data():null;
  if(r&&r.profiles){for(const n in r.profiles){const a=D.profiles[n],b=r.profiles[n];if(!a||(b.stars||0)>(a.stars||0))D.profiles[n]=b}
@@ -218,8 +230,8 @@ function newP(){const n=document.getElementById('nm').value.trim().slice(0,16);i
 function lvl(id){const m=MENU.find(x=>x.id===id),c=lv(id);app.innerHTML=hdr(0,'⭐ '+stars)+`<h1>${m.t}</h1><p class="sub">Choisis ton niveau</p><div class="grid" style="grid-template-columns:1fr">`+[['🌱','Facile','--c3'],['🌿','Moyen','--c4'],['🌳','Difficile','--c6']].map((x,i)=>`<button class="card" style="background:var(${x[2]})" onclick="setL('${id}',${i+1})"><span class="e">${x[0]}</span>Niveau ${i+1} · ${x[1]}<small>${c===i+1?'⭐ conseillé pour toi':''}</small></button>`).join('')+`</div>`}
 function setL(id,n){LV[id]=n;persist();start(id)}
 /* problèmes */
-const NAMES=['Lucie','Noé','Maman','Papa','Mamie','Inès'],ITEMS=[['pommes','🍎'],['billes','🔵'],['bonbons','🍬'],['crayons','✏️'],['fleurs','🌸'],['gâteaux','🍰'],['ballons','🎈']],BUY=[['une pomme','🍎'],['un gâteau','🍰'],['une glace','🍦'],['un livre','📖'],['un ballon','🎈']];
-function genPb(){const L=lv('pb'),n=P||'Léa',f=pick(NAMES),[it,em0]=pick(ITEMS),T=pick(L<2?['s','a']:L<3?['s','a','m']:['m','x','s']);let t,ans,em=em0;
+const HEROES=['Léa','Tom','Lola','Théo','Zoé','Nina'],NAMES=['Maman','Papa','Mamie','Papi','Lucie','Max'],ITEMS=[['pommes','🍎'],['billes','🔵'],['bonbons','🍬'],['crayons','✏️'],['fleurs','🌸'],['gâteaux','🍰'],['ballons','🎈']],BUY=[['une pomme','🍎'],['un gâteau','🍰'],['une glace','🍦'],['un livre','📖'],['un ballon','🎈']];
+function genPb(){const L=lv('pb'),n=pick(HEROES),f=pick(NAMES),[it,em0]=pick(ITEMS),T=pick(L<2?['s','a']:L<3?['s','a','m']:['m','x','s']);let t,ans,em=em0;
  if(T==='s'){const a=L<2?5+rnd(6):10+rnd(11),b=1+rnd(Math.min(a-1,L<2?5:9));ans=a-b;t=`${n} a ${a} ${it}. ${n} en donne ${b} à ${f}. Combien de ${it} reste-t-il à ${n} ?`}
  else if(T==='a'){const a=L<2?1+rnd(6):5+rnd(10),b=1+rnd(L<2?10-a:10);ans=a+b;t=`${n} a ${a} ${it}. ${f} donne ${b} ${it} de plus à ${n}. Combien de ${it} y a-t-il en tout ?`}
  else if(T==='m'){const [o,e]=pick(BUY),d=L<3?10:pick([5,10,20]),c=1+rnd(d-1);em=e;ans=d-c;t=`${n} achète ${o} qui coûte ${c} euro${c>1?'s':''}. ${n} donne ${d} euros à la marchande. Combien d’euros la marchande rend-elle ?`}
@@ -251,12 +263,68 @@ function genInt(){const L=lv('int'),top='<div class="emo" style="font-size:3rem"
  if(L>2&&Math.random()<.4){const ev=Math.random()<.5,pool=[...Array(19)].map((_,i)=>i+2),same=shuffle(pool.filter(x=>(x%2===0)===ev)).slice(0,3),odd=pick(pool.filter(x=>(x%2===0)!==ev));return {q:top+'<p>Trouve le nombre qui n’est pas comme les autres !</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
  const subtle=[['ferme','sauvages'],['fruits','legumes'],['mer','sauvages'],['mer','ferme']],[a,b]=L<2?shuffle(['fruits','vehicules','vetements','ferme']).slice(0,2):L<3?shuffle(Object.keys(GR)).slice(0,2):shuffle(pick(subtle)),same=shuffle(GR[a]).slice(0,3),odd=pick(GR[b]);
  return {q:top+'<p>Trouve l’intrus : lequel n’est pas comme les autres ?</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
+/* temps de jeu, espace parents, sauvegarde */
+const DURS=[5,10,15,20,30,45,60,0];
+let SS=null,OVM='',GATE=null;
+try{SS=JSON.parse(localStorage.getItem('cp-sess'))}catch(e){}
+const today=()=>new Date().toLocaleDateString('en-CA');
+const DUR=()=>{const m=D.set&&D.set.min;return DURS.includes(m)?m:15};
+const LEFT=()=>DUR()*60000-SS.used;
+const fmt=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function saveSS(){try{localStorage.setItem('cp-sess',JSON.stringify(SS))}catch(e){}}
+function saveD(){try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}}
+function newSession(){SS={used:0,day:today()};saveSS();tick()}
+function initSession(){if(!SS||typeof SS.used!=='number'||!isFinite(SS.used)||SS.day!==today())newSession()}
+function openOv(mode,html){OVM=mode;document.getElementById('ovc').innerHTML=html;const o=document.getElementById('ov');o.style.display='block';o.scrollTop=0;document.getElementById('tm').style.display='none'}
+function closeOv(){document.getElementById('ov').style.display='none';OVM=''}
+function closeOvT(){closeOv();tick()}
+function tick(){const b=document.getElementById('tm');if(!b)return;
+ if(!P||!SS||!DUR()){b.style.display='none';if(OVM==='lock')closeOv();return}
+ if(SS.day!==today())return newSession();
+ if(!OVM&&document.visibilityState==='visible'&&LEFT()>0){SS.used+=1000;saveSS()}
+ const left=LEFT();
+ if(left<=0){b.style.display='none';if(!OVM)showLock();return}
+ if(OVM==='lock')closeOv();
+ b.style.display=OVM?'none':'';b.textContent='⏱️ '+fmt(left);b.classList.toggle('low',left<60000)}
+setInterval(tick,1000);
+function showLock(){try{speechSynthesis.cancel()}catch(e){}
+ openOv('lock',`<div class="end"><div class="emo">😴</div><h1>C’est fini pour aujourd’hui !</h1><p class="sub">Le temps de jeu est terminé. À bientôt !</p><button class="again" onclick="parents()">🔒 Parents</button><br><button class="chip" style="margin-top:14px" onclick="backup()">💾 Sauvegarde</button></div>`)}
+function parents(){gate(parentPanel)}
+function gate(ok){const a=11+rnd(9),b=6+rnd(4);GATE={a,b,ok};
+ openOv('other',`<h1>🔒 Espace parents</h1><p class="sub">Pour continuer, résous cette multiplication :</p><div class="math" style="font-size:2.6rem;margin-bottom:14px">${a} × ${b} = ?</div><div class="top"><input id="gin" class="inp" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Réponse" onkeydown="if(event.key==='Enter')gateOk()"><button class="again" onclick="gateOk()">OK</button></div><p class="msg" id="gm"></p><button class="chip" onclick="closeOvT()">← Retour</button>`);
+ setTimeout(()=>{const i=document.getElementById('gin');if(i)i.focus()},50)}
+function gateOk(){const v=+document.getElementById('gin').value;
+ if(GATE&&v===GATE.a*GATE.b){const f=GATE.ok;GATE=null;f()}
+ else if(GATE){const f=GATE.ok;sfx(false);gate(f);const m=document.getElementById('gm');if(m)m.textContent='Mauvaise réponse, voici un autre calcul.'}}
+function parentPanel(){const cur=DUR(),left=SS?LEFT():0;
+ openOv('other',`<h1>⚙️ Espace parents</h1><p class="sub">Durée de jeu par session :</p><div class="row">${DURS.map(m=>`<button class="chip ${m===cur?'on':''}" onclick="setDur(${m})">${m?m+' min':'Sans limite'}</button>`).join('')}</div><p class="sub">${!cur?'Pas de limite de temps.':left>0?'Temps restant : '+fmt(left):'Temps écoulé.'}</p><button class="again" onclick="startSess()">▶️ Lancer une nouvelle session</button><p class="sub" style="margin-top:18px">Une nouvelle session démarre aussi automatiquement chaque jour.</p><div class="row"><button class="chip" onclick="backup()">💾 Sauvegarde</button><button class="chip" onclick="closeOvT()">Fermer</button></div>`)}
+function setDur(m){D.set={min:m};saveD();persist();if(!SS)newSession();parentPanel()}
+function startSess(){newSession();closeOvT()}
+/* code de sauvegarde */
+function mkCode(){return 'CP1-'+btoa(unescape(encodeURIComponent(JSON.stringify({p:D.profiles,s:D.set}))))}
+function readCode(c){try{c=String(c).replace(/\s+/g,'');if(c.indexOf('CP1-')!==0)return null;const o=JSON.parse(decodeURIComponent(escape(atob(c.slice(4)))));return o&&typeof o.p==='object'&&o.p?o:null}catch(e){return null}}
+function applyCode(o){let n=0;const ids=MENU.map(x=>x.id);
+ for(const k in o.p){const nm=String(k).trim().slice(0,16);if(!nm||nm==='__proto__')continue;const b=o.p[k]||{},st=Math.min(99999,Math.max(0,parseInt(b.stars)||0)),l={};
+  for(const id of ids){const v=parseInt((b.lv||{})[id]);if(v>=1&&v<=3)l[id]=v}
+  const a=D.profiles[nm];if(!a||st>(a.stars||0))D.profiles[nm]={stars:st,lv:l};n++}
+ if(o.s&&DURS.includes(+o.s.min))D.set={min:+o.s.min};
+ if(P&&D.profiles[P]){stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}
+ saveD();persist();return n}
+function backup(){const c=mkCode();
+ openOv('other',`<h1>💾 Sauvegarde</h1><p class="sub"><b>1.</b> Sur l’ancien appareil, copie ce code :</p><textarea id="bk" class="inp" readonly onclick="this.select()">${c}</textarea><button class="again" onclick="copyCode()">📋 Copier le code</button><p class="msg" id="bm1"></p><p class="sub" style="margin-top:14px"><b>2.</b> Sur le nouvel appareil, colle le code ici :</p><textarea id="bi" class="inp" placeholder="CP1-…"></textarea><button class="again" onclick="restoreCode()">⬇️ Retrouver mes données</button><p class="msg" id="bm2"></p><button class="chip" onclick="backBk()">← Retour</button>`)}
+function backBk(){closeOvT();if(!Q){P?menu():who()}}
+function copyCode(){const t=document.getElementById('bk'),m=document.getElementById('bm1');
+ const ok=()=>{m.textContent='Code copié ✔️'},ko=()=>{t.focus();t.select();t.setSelectionRange(0,99999);try{document.execCommand('copy')?ok():m.textContent='Touche le code, puis choisis Copier.'}catch(e){m.textContent='Touche le code, puis choisis Copier.'}};
+ try{navigator.clipboard.writeText(t.value).then(ok,ko)}catch(e){ko()}}
+function restoreCode(){const m=document.getElementById('bm2'),o=readCode(document.getElementById('bi').value);
+ if(!o){m.textContent='Code non reconnu. Vérifie qu’il est complet.';sfx(false);return}
+ const n=applyCode(o);sfx(true);m.textContent=n+' joueur'+(n>1?'s':'')+' retrouvé'+(n>1?'s':'')+' ✔️'}
 /* sons des boutons */
 function tap(k){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();if(k==='card')[440,660].forEach((f,i)=>tone(f,i*.06,.12,'sine',.12));else if(k==='back')tone(330,0,.12,'sine',.12);else tone(620,0,.07,'triangle',.12)}catch(e){}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(!b||b.disabled)return;const cl=b.classList;if(cl.contains('opt')&&!cl.contains('k'))return;tap(cl.contains('card')||cl.contains('again')||cl.contains('chip')?'card':cl.contains('back')?'back':'pop')},true);
 const STARTERS={mem:startMem,mor:startMor},GAMES=['mem','mor'];
 
-P?menu():who();
+if(P)initSession();tick();P?menu():who();
 </script>
 </body>
 </html>
