@@ -130,12 +130,15 @@ function sfx(ok){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)(
 let VOICE=null;
 function loadVoice(){try{const v=speechSynthesis.getVoices();const fr=v.filter(x=>/^fr/i.test(x.lang)),ok=x=>!/Thomas|Daniel|Paul|Henri|Claude|Nicolas|Male/i.test(x.name);VOICE=fr.find(x=>/Aur[ée]lie|Audrey|Marie|Am[ée]lie|Julie|Denise|Google/i.test(x.name)&&ok(x))||fr.find(x=>/^fr[-_]FR/i.test(x.lang)&&ok(x))||fr.find(ok)||fr[0]||null}catch(e){}}
 try{loadVoice();speechSynthesis.onvoiceschanged=loadVoice}catch(e){}
-function say(t){try{const s=speechSynthesis;s.cancel();setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';if(VOICE)u.voice=VOICE;u.rate=.82;u.pitch=1.1;u.volume=1;s.resume();s.speak(u)},80)}catch(e){}}
+const NAR=()=>{try{return localStorage.getItem('cp-nar')!=='0'}catch(e){return true}};
+function togNar(){try{localStorage.setItem('cp-nar',NAR()?'0':'1')}catch(e){}menu()}
+const SPK='<button class="tile" onclick="say(Q.cur.nr)" aria-label="Écouter la consigne">🔊 Écouter</button>';
+function say(t){try{const s=speechSynthesis;s.cancel();setTimeout(()=>{s.resume();[].concat(t).forEach(x=>{const u=new SpeechSynthesisUtterance(x);u.lang='fr-FR';if(VOICE)u.voice=VOICE;u.rate=.82;u.pitch=1.1;u.volume=1;s.speak(u)})},80)}catch(e){}}
 
 function menu(){
  Q=null;PLAY={};setTimeout(tick,0);
  app.innerHTML=`<div class="top"><h1>Salut ${esc(P)} ! 👋</h1><span class="stars">⭐ ${stars}</span></div>
- <button class="chip" onclick="parents()">⚙️ Parents</button> <button class="chip" onclick="backup()">💾 Sauvegarde</button> <button class="chip" onclick="who()">👤 Changer de joueur</button><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
+ <button class="chip" onclick="parents()">⚙️ Parents</button> <button class="chip" onclick="backup()">💾 Sauvegarde</button> <button class="chip" onclick="who()">👤 Changer de joueur</button> <button class="chip" onclick="togNar()">${NAR()?'🔊 Consignes : oui':'🔇 Consignes : non'}</button><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
  MENU.map(m=>`<button class="card" style="background:var(${m.c})" onclick="lvl('${m.id}')"><span class="e">${m.e}</span>${m.t}<small>${m.s}</small><small>${lvS(m.id)<=3?'🌱':lvS(m.id)<=7?'🌿':'🌳'} Niveau ${lvS(m.id)}</small></button>`).join('')+`</div>`;
 }
 
@@ -148,7 +151,7 @@ function genLec(){
  if(L>=6)dis=dis.map(x=>[sc(x),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
  dis=dis.slice(0,L>=5?3:2);
  const opts=shuffle([w,...dis]).map(o=>({h:o[0],ok:o===w,f:'script'}));
- return {q:listen?`<button class="big" onclick="say('${w[0]}')" aria-label="Écouter">🔊</button><p>Écoute, puis trouve le mot</p>`:`<div class="emo">${w[1]}</div><p>Quel est ce mot ?</p>`,opts,say:listen?w[0]:null,hint:listen?w[1]:null,three:opts.length===3};
+ return {nr:'Écoute le mot, puis touche-le.',sp:listen?['Écoute le mot, puis touche-le.',w[0]]:'Quel est ce mot ? Touche le mot qui va avec l’image.',q:listen?`<button class="big" onclick="say('${w[0]}')" aria-label="Écouter">🔊</button><p>Écoute, puis trouve le mot</p>`:`<div class="emo">${w[1]}</div><p>Quel est ce mot ?</p>`,opts,say:listen?w[0]:null,hint:listen?w[1]:null,three:opts.length===3};
 }
 function genEcr(){
  const L=lv('ecr'),mx=L<=2?4:L<=4?5:L<=6?7:12,all=wpool(L).map(x=>x[0]),w=pick(all.filter(x=>x.length<=mx)),toCur=Math.random()<.5;
@@ -156,7 +159,7 @@ function genEcr(){
  if(L>=5)dis.sort((a,b)=>Math.abs(a.length-w.length)-Math.abs(b.length-w.length));
  dis=dis.slice(0,L>=6?3:2);
  const opts=shuffle([w,...dis]).map(o=>({h:o,ok:o===w,f:toCur?'cursive':'script'}));
- return {q:`<div class="word ${toCur?'script':'cursive'}">${w}</div><p>Trouve le même mot en écriture ${toCur?'attachée':'bâton'}</p>`,opts,three:opts.length===3};
+ return {nr:`Trouve le mot ${w}, écrit en écriture ${toCur?'attachée':'bâton'}.`,q:`<div class="word ${toCur?'script':'cursive'}">${w}</div><p>Trouve le même mot en écriture ${toCur?'attachée':'bâton'}</p>`,opts,three:opts.length===3};
 }
 function genMath(op,L){L=L||1;
  let ans,txt,a,b,t,cm=false;
@@ -200,19 +203,19 @@ function genMath(op,L){L=L||1;
  const s2=new Set([ans]);let g=0;
  while(s2.size<4&&g++<200){const d=ans+pick([-10,-3,-2,-1,1,2,3,10]);if(d>=0)s2.add(d)}
  const opts=shuffle([...s2]).map(n=>({h:n,ok:n===ans})),kb=L>=4,fs=txt.length>13?' style="font-size:2.2rem"':'';
- if(cm)return {q:`<div class="math">${a} + ? = ${t}</div>`,opts,key:kb?{ml:`${a} +`,mr:`= ${t}`,ans,v:''}:null};
- return {q:`<div class="math"${fs}>${txt} = ?</div>`,opts,key:kb?{txt,ans,v:''}:null};
+ const nr=cm?`Quel nombre faut-il ajouter à ${a} pour faire ${t} ?`:/^(Le double|La moitié)/.test(txt)?'Quel est '+txt[0].toLowerCase()+txt.slice(1)+' ?':/groupes/.test(txt)?`Combien font ${txt} ?`:`Combien font ${txt.replace(' + ',' plus ').replace(' − ',' moins ').replace(' × ',' fois ')} ?`;
+ if(cm)return {nr,q:`<div class="math">${a} + ? = ${t}</div>`,opts,key:kb?{ml:`${a} +`,mr:`= ${t}`,ans,v:''}:null};
+ return {nr,q:`<div class="math"${fs}>${txt} = ?</div>`,opts,key:kb?{txt,ans,v:''}:null};
 }
 function gen(id){return id==='lec'?genLec():id==='ecr'?genEcr():id==='pho'?genPho():id==='phr'?genPhr():id==='sui'?genSui():id==='pb'?genPb():id==='cpt'?genCpt():id==='int'?genInt():genMath(id==='mix'?pick(['add','sou','cmp','mul']):id,lv(id))}
 
 function start(id){if(STARTERS[id])return STARTERS[id]();Q={id,n:0,score:0,N:10};next()}
-function next(){if(Q.n>=Q.N)return end();Q.cur=gen(Q.id);Q.tries=0;Q.done=false;Q.hinted=false;draw()}
+function next(){if(Q.n>=Q.N)return end();Q.cur=gen(Q.id);Q.tries=0;Q.done=false;Q.hinted=false;draw();setTimeout(()=>{if(NAR()&&Q&&Q.cur&&!Q.done)say(Q.cur.sp||Q.cur.nr)},350)}
 function draw(){
  const c=Q.cur,m=MENU.find(x=>x.id===Q.id);if(c.type==='phr')return drawPhr(c,m);if(c.key)return drawKey(c,m);
  app.innerHTML=`<div class="top"><button class="back" onclick="menu()" aria-label="Retour">←</button><div class="bar"><i style="width:${Q.n/Q.N*100}%"></i></div><span class="stars">${Q.n+1}/${Q.N}</span></div>
- <div class="q" style="background:var(${m.c})">${c.q}</div>
+ <div class="q" style="background:var(${m.c})">${c.q}${c.say&&c.nr===c.say?'':SPK}</div>
  <div class="opts ${c.three?'three':''}">`+c.opts.map((o,i)=>`<button class="opt ${o.f||''}" onclick="ans(${i},this)">${o.h}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`;
- if(c.say)setTimeout(()=>say(c.say),300);
 }
 function ans(i,btn){
  if(Q.done)return;
@@ -220,10 +223,10 @@ function ans(i,btn){
  if(o.ok){
   Q.done=true;btn.classList.add('good');sfx(true);
   if(Q.tries===0)Q.score++;
-  fb.textContent=pick(['Bravo ! 🎉','Super ! ⭐','Génial ! 🌟','Bien joué ! 👏']);
+  fbk(pick(['Bravo ! 🎉','Super ! ⭐','Génial ! 🌟','Bien joué ! 👏']));
   setTimeout(()=>{Q.n++;next()},1100);
  }else{
-  Q.tries++;btn.classList.add('bad');btn.disabled=true;sfx(false);fb.textContent='Essaie encore 💪';
+  Q.tries++;btn.classList.add('bad');btn.disabled=true;sfx(false);fbk('Essaie encore 💪');
   if(Q.cur.hint&&!Q.hinted){Q.hinted=true;document.querySelector('.q').insertAdjacentHTML('beforeend',`<div class="emo">${Q.cur.hint}</div>`)}
  }
 }
@@ -238,10 +241,10 @@ function end(){
  ${DUR()&&SS&&LEFT()<=0?'<p class="sub">⏰ Le temps de jeu est terminé. À bientôt !</p>':`<button class="again" onclick="start('${id}')">🔁 Rejouer</button><button class="again" onclick="lvl('${id}')">🎚️ Niveau</button>`}<button class="again" onclick="menu()">🏠 Menu</button></div>`;
 }
 const hdr=(p,l)=>`<div class="top"><button class="back" onclick="menu()" aria-label="Retour">←</button><div class="bar"><i style="width:${p*100}%"></i></div><span class="stars">${l}</span></div>`;
-const fbk=t=>{const e=document.getElementById('fb');if(e)e.textContent=t};
+const fbk=t=>{const e=document.getElementById('fb');if(e)e.textContent=t;if(NAR())say(t.replace(/[^\p{L} ]/gu,''))};
 const curM=()=>MENU.find(x=>x.id===Q.id);
 /* clavier */
-function drawKey(c,m){const k=c.key,fs=k.txt&&k.txt.length>13?' style="font-size:2.2rem"':'',v=`<span class="kv">${k.v||'?'}</span>`;app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c});min-height:130px">${k.html||''}<div class="math"${fs}>${k.ml!==undefined?k.ml+' '+v+' '+k.mr:(k.html?'':k.txt+' ')+'= '+v}</div></div><div class="keys">`+[1,2,3,4,5,6,7,8,9,'⌫',0,'✔'].map(x=>`<button class="opt k${x==='✔'?' go':''}" onclick="key('${x}')">${x}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
+function drawKey(c,m){const k=c.key,fs=k.txt&&k.txt.length>13?' style="font-size:2.2rem"':'',v=`<span class="kv">${k.v||'?'}</span>`;app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c});min-height:130px">${k.html||''}${Q.id==='pb'?'':SPK}<div class="math"${fs}>${k.ml!==undefined?k.ml+' '+v+' '+k.mr:(k.html?'':k.txt+' ')+'= '+v}</div></div><div class="keys">`+[1,2,3,4,5,6,7,8,9,'⌫',0,'✔'].map(x=>`<button class="opt k${x==='✔'?' go':''}" onclick="key('${x}')">${x}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
 const rk=()=>drawKey(Q.cur,curM());
 function key(k){if(Q.done)return;const c=Q.cur.key;
  if(k==='✔'){if(!c.v)return;
@@ -263,14 +266,14 @@ function genPho(){const L=lv('pho'),w=pick(wpool(L)),t=w[0];let p,k;
   if(isDG&&pl.length)s2.add(pick(pl));
   else if(k===1)s2.add(pick([...(vow?V:C)]));
   else s2.add(Math.random()<.5?pick([...C+V])+miss.slice(1):miss.slice(0,-1)+pick([...C+V]))}
- return {q:`<div class="emo">${w[1]}</div><div class="word script">${t.slice(0,p)}<span class="blank">${miss}</span>${t.slice(p+k)}</div><p>${k>1?'Quelles lettres manquent ?':'Quelle lettre manque ?'}</p>`,opts:shuffle([...s2]).map(x=>({h:x,ok:x===miss,f:'script'}))}}
+ return {nr:`Complète le mot : ${t}. ${k>1?'Quelles lettres manquent ?':'Quelle lettre manque ?'}`,q:`<div class="emo">${w[1]}</div><div class="word script">${t.slice(0,p)}<span class="blank">${miss}</span>${t.slice(p+k)}</div><p>${k>1?'Quelles lettres manquent ?':'Quelle lettre manque ?'}</p>`,opts:shuffle([...s2]).map(x=>({h:x,ok:x===miss,f:'script'}))}}
 /* phrases */
 const SENT={1:[['Le chat dort','🐱'],['Le chien court','🐶'],['La lune brille','🌙'],['Le soleil brille','☀️'],['Le bateau flotte','⛵'],['Le lion rugit','🦁'],['La vache mange','🐄']],
 2:[['Papa lit un livre','📖'],['Maman mange une pomme','🍎'],['Léa fait du vélo','🚲'],['Le poisson nage vite','🐟'],['Maman fait un gâteau','🍰']],
 3:[['Le lapin mange une banane','🐰'],['Léa mange une grosse glace','🍦'],['Le petit chat boit du lait','🐱'],['Papa roule en voiture rouge','🚗'],['La fleur pousse dans le jardin','🌸']],
 4:[['Où est le chat ?','🐱'],['Qui mange la pomme ?','🍎'],['Que fait le lapin ?','🐰'],['Quel beau soleil !','☀️'],['Le chien court vite !','🐶'],['Vive les vacances !','🏖️']]};
-function genPhr(){const L=lv('phr'),[s,e]=pick(SENT[L<=2?1:L<=4?2:L<=7?3:4]);const ws=s.split(' ');if(!/[.?!]$/.test(s))ws[ws.length-1]+='.';let t;do{t=shuffle(ws.map((w,i)=>({w,i})))}while(t.every((x,i)=>x.i===i));return {type:'phr',emo:e,ws,tiles:t,placed:[]}}
-function drawPhr(c,m){app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c})"><div class="emo">${c.emo}</div><p>Remets les étiquettes dans l’ordre</p><div class="line">`+c.placed.map(i=>`<button class="tile" onclick="unplace(${i})">${c.ws[i]}</button>`).join('')+`</div></div><div class="pool">`+c.tiles.map(t=>`<button class="tile" ${c.placed.includes(t.i)?'disabled':''} onclick="place(${t.i})">${t.w}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
+function genPhr(){const L=lv('phr'),[s,e]=pick(SENT[L<=2?1:L<=4?2:L<=7?3:4]);const ws=s.split(' ');if(!/[.?!]$/.test(s))ws[ws.length-1]+='.';let t;do{t=shuffle(ws.map((w,i)=>({w,i})))}while(t.every((x,i)=>x.i===i));return {nr:'Remets les étiquettes dans l’ordre pour faire une phrase.',type:'phr',emo:e,ws,tiles:t,placed:[]}}
+function drawPhr(c,m){app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c})"><div class="emo">${c.emo}</div><p>Remets les étiquettes dans l’ordre</p>${SPK}<div class="line">`+c.placed.map(i=>`<button class="tile" onclick="unplace(${i})">${c.ws[i]}</button>`).join('')+`</div></div><div class="pool">`+c.tiles.map(t=>`<button class="tile" ${c.placed.includes(t.i)?'disabled':''} onclick="place(${t.i})">${t.w}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`}
 const rp=()=>drawPhr(Q.cur,curM());
 function place(i){const c=Q.cur;if(Q.done||c.placed.includes(i))return;c.placed.push(i);if(/[A-Za-zÀ-ÿ]/.test(c.ws[i]))say(c.ws[i].replace('.',''));rp();if(c.placed.length<c.ws.length)return;Q.done=true;
  if(c.placed.every((v,k)=>v===k)){if(!Q.tries)Q.score++;sfx(true);fbk('Bravo ! 🎉');setTimeout(()=>say(c.ws.join(' ')),500);setTimeout(()=>{Q.n++;next()},2400)}
@@ -278,7 +281,7 @@ function place(i){const c=Q.cur;if(Q.done||c.placed.includes(i))return;c.placed.
 function unplace(i){const c=Q.cur;if(Q.done)return;c.placed=c.placed.filter(x=>x!==i);rp()}
 /* memory */
 function startMem(){const L=lv('mem'),n=[3,3,4,4,5,6,6,7,8,8][L-1],ps=shuffle(wpool(L)).slice(0,n);
- Q={id:'mem',n:0,score:0,N:10,pairs:n,found:0,err:0,sel:[],lock:false,cards:shuffle(ps.flatMap((p,k)=>[{k,h:p[1],w:0},{k,h:p[0],w:1}])).map((c,i)=>({...c,i,up:false,ok:false}))};drawMem()}
+ Q={id:'mem',n:0,score:0,N:10,pairs:n,found:0,err:0,sel:[],lock:false,cards:shuffle(ps.flatMap((p,k)=>[{k,h:p[1],w:0},{k,h:p[0],w:1}])).map((c,i)=>({...c,i,up:false,ok:false}))};drawMem();if(NAR())say('Retrouve chaque image avec son mot.')}
 function drawMem(){app.innerHTML=hdr(Q.found/Q.pairs,`${Q.found}/${Q.pairs}`)+`<div class="q" style="background:var(--c2);min-height:0"><p>Retrouve chaque image avec son mot</p></div><div class="mem ${Q.cards.length>6?'c4':''}">`+Q.cards.map(c=>{const s=c.up||c.ok;return `<button class="mc ${c.w?'w':''} ${s?'up':''} ${c.ok?'ok':''}" onclick="flip(${c.i})" ${c.ok?'disabled':''}>${s?c.h:'?'}</button>`}).join('')+`</div>`}
 function flip(i){if(Q.lock)return;const c=Q.cards[i];if(c.up||c.ok)return;c.up=true;Q.sel.push(c);if(c.w)say(c.h);
  if(Q.sel.length<2)return drawMem();
@@ -300,7 +303,7 @@ function newP(){const n=document.getElementById('nm').value.trim().slice(0,16);i
   if(!P)who()}
 }catch(e){}})();
 /* choix du niveau */
-function lvl(id){PLAY={};const m=MENU.find(x=>x.id===id),c=lvS(id);
+function lvl(id){PLAY={};const m=MENU.find(x=>x.id===id),c=lvS(id);if(NAR())say(m.t);
  app.innerHTML=hdr(0,'⭐ '+stars)+`<h1>${m.t}</h1><button class="card" style="background:var(--c3);width:100%;margin-top:10px" onclick="setL('${id}',${c})"><span class="e">▶️</span>Jouer au niveau ${c}<small>Le niveau monte quand tu réussis !</small></button><p class="sub" style="margin-top:22px">Ou choisis un autre niveau :</p><div class="lvgrid">`+[...Array(10)].map((_,i)=>`<button class="lvb t${i<3?1:i<7?2:3} ${i+1===c?'on':''}" onclick="setL('${id}',${i+1})">${i+1}</button>`).join('')+`</div><p class="sub" style="margin-top:14px">🌱 1 à 3 : facile · 🌿 4 à 7 : moyen · 🌳 8 à 10 : difficile</p><p class="sub">Tu peux reprendre un niveau plus facile quand tu veux.</p>`}
 function setL(id,n){PLAY[id]=n;start(id)}
 /* problèmes */
@@ -314,12 +317,12 @@ function genPb(){const L=lv('pb'),n=pick(HEROES),f=pick(NAMES),[it,em0]=pick(ITE
  else if(T==='t'){const g=pick(NAMES.filter(x=>x!==f)),a=R(12,Math.min(MX,60)),b=R(2,Math.floor(a/3)),c=R(2,Math.floor(a/3));ans=a-b-c;t=`${n} a ${a} ${it}. ${n} en donne ${b} à ${f}, puis ${c} à ${g}. Combien de ${it} reste-t-il à ${n} ?`}
  else{const [g,e]=gl(()=>{const g=R(2,5),e=R(2,6);return g*e<=30&&[g,e]});ans=e;t=`${g*e} ${it} sont partagés équitablement entre ${g} enfants. Combien de ${it} chaque enfant reçoit-il ?`}
  const h=`<div class="emo" style="font-size:3rem">${em}</div><p class="ptxt">${t}</p><button class="tile" onclick="say(Q.cur.say)">🔊 Écouter</button>`;
- return {q:h,opts:near(ans),say:t,key:L>=4?{html:h,ans,v:''}:null}}
+ return {nr:t,q:h,opts:near(ans),say:t,key:L>=4?{html:h,ans,v:''}:null}}
 /* compter */
 function genCpt(){const L=lv('cpt'),n=[R(1,5),R(4,9),R(8,12),R(10,19),R(15,25),R(20,30),R(10,39),R(20,59),R(30,99),R(30,99)][L-1];let h;
  if(L<=6){const e=pick(['🍎','⭐','🐟','🎈','🌸','🚗']);h=`<div class="word" style="font-size:${n>20?1.5:1.8}rem;line-height:1.3">${e.repeat(n)}</div><p>Combien y en a-t-il ?</p>`}
  else{const d=Math.floor(n/10),u=n%10;h=`<div class="word" style="font-size:2rem;line-height:1.4">${'📦'.repeat(d)} ${'🔹'.repeat(u)}</div><p>📦 = 10 · 🔹 = 1</p><p>Combien y en a-t-il ?</p>`}
- return {q:h,opts:near(n),key:L>=4?{html:h,ans:n,v:''}:null}}
+ return {nr:L<=6?'Combien y en a-t-il ? Compte bien.':'Un paquet vaut dix. Un petit carré vaut un. Combien y en a-t-il ?',q:h,opts:near(n),key:L>=4?{html:h,ans:n,v:''}:null}}
 /* suites */
 const EMS=['🍎','🐱','⭐','🌙','🚗','🎈','🐟','🌸','🐶','🍌'];
 const PT={1:[[0,1]],2:[[0,0,1],[0,1,1]],3:[[0,1,2],[0,0,1]],4:[[0,1,1],[0,0,1,1],[0,1,2]],5:[[0,1,0,2],[0,0,1,1],[0,1,2,1]],6:[[0,1,2,0,1,3],[0,0,1,0,0,2],[0,1,0,2,0,3]]};
@@ -328,13 +331,13 @@ function genSui(){const L=lv('sui');
   if(L===7){d=1;s0=R(1,15)}else if(L===8){d=pick([2,5,10]);s0=R(0,10)}else if(L===9){d=pick([1,2,5,10]);up=false;s0=R(40,60)}else{d=pick([2,3,4,5,10]);up=Math.random()<.6;s0=up?R(0,20):R(40,70)}
   const seq=[0,1,2,3].map(i=>up?s0+i*d:s0-i*d),ans=up?s0+4*d:s0-4*d,s2=new Set([ans]);let g=0;
   while(s2.size<4&&g++<200){const x=ans+pick([-d,d,-1,1,2,-2]);if(x>=0)s2.add(x)}
-  return {q:`<div class="word" style="font-size:2.4rem">${seq.join(' , ')} , <span class="kv">?</span></div><p>Quel nombre vient ensuite ?</p>`,opts:shuffle([...s2]).map(x=>({h:x,ok:x===ans}))}}
+  return {nr:`${seq.join(', ')}. Quel nombre vient ensuite ?`,q:`<div class="word" style="font-size:2.4rem">${seq.join(' , ')} , <span class="kv">?</span></div><p>Quel nombre vient ensuite ?</p>`,opts:shuffle([...s2]).map(x=>({h:x,ok:x===ans}))}}
  const S=shuffle(EMS).slice(0,4),U=pick(PT[L]),len=Math.min(10,U.length*2+rnd(U.length)),sh=Array.from({length:len},(_,i)=>S[U[i%U.length]]),ans=S[U[len%U.length]],pool=[...new Set(U.map(i=>S[i]))];
  while(pool.length<(L<=2?3:4))pool.push(pick(EMS.filter(e=>!pool.includes(e))));
- return {q:`<div class="word" style="font-size:2.2rem;line-height:1.5">${sh.join(' ')} <span class="kv">❓</span></div><p>Que vient ensuite ?</p>`,opts:shuffle(pool).map(x=>({h:x,ok:x===ans}))}}
+ return {nr:'Regarde bien la suite. Que vient-il ensuite ?',q:`<div class="word" style="font-size:2.2rem;line-height:1.5">${sh.join(' ')} <span class="kv">❓</span></div><p>Que vient ensuite ?</p>`,opts:shuffle(pool).map(x=>({h:x,ok:x===ans}))}}
 /* morpion */
 const WL=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]],win=(b,s)=>WL.some(l=>l.every(i=>b[i]===s));
-function startMor(){Q={id:'mor',n:0,score:0,N:10,b:Array(9).fill(''),over:false,busy:false};drawMor()}
+function startMor(){Q={id:'mor',n:0,score:0,N:10,b:Array(9).fill(''),over:false,busy:false};drawMor();if(NAR())say('À toi de jouer ! Tu es le chat.')}
 function drawMor(msg){app.innerHTML=hdr(Q.b.filter(x=>x).length/9,'Morpion')+`<div class="q" style="background:var(--c6);min-height:0"><p>${msg||'À toi : tu es 🐱 !'}</p></div><div class="mem">`+Q.b.map((v,i)=>`<button class="mc" onclick="mor(${i})" ${v||Q.over?'disabled':''}>${v}</button>`).join('')+`</div>`}
 function mor(i){if(Q.over||Q.busy||Q.b[i])return;Q.b[i]='🐱';if(win(Q.b,'🐱'))return fin('win');if(Q.b.every(x=>x))return fin('draw');Q.busy=true;drawMor('Au tour de 🐶…');setTimeout(comp,700)}
 function comp(){const b=Q.b,L=lv('mor'),sure=Math.random()<[.3,.4,.5,.6,.7,.8,.85,.9,.95,1][L-1],f=s=>{for(const l of WL){const e=l.filter(i=>!b[i]);if(e.length===1&&l.filter(i=>b[i]===s).length===2)return e[0]}return -1};
@@ -350,9 +353,9 @@ function genInt(){const L=lv('int'),top='<div class="emo" style="font-size:3rem"
   if(rule==='par'){const ev=Math.random()<.5;same=shuffle(pool.filter(x=>(x%2===0)===ev)).slice(0,3);odd=pick(pool.filter(x=>(x%2===0)!==ev))}
   else if(rule==='m5'){same=shuffle(pool.filter(x=>x%5===0)).slice(0,3);odd=pick(pool.filter(x=>x%5!==0))}
   else{same=shuffle(pool.filter(x=>x%10===0)).slice(0,3);odd=pick(pool.filter(x=>x%10!==0))}
-  return {q:top+'<p>Trouve le nombre qui n’est pas comme les autres !</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
+  return {nr:'Trouve le nombre qui n’est pas comme les autres.',q:top+'<p>Trouve le nombre qui n’est pas comme les autres !</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
  const subtle=[['ferme','sauvages'],['fruits','legumes'],['mer','sauvages'],['mer','ferme']],[a,b]=L<=2?shuffle(['fruits','vehicules','vetements','ferme']).slice(0,2):L<=4?shuffle(Object.keys(GR)).slice(0,2):shuffle(pick(subtle)),same=shuffle(GR[a]).slice(0,3),odd=pick(GR[b]);
- return {q:top+'<p>Trouve l’intrus : lequel n’est pas comme les autres ?</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
+ return {nr:'Trouve l’intrus : lequel n’est pas comme les autres ?',q:top+'<p>Trouve l’intrus : lequel n’est pas comme les autres ?</p>',opts:shuffle([...same,odd]).map(x=>({h:x,ok:x===odd}))}}
 /* temps de jeu, espace parents, sauvegarde */
 const DURS=[5,10,15,20,30,45,60,0];
 let SS=null,OVM='',GATE=null;

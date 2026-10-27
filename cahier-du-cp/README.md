@@ -50,6 +50,7 @@ Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de mul
 - Une série compte 10 questions. Les étoiles (1 à 3) dépendent des bonnes réponses du premier coup.
 - Le niveau s'adapte aux résultats : il monte avec 9 bonnes réponses ou plus, et baisse avec 4 ou moins.
 - À partir du niveau 4 en maths, l'enfant tape la réponse sur un clavier de chiffres au lieu de choisir parmi des propositions.
+- **Consignes audio** : chaque énoncé est lu à voix haute automatiquement, et un bouton 🔊 Écouter permet de le réécouter. Les « Bravo » et « Essaie encore » sont aussi dits, pour les enfants qui ne lisent pas encore. L'option « Consignes » du menu permet de couper la lecture automatique.
 - Un son distingue les bonnes et les mauvaises réponses, et un petit son accompagne chaque bouton.
 
 ## Joueurs et sauvegarde
