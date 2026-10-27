@@ -120,7 +120,7 @@ try{loadVoice();speechSynthesis.onvoiceschanged=loadVoice}catch(e){}
 function say(t){try{const s=speechSynthesis;s.cancel();setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';if(VOICE)u.voice=VOICE;u.rate=.82;u.pitch=1.1;u.volume=1;s.resume();s.speak(u)},80)}catch(e){}}
 
 function menu(){
- Q=null;
+ Q=null;setTimeout(tick,0);
  app.innerHTML=`<div class="top"><h1>Salut ${esc(P)} ! 👋</h1><span class="stars">⭐ ${stars}</span></div>
  <button class="chip" onclick="parents()">⚙️ Parents</button> <button class="chip" onclick="backup()">💾 Sauvegarde</button> <button class="chip" onclick="who()">👤 Changer de joueur</button><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
  MENU.map(m=>`<button class="card" style="background:var(${m.c})" onclick="lvl('${m.id}')"><span class="e">${m.e}</span>${m.t}<small>${m.s}</small><small>Niveau ${'●'.repeat(lv(m.id))}${'○'.repeat(3-lv(m.id))}</small></button>`).join('')+`</div>`;
@@ -175,7 +175,7 @@ function end(){
  stars+=st;const o=lv(id),nl=sc>=9?Math.min(3,o+1):sc<=4?Math.max(1,o-1):o;LV[id]=nl;persist();
  app.innerHTML=`<div class="end"><h1>${sc>=9?'Champion !':sc>=6?'Très bien !':'Continue !'}</h1>
  <div class="s">${'⭐'.repeat(st)}</div><p class="sub">${GAMES.includes(id)?`Score : ${sc} sur ${Q.N}`:`${sc} bonnes réponses du premier coup sur ${Q.N}`}</p><p class="sub">${nl>o?'⬆️ Niveau supérieur !':nl<o?'On s’entraîne encore un peu 🌱':'Même niveau, continue !'} (niveau ${nl}/3)</p>
- <button class="again" onclick="start('${id}')">🔁 Rejouer</button><button class="again" onclick="menu()">🏠 Menu</button></div>`;
+ ${DUR()&&SS&&LEFT()<=0?'<p class="sub">⏰ Le temps de jeu est terminé. À bientôt !</p>':`<button class="again" onclick="start('${id}')">🔁 Rejouer</button>`}<button class="again" onclick="menu()">🏠 Menu</button></div>`;
 }
 const hdr=(p,l)=>`<div class="top"><button class="back" onclick="menu()" aria-label="Retour">←</button><div class="bar"><i style="width:${p*100}%"></i></div><span class="stars">${l}</span></div>`;
 const fbk=t=>{const e=document.getElementById('fb');if(e)e.textContent=t};
@@ -283,7 +283,7 @@ function tick(){const b=document.getElementById('tm');if(!b)return;
  if(SS.day!==today())return newSession();
  if(!OVM&&document.visibilityState==='visible'&&LEFT()>0){SS.used+=1000;saveSS()}
  const left=LEFT();
- if(left<=0){b.style.display='none';if(!OVM)showLock();return}
+ if(left<=0){if(Q&&!OVM){b.style.display='';b.textContent='⏱️ Dernier exercice';b.classList.add('low');return}b.style.display='none';if(!OVM&&!Q)showLock();return}
  if(OVM==='lock')closeOv();
  b.style.display=OVM?'none':'';b.textContent='⏱️ '+fmt(left);b.classList.toggle('low',left<60000)}
 setInterval(tick,1000);
