@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Lego Builder — Construis pas à pas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#d62828; --yellow:#ffcc00; --blue:#1e6fd9; --green:#2a9d4b;
+    --ink:#1d2433; --paper:#fff8e7; --card:#ffffff; --muted:#6b7385;
+    --radius:22px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);
+    font-family:"Baloo 2",system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+  button{font-family:inherit;cursor:pointer;border:0}
+  .hidden{display:none!important}
+
+  /* ---------- Accueil ---------- */
+  #home{position:absolute;inset:0;overflow-y:auto;padding:22px 18px 40px}
+  .brand{display:flex;align-items:center;gap:14px;max-width:980px;margin:0 auto 6px}
+  .logo{width:58px;height:58px;border-radius:14px;background:var(--red);position:relative;flex:none;
+    box-shadow:0 5px 0 #9e1414}
+  .logo i{position:absolute;width:16px;height:16px;border-radius:50%;background:#ff4d4d;box-shadow:0 3px 0 #a51a1a;top:9px}
+  .logo i:nth-child(1){left:9px}.logo i:nth-child(2){right:9px}
+  .logo i:nth-child(3){left:9px;top:31px}.logo i:nth-child(4){right:9px;top:31px}
+  h1{margin:0;font-size:34px;line-height:1;font-weight:800;letter-spacing:-.5px}
+  .sub{margin:2px 0 0;color:var(--muted);font-size:17px}
+  .grid{max-width:980px;margin:22px auto 0;display:grid;gap:18px;
+    grid-template-columns:repeat(auto-fill,minmax(155px,1fr))}
+  @media (max-width:400px){.grid{gap:12px}.card h3{font-size:19px}.card .meta{font-size:13px;flex-direction:column}}
+  .card{background:var(--card);border-radius:var(--radius);padding:12px 12px 14px;text-align:left;
+    box-shadow:0 6px 0 rgba(0,0,0,.08),0 10px 24px rgba(0,0,0,.06);transition:transform .15s;position:relative}
+  .card:active{transform:scale(.97)}
+  .card .thumb{width:100%;aspect-ratio:1/1;border-radius:16px;display:block;object-fit:contain}
+  .card h3{margin:8px 4px 0;font-size:23px;line-height:1.1}
+  .card .meta{margin:2px 4px 0;color:var(--muted);font-size:15px;display:flex;justify-content:space-between}
+  .stars{color:#f4a300;letter-spacing:1px}
+  .badge{position:absolute;top:18px;right:18px;background:var(--green);color:#fff;font-weight:700;
+    font-size:14px;padding:3px 10px;border-radius:99px}
+  .badge.prog{background:var(--blue)}
+
+  /* ---------- Constructeur ---------- */
+  #builder{position:absolute;inset:0;display:grid;grid-template-rows:auto 1fr auto;grid-template-columns:minmax(0,1fr)}
+  .panel,#stage,header.top{min-width:0}
+  header.top{display:flex;align-items:center;gap:10px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top))}
+  .icon-btn{width:48px;height:48px;border-radius:16px;background:#fff;font-size:24px;display:grid;place-items:center;
+    box-shadow:0 4px 0 rgba(0,0,0,.1);flex:none;color:var(--ink)}
+  .icon-btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.1)}
+  .icon-btn.on{background:var(--yellow)}
+  .title-wrap{flex:1;min-width:0}
+  .title-wrap h2{margin:0;font-size:22px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .progress{height:12px;background:#eadfc4;border-radius:99px;margin-top:5px;overflow:hidden}
+  .progress > div{height:100%;background:linear-gradient(90deg,var(--green),#55c96f);border-radius:99px;transition:width .4s}
+  #stage{position:relative;min-height:0}
+  #stage canvas{display:block;width:100%;height:100%;touch-action:none}
+  .hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:rgba(29,36,51,.75);color:#fff;
+    padding:5px 14px;border-radius:99px;font-size:14px;pointer-events:none;transition:opacity .6s;white-space:nowrap}
+  .stepnum{position:absolute;left:14px;top:8px;background:var(--yellow);font-weight:800;font-size:30px;
+    min-width:58px;height:58px;padding:0 10px;border-radius:18px;display:grid;place-items:center;box-shadow:0 5px 0 #c99f00}
+
+  .panel{background:#fff;border-radius:26px 26px 0 0;padding:14px 14px;padding-bottom:max(14px,env(safe-area-inset-bottom));
+    box-shadow:0 -6px 24px rgba(0,0,0,.08)}
+  .instr{display:flex;align-items:flex-start;gap:10px}
+  .instr-text{flex:1}
+  .instr h3{margin:0;font-size:22px;line-height:1.15}
+  .instr p{margin:2px 0 0;color:#444b5c;font-size:17px;line-height:1.3}
+  .parts{display:flex;gap:10px;overflow-x:auto;padding:10px 2px 6px;scrollbar-width:none}
+  .parts::-webkit-scrollbar{display:none}
+  .part{flex:none;width:96px;background:#f6f2e8;border-radius:16px;padding:6px 6px 6px;text-align:center;position:relative}
+  .part img{width:84px;height:70px;object-fit:contain;display:block;margin:0 auto}
+  .part .qty{position:absolute;top:4px;left:6px;font-weight:800;font-size:20px;color:var(--ink)}
+  .part .nm{font-size:12.5px;line-height:1.1;color:#4a5164}
+  .part.check{outline:3px solid var(--green)}
+  .part.check::after{content:"✓";position:absolute;top:2px;right:6px;color:var(--green);font-weight:800;font-size:20px}
+  .nav{display:flex;gap:12px;margin-top:8px}
+  .big{flex:1;height:62px;border-radius:20px;font-size:23px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px}
+  .big.prev{flex:0 0 86px;background:#e7e1d3;color:var(--ink);box-shadow:0 5px 0 #c5bca8}
+  .big.next{background:var(--green);box-shadow:0 5px 0 #1b6e33}
+  .big:active{transform:translateY(3px);box-shadow:none}
+  .big:disabled{opacity:.4}
+
+  @media (min-width:900px){
+    #builder{grid-template-columns:minmax(0,1fr) 400px;grid-template-rows:auto 1fr}
+    header.top{grid-column:1/3}
+    .panel{border-radius:26px 0 0 26px;margin:0 0 14px;overflow-y:auto;display:flex;flex-direction:column}
+    .parts{flex-wrap:wrap;overflow:visible}
+    .nav{margin-top:auto;padding-top:14px}
+  }
+
+  /* ---------- Bravo ---------- */
+  #bravo{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,248,231,.55);z-index:20}
+  .bravo-card{background:#fff;border-radius:28px;padding:26px 26px 22px;text-align:center;max-width:340px;width:88%;
+    box-shadow:0 12px 40px rgba(0,0,0,.18);animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+  .bravo-card .big-emoji{font-size:64px;line-height:1}
+  .bravo-card h2{margin:6px 0 2px;font-size:36px}
+  .bravo-card p{margin:0 0 16px;font-size:18px;color:#444b5c}
+  .bravo-card .big{width:100%;margin-top:10px}
+  .big.alt{background:var(--blue);box-shadow:0 5px 0 #124a96}
+  @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  #confetti{position:absolute;inset:0;pointer-events:none;z-index:21}
+  #loading{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="loading">Je sors les briques… 🧱</div>
+
+<section id="home" class="hidden">
+  <div class="brand">
+    <div class="logo"><i></i><i></i><i></i><i></i></div>
+    <div>
+      <h1>Lego Builder</h1>
+      <p class="sub">Choisis un modèle et construis-le étape par étape&nbsp;!</p>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section id="builder" class="hidden">
+  <header class="top">
+    <button class="icon-btn" id="back" aria-label="Retour aux modèles">🏠</button>
+    <div class="title-wrap">
+      <h2 id="mTitle">Modèle</h2>
+      <div class="progress"><div id="bar"></div></div>
+    </div>
+    <button class="icon-btn" id="spin" aria-label="Faire tourner">🔄</button>
+    <button class="icon-btn" id="speak" aria-label="Lire à voix haute">🔊</button>
+  </header>
+  <div id="stage">
+    <div class="stepnum" id="stepnum">1</div>
+    <div class="hint" id="hint">👆 Fais glisser pour tourner · pince pour zoomer</div>
+  </div>
+  <div class="panel">
+    <div class="instr">
+      <div class="instr-text">
+        <h3 id="sTitle"></h3>
+        <p id="sText"></p>
+      </div>
+    </div>
+    <div class="parts" id="parts"></div>
+    <div class="nav">
+      <button class="big prev" id="prev" aria-label="Étape précédente">◀</button>
+      <button class="big next" id="next">Suivant ▶</button>
+    </div>
+  </div>
+</section>
+
+<section id="bravo" class="hidden">
+  <div class="bravo-card">
+    <div class="big-emoji">🏆</div>
+    <h2>Bravo&nbsp;!</h2>
+    <p id="bravoText">Tu as terminé ta construction.</p>
+    <button class="big next" id="again">Choisir un autre modèle</button>
+    <button class="big alt" id="admire">Admirer ma construction</button>
+  </div>
+</section>
+<canvas id="confetti" class="hidden"></canvas>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* =========================================================
+   Couleurs et pièces
+   ========================================================= */
+const COLORS = {
+  red:   {hex:0xc91a09, fr:'rouge'},
+  blue:  {hex:0x0055bf, fr:'bleu'},
+  yellow:{hex:0xf2cd37, fr:'jaune'},
+  green: {hex:0x237841, fr:'vert'},
+  lime:  {hex:0x8fc93a, fr:'vert clair'},
+  white: {hex:0xf2f2f2, fr:'blanc'},
+  black: {hex:0x1f2a33, fr:'noir'},
+  lgray: {hex:0xa0a5a9, fr:'gris clair'},
+  dgray: {hex:0x5f625c, fr:'gris foncé'},
+  orange:{hex:0xfe8a18, fr:'orange'},
+  brown: {hex:0x6b4229, fr:'marron'},
+  tan:   {hex:0xe4cd9e, fr:'beige'},
+  pink:  {hex:0xf785b1, fr:'rose'},
+  magenta:{hex:0xd6337f, fr:'rose foncé'},
+  dbrown:{hex:0x3e2718, fr:'marron foncé'},
+  rust:  {hex:0xb0602a, fr:'cuivré'},
+  azure: {hex:0x3fb6e0, fr:'bleu ciel'},
+  glass: {hex:0x9fdcf2, fr:'transparent', glass:true},
+};
+
+// Unités : 1 tenon = 1, 1 plaque = 0.4 (une brique = 3 plaques)
+const S = 1, PH = 0.4, GAP = 0.04;
+
+// Raccourcis pour décrire les modèles : x, y (en plaques), z = coin, w = largeur (x), d = profondeur (z)
+const B = (x,y,z,w,d,c,h=3) => ({t:'brick',x,y,z,w,d,c,h});
+const P = (x,y,z,w,d,c)     => ({t:'plate',x,y,z,w,d,c,h:1});
+const T = (x,y,z,w,d,c)     => ({t:'tile', x,y,z,w,d,c,h:1});
+const R = (x,y,z,c,h=1)     => ({t:'round',x,y,z,w:1,d:1,c,h});
+const SL= (x,y,z,w,d,c,dir) => ({t:'slope',x,y,z,w,d,c,h:3,dir});
+const CO= (x,y,z,w,c,h=6)   => ({t:'cone', x,y,z,w,d:w,c,h});
+const WH= (cx,cy,cz,c='black') => ({t:'wheel',cx,cy,cz,c}); // centre en unités
+
+function partName(p){
+  const a = Math.min(p.w||1,p.d||1), b = Math.max(p.w||1,p.d||1), dim = `${a}×${b}`;
+  switch(p.t){
+    case 'brick': return p.h===6 ? `Grande brique ${dim}` : `Brique ${dim}`;
+    case 'plate': return `Plaque ${dim}`;
+    case 'tile':  return `Tuile lisse ${dim}`;
+    case 'round': return p.h===1 ? 'Plaque ronde 1×1' : 'Brique ronde 1×1';
+    case 'slope': return `Pente ${dim}`;
+    case 'cone':  return `Cône ${dim}`;
+    case 'wheel': return 'Roue';
+  }
+}
+const partKey = p => partName(p)+'|'+p.c;
+
+/* =========================================================
+   Moteur « voxel » : on dessine la forme case par case,
+   puis le programme découpe chaque rangée en briques classiques
+   (1×1 à 2×8), en croisant les joints comme un vrai maçon.
+   ========================================================= */
+class Vox {
+  constructor(){ this.m = new Map(); }
+  set(x,L,z,c){ const k=x+','+L+','+z; if(c) this.m.set(k,c); else this.m.delete(k); }
+  get(x,L,z){ return this.m.get(x+','+L+','+z); }
+  fill(x0,x1,L0,L1,z0,z1,c){ for(let x=x0;x<x1;x++)for(let L=L0;L<L1;L++)for(let z=z0;z<z1;z++) this.set(x,L,z,c); }
+  ring(x0,x1,L0,L1,z0,z1,c,keep=()=>true){ for(let x=x0;x<x1;x++)for(let L=L0;L<L1;L++)for(let z=z0;z<z1;z++)
+    if((x===x0||x===x1-1||z===z0||z===z1-1) && keep(x,L,z)) this.set(x,L,z,c); }
+}
+const SIZES = [[2,8],[2,6],[2,4],[2,3],[2,2],[1,8],[1,6],[1,4],[1,3],[1,2],[1,1]];
+
+function compileVox(vox, yBase){
+  const byL = new Map();
+  for(const [k,c] of vox.m){ const [x,L,z]=k.split(',').map(Number); if(!byL.has(L)) byL.set(L,[]); byL.get(L).push([x,z,c]); }
+  const Ls = [...byL.keys()].sort((a,b)=>a-b);
+  let below = new Map(), belowRect = [];
+  const layers = [];
+  for(const L of Ls){
+    const cells = new Map(byL.get(L).map(([x,z,c])=>[x+','+z,c]));
+    const own = new Map(), rects = [], bricks = [];
+    const order = byL.get(L).map(([x,z])=>[x,z]).sort(L%2 ? (a,b)=>a[0]-b[0]||a[1]-b[1] : (a,b)=>a[1]-b[1]||a[0]-b[0]);
+    for(const [x,z] of order){
+      const k0 = x+','+z; if(own.has(k0)) continue;
+      const c = cells.get(k0);
+      let best = null;
+      for(const [a,b] of SIZES) for(const [w,d] of (a===b?[[a,b]]:[[a,b],[b,a]])){
+        let ok = true, sup = 0; const ids = new Set();
+        for(let i=0;i<w&&ok;i++) for(let j=0;j<d;j++){
+          const kk=(x+i)+','+(z+j);
+          if(cells.get(kk)!==c || own.has(kk)){ ok=false; break; }
+          const bid = below.get(kk); if(bid!==undefined){ sup++; ids.add(bid); }
+        }
+        if(!ok) continue;
+        let score = w*d*10 + Math.max(ids.size-1,0)*14 + sup*2;
+        if(sup===0 && L!==Ls[0]) score -= 1000;
+        if(ids.size===1){ const r = belowRect[[...ids][0]]; if(r.x===x&&r.z===z&&r.w===w&&r.d===d) score -= 30; }
+        if(w!==d && (w>d)===(L%2===0)) score += 3;
+        if(!best || score>best.score) best = {w,d,score};
+      }
+      const id = rects.length;
+      rects.push({x,z,w:best.w,d:best.d});
+      for(let i=0;i<best.w;i++) for(let j=0;j<best.d;j++) own.set((x+i)+','+(z+j), id);
+      bricks.push(B(x, yBase+3*L, z, best.w, best.d, c));
+    }
+    layers.push({L, bricks});
+    below = own; belowRect = rects;
+  }
+  return layers;
+}
+
+function buildSteps(m){
+  const steps = [...(m.pre||[])];
+  const layers = compileVox(m.vox, m.yBase);
+  layers.forEach(({L,bricks},li)=>{
+    const note = (m.notes||{})[L] || {};
+    const sorted = bricks.sort((a,b)=> (a.z-b.z) || (a.x-b.x));
+    const nCh = Math.ceil(sorted.length / (m.chunk||6));
+    const size = Math.ceil(sorted.length / nCh);
+    for(let c=0;c<nCh;c++){
+      const parts = sorted.slice(c*size,(c+1)*size);
+      const title = (note.title || `Rangée ${li+1}`) + (nCh>1 ? ` (${c+1}/${nCh})` : '');
+      const text = (c===0 && note.text) ? note.text
+        : `Pose ${parts.length>1 ? 'les '+parts.length+' pièces' : 'la pièce'} montrée${parts.length>1?'s':''} par les flèches.`;
+      steps.push({title, text, parts});
+    }
+    ((m.after||{})[L]||[]).forEach(s=>steps.push(s));
+  });
+  (m.post||[]).forEach(s=>steps.push(s));
+  return steps;
+}
+
+/* =========================================================
+   Les modèles
+   ========================================================= */
+function camion(){
+  const v = new Vox();
+  v.fill(0,14,0,1,0,6,'red'); v.set(0,0,0,'orange'); v.set(0,0,5,'orange');
+  v.fill(0,9,1,2,0,6,'red'); v.fill(10,14,1,2,0,6,'red');
+  v.set(13,1,0,'yellow'); v.set(13,1,5,'yellow'); v.fill(13,14,1,2,2,4,'lgray');
+  v.fill(0,9,2,3,0,6,'white'); v.fill(10,14,2,3,0,6,'red');
+  v.fill(13,14,2,3,1,5,'glass'); v.fill(11,13,2,3,0,1,'glass'); v.fill(11,13,2,3,5,6,'glass');
+  v.fill(0,9,3,4,0,6,'red'); v.fill(10,14,3,4,0,6,'red');
+  v.fill(2,4,4,5,2,4,'dgray');
+  return { id:'pompiers', name:'Le camion de pompiers', emoji:'🚒', level:2, view:[1,0.7,1.5],
+    yBase:3, vox:v,
+    pre:[
+      {title:'Le châssis', text:'La grande plaque grise est le dessous du camion. Elle doit être bien droite.', parts:[P(0,2,0,14,6,'dgray')]},
+      {title:'Les 6 roues', text:'Fixe 3 roues de chaque côté : deux à l’arrière, une à l’avant.',
+        parts:[WH(2,0.9,-0.3),WH(4.2,0.9,-0.3),WH(11.5,0.9,-0.3),WH(2,0.9,6.3),WH(4.2,0.9,6.3),WH(11.5,0.9,6.3)]},
+    ],
+    notes:{
+      0:{title:'Le plancher', text:'Couvre tout le châssis. Les deux briques orange à l’arrière sont les feux.'},
+      1:{title:'La caisse et la cabine', text:'Laisse un espace d’un tenon entre la caisse (derrière) et la cabine (devant). Phares jaunes et grille grise à l’avant.'},
+      2:{title:'La bande blanche et les vitres', text:'Bande blanche sur la caisse, vitres transparentes sur la cabine.'},
+      3:{title:'Les toits', text:'Ferme la caisse et la cabine.'},
+      4:{title:'La tourelle', text:'Une brique gris foncé sur la caisse : c’est là que tourne la grande échelle.'},
+    },
+    after:{
+      3:[{title:'Les gyrophares', text:'Deux briques rondes bleues sur le toit de la cabine. Pin-pon !', parts:[R(12,15,1,'blue',3), R(12,15,4,'blue',3)]}],
+    },
+    post:[
+      {title:'Le support de l’échelle', text:'Une plaque gris foncé posée sur la tourelle.', parts:[P(1,18,1,4,4,'dgray')]},
+      {title:'Les montants', text:'Deux longues plaques grises, une de chaque côté. Elles dépassent au-dessus de la cabine.', parts:[P(1,19,1,10,1,'lgray'), P(1,19,4,10,1,'lgray')]},
+      {title:'Les barreaux', text:'Cinq plaques posées en travers, un tenon d’écart entre chaque. L’échelle est prête !',
+        parts:[2,4,6,8,10].map(x=>P(x,20,1,1,4,'lgray'))},
+    ]};
+}
+
+function trex(){
+  const v = new Vox();
+  v.fill(4,8,0,1,0,2,'green'); v.fill(4,7,1,3,0,2,'green');
+  v.fill(8,12,0,1,2,4,'green'); v.fill(8,11,1,3,2,4,'green');
+  v.fill(3,12,3,6,0,4,'green'); v.fill(5,11,3,4,0,4,'lime');
+  v.fill(-2,3,4,5,1,3,'green'); v.fill(-5,0,5,6,1,3,'green'); v.fill(-7,-4,6,7,1,3,'green');
+  for(const z of [0,3]){ v.set(12,5,z,'green'); v.set(13,5,z,'green'); v.set(13,4,z,'green'); }
+  v.fill(10,13,6,8,1,3,'green');
+  v.fill(10,16,8,9,0,4,'green');
+  v.fill(10,13,9,10,0,4,'green'); v.fill(13,16,9,10,0,4,'white');
+  v.fill(10,16,10,11,0,4,'green'); v.set(12,10,0,'yellow'); v.set(12,10,3,'yellow');
+  v.fill(10,14,11,12,0,4,'green');
+  return { id:'trex', name:'Le T-rex', emoji:'🦖', level:3, view:[0.35,0.45,1.6],
+    yBase:1, vox:v,
+    pre:[{title:'Le sol', text:'Une plaque beige : c’est le désert où vit le T-rex.', parts:[P(3,0,-1,10,6,'tan')]}],
+    notes:{
+      0:{title:'Les pattes', text:'Deux pattes décalées : une en avant, une en arrière. Le T-rex marche !'},
+      1:{title:'Les jambes', text:'Monte chaque jambe juste au-dessus de sa patte.'},
+      3:{title:'Le ventre', text:'Le ventre vert clair relie les deux jambes. Attention : il dépasse un peu à l’avant et à l’arrière.'},
+      4:{title:'Le corps et la queue', text:'La queue part vers l’arrière et dépasse dans le vide, c’est normal. Les petites griffes s’accrochent sous les bras.'},
+      5:{title:'Les bras et la queue', text:'Les petits bras sortent devant, la queue monte vers l’arrière.'},
+      6:{title:'Le cou', text:'Le cou commence, et le bout de la queue se termine.'},
+      8:{title:'La mâchoire', text:'La mâchoire du bas avance bien vers l’avant.'},
+      9:{title:'Les dents', text:'Les briques blanches sont les dents !'},
+      10:{title:'Les yeux', text:'Deux briques jaunes sur les côtés pour les yeux.'},
+      11:{title:'Le front', text:'Le haut de la tête. GRRRR !'},
+    }};
+}
+
+function helico(){
+  const v = new Vox();
+  v.fill(3,11,0,1,2,6,'red');
+  v.fill(2,12,1,2,2,6,'white'); v.fill(10,12,1,2,2,6,'glass');
+  for(const z of [2,5]) v.fill(6,8,1,2,z,z+1,'glass');
+  v.fill(2,11,2,3,2,6,'red'); v.fill(9,11,2,3,2,6,'glass'); v.fill(-6,2,2,3,3,5,'red');
+  v.fill(3,9,3,4,2,6,'red'); v.fill(-6,-4,3,5,3,5,'white');
+  v.fill(5,7,4,5,3,5,'dgray');
+  return { id:'helico', name:'L’hélicoptère de secours', emoji:'🚁', level:2, view:[0.8,0.6,1.5],
+    yBase:4, vox:v,
+    pre:[
+      {title:'Les patins', text:'Deux longues plaques grises, bien parallèles, avec 2 tenons d’écart.', parts:[P(2,0,2,8,1,'lgray'), P(2,0,5,8,1,'lgray')]},
+      {title:'Les pieds', text:'Quatre briques rondes gris foncé debout sur les patins.', parts:[R(3,1,2,'dgray',3),R(8,1,2,'dgray',3),R(3,1,5,'dgray',3),R(8,1,5,'dgray',3)]},
+    ],
+    notes:{
+      0:{title:'Le fond', text:'Le fond rouge se pose sur les quatre pieds.'},
+      1:{title:'La bande blanche', text:'Bande blanche, hublots sur les côtés et grand pare-brise devant.'},
+      2:{title:'La queue', text:'La longue queue rouge part loin vers l’arrière. Le cockpit est transparent.'},
+      3:{title:'Le toit et l’aileron', text:'Le toit rouge, et l’aileron blanc tout au bout de la queue.'},
+      4:{title:'Le moteur', text:'Une brique gris foncé au milieu du toit pour tenir l’hélice.'},
+    },
+    post:[
+      {title:'La première pale', text:'Une très longue plaque noire posée dans le sens de l’hélicoptère.', parts:[P(0,19,3,12,2,'black')]},
+      {title:'La deuxième pale', text:'Une autre longue plaque noire, en croix par-dessus.', parts:[P(5,20,-2,2,12,'black')]},
+      {title:'Le bouchon', text:'Une tuile lisse au centre pour finir. Prêt à décoller !', parts:[T(5,21,3,2,2,'dgray')]},
+    ]};
+}
+
+function chateau(){
+  const v = new Vox();
+  v.ring(2,14,0,4,2,14,'lgray');
+  v.ring(2,14,4,5,2,14,'lgray',(x,L,z)=>(x+z)%3!==0);
+  v.fill(7,9,0,3,13,14,null);
+  v.ring(6,9,0,1,6,9,'lgray');
+  const towers = [[1,1],[11,1],[1,11],[11,11]];
+  for(const [cx,cz] of towers){
+    for(let L=0;L<7;L++) for(let x=cx;x<cx+4;x++) for(let z=cz;z<cz+4;z++) v.set(x,L,z,null);
+    v.fill(cx,cx+4,0,6,cz,cz+4,'dgray');
+    v.ring(cx,cx+4,6,7,cz,cz+4,'dgray',(x,L,z)=>(x+z)%2===0);
+    const fz = cz===1 ? 1 : 14;
+    v.fill(cx+1,cx+3,3,4,fz,fz+1,'black');
+  }
+  return { id:'chateau', name:'Le château fort', emoji:'🏰', level:4, view:[0.7,0.75,1.5],
+    yBase:1, vox:v,
+    pre:[{title:'Le terrain', text:'La grande plaque verte. Le château laisse une rangée de vert tout autour.', parts:[P(0,0,0,16,16,'green')]}],
+    notes:{
+      0:{title:'Les fondations', text:'Les 4 tours aux coins, les murs entre elles, et le puits au milieu de la cour. Laisse l’entrée ouverte devant !'},
+      1:{title:'Les murs montent', text:'Les joints ne doivent pas tomber pile sur ceux du dessous : c’est ce qui rend le mur solide.'},
+      3:{title:'Les fenêtres et le linteau', text:'Fenêtres noires dans les tours. Au-dessus de l’entrée, une longue brique passe par-dessus le vide.'},
+      4:{title:'Les créneaux des murs', text:'Une brique, un trou, une brique… Les gardes se cachent derrière !'},
+      6:{title:'Les créneaux des tours', text:'Une brique sur deux tout autour du sommet de chaque tour.'},
+    },
+    after:{
+      0:[{title:'L’eau du puits', text:'Une tuile bleue au centre du puits.', parts:[T(7,1,7,1,1,'blue')]}],
+    },
+    post:[
+      {title:'Les toits des tours', text:'Un cône rouge au milieu de chaque tour.', parts:towers.map(([cx,cz])=>CO(cx+1,19,cz+1,2,'red'))},
+      {title:'Le pont-levis', text:'Deux tuiles marron devant l’entrée. Le château est prêt pour les chevaliers !', parts:[T(7,1,14,2,2,'brown')]},
+    ]};
+}
+
+function bateau(){
+  const v = new Vox();
+  const hw = (L,x)=>{ let b=[2,3,4,4][Math.min(L,3)]; if(x>11) b -= (x-11)*0.65; return b; };
+  const inS = (L,x,z)=> x>=0 && x<18 && Math.abs(z+0.5-4) <= hw(L,x);
+  const edge = (L,x,z)=> !(inS(L,x+1,z)&&inS(L,x-1,z)&&inS(L,x,z+1)&&inS(L,x,z-1));
+  for(let x=1;x<17;x++) for(let z=0;z<8;z++){
+    if(inS(0,x,z)) v.set(x,0,z,'brown');
+  }
+  for(let x=0;x<18;x++) for(let z=0;z<8;z++){
+    if(inS(1,x,z)) v.set(x,1,z, edge(1,x,z)?'brown':'tan');
+    if(inS(2,x,z) && (edge(2,x,z) || x<5)) v.set(x,2,z,'brown');
+    if(x<5 && inS(3,x,z) && (x===0||x===4||edge(3,x,z))) v.set(x,3,z,'brown');
+  }
+  for(const x of [6,9]){ v.set(x,2,0,'black'); v.set(x,2,7,'black'); }
+  // grand mât
+  v.fill(10,11,2,4,3,4,'brown');
+  v.fill(10,11,4,8,0,8,'white'); v.fill(10,11,5,6,0,8,'red');
+  v.fill(10,11,8,10,3,4,'brown'); v.fill(10,11,10,11,3,6,'black');
+  // petit mât
+  v.fill(6,7,2,4,3,4,'brown');
+  v.fill(6,7,4,7,1,7,'white');
+  v.fill(6,7,7,8,3,4,'brown'); v.fill(6,7,8,9,3,5,'red');
+  // coffre au trésor
+  v.fill(13,15,2,3,3,5,'brown');
+  return { id:'pirate', name:'Le bateau pirate', emoji:'🏴‍☠️', level:3, view:[0.9,0.55,1.5],
+    yBase:1, vox:v,
+    pre:[{title:'La mer', text:'La grande plaque bleue, c’est l’océan.', parts:[P(-3,0,-2,24,12,'blue')]}],
+    notes:{
+      0:{title:'La quille', text:'Le fond du bateau, étroit et pointu vers l’avant.'},
+      1:{title:'Le pont', text:'Le pont beige au milieu, bordé de marron. La coque s’élargit.'},
+      2:{title:'Le bastingage', text:'Le rebord du bateau, avec 4 canons noirs. À l’arrière, le château du capitaine est plein. Plante les deux mâts et le coffre au trésor.'},
+      3:{title:'La rambarde du capitaine', text:'Un rebord tout autour du château arrière.'},
+      4:{title:'Les voiles', text:'Les voiles blanches se posent en travers du bateau, sur les mâts.'},
+      5:{title:'La bande rouge', text:'Une rangée rouge sur la grande voile.'},
+      8:{title:'Le haut des mâts', text:'Les mâts continuent au-dessus des voiles. Petit drapeau rouge sur le petit mât.'},
+      10:{title:'Le drapeau pirate', text:'Le drapeau noir tout en haut. À l’abordage !'},
+    }};
+}
+
+function flamant(){
+  const v = new Vox();
+  v.fill(3,6,0,1,3,4,'pink'); v.fill(4,5,1,4,3,4,'pink');
+  v.fill(2,7,4,5,2,5,'pink');
+  v.fill(1,8,5,6,2,5,'pink'); v.fill(2,7,5,6,1,2,'magenta'); v.fill(2,7,5,6,5,6,'magenta');
+  v.fill(0,7,6,7,2,5,'pink'); v.fill(0,1,6,7,2,5,'black');
+  v.fill(6,8,7,8,3,4,'pink'); v.fill(7,9,8,9,3,4,'pink'); v.fill(8,10,9,10,3,4,'pink');
+  v.fill(7,9,10,11,3,4,'pink'); v.fill(6,8,11,12,3,4,'pink');
+  v.fill(6,9,12,13,2,5,'pink'); v.set(7,12,2,'black'); v.set(7,12,4,'black'); v.set(9,12,3,'white');
+  v.set(9,11,3,'black');
+  return { id:'flamant', name:'Le flamant rose', emoji:'🦩', level:2, view:[0.35,0.45,1.6],
+    yBase:1, vox:v, chunk:5,
+    pre:[{title:'L’étang', text:'Une plaque bleue : c’est l’eau où se tient le flamant.', parts:[P(0,0,0,8,8,'blue')]}],
+    notes:{
+      0:{title:'Le pied', text:'Le flamant tient sur UNE seule patte. Pose le pied rose au milieu de l’étang.'},
+      1:{title:'La patte', text:'Empile les petites briques 1×1 pour faire la longue patte fine.'},
+      4:{title:'Le ventre', text:'Le ventre se pose sur la patte et dépasse de chaque côté.'},
+      5:{title:'Les ailes', text:'Les ailes rose foncé se placent sur les deux côtés.'},
+      6:{title:'Le dos et la queue', text:'Le bout noir à l’arrière, ce sont les plumes de la queue.'},
+      7:{title:'Le cou', text:'Le long cou commence. Il va onduler comme un S !'},
+      10:{title:'Le cou repart en arrière', text:'Le cou revient vers l’arrière pour former le S.'},
+      11:{title:'Le bec', text:'Le bout du bec est noir et recourbé vers le bas.'},
+      12:{title:'La tête', text:'La tête avec deux yeux noirs et le haut du bec blanc.'},
+    },
+    post:[{title:'Les roseaux', text:'Des briques rondes vertes dans un coin de l’étang.',
+      parts:[R(0,1,6,'green',3), R(0,4,6,'green',3), R(1,1,7,'lime',3), R(7,1,0,'green',3), R(1,1,1,'lime')]}]};
+}
+
+function princesse(){
+  const v = new Vox();
+  v.ring(2,10,0,5,3,9,'white');
+  v.fill(5,7,0,2,8,9,'pink');
+  v.ring(2,10,3,4,3,9,'pink');
+  for(const x of [3,8]) v.set(x,2,8,'glass');
+  for(const x of [2,9]) v.fill(x,x+1,1,3,5,7,'glass');
+  v.fill(4,8,1,3,3,4,'glass');
+  v.fill(5,7,4,5,8,9,'glass');
+  for(const tx of [0,10]){ v.fill(tx,tx+2,0,8,7,9,'white'); v.fill(tx,tx+2,3,4,7,9,'pink'); v.fill(tx,tx+2,5,6,8,9,'glass'); }
+  v.fill(2,10,5,6,5,7,'pink');
+  return { id:'princesse', name:'La maison de princesse', emoji:'👑', level:3, view:[0.6,0.7,1.6],
+    yBase:1, vox:v,
+    pre:[{title:'Le jardin', text:'La plaque vert clair. La maison se construit au fond, laisse 2 rangées devant.', parts:[P(0,0,0,12,12,'lime')]}],
+    notes:{
+      0:{title:'Les fondations', text:'Les murs blancs, la porte rose devant, et les deux tours rondes aux coins de devant.'},
+      1:{title:'Les grandes fenêtres', text:'Fenêtres transparentes sur les côtés et au fond.'},
+      2:{title:'Les fenêtres de devant', text:'Deux petites fenêtres de chaque côté de la porte.'},
+      3:{title:'La frise rose', text:'Une rangée toute rose fait le tour de la maison et des tours.'},
+      4:{title:'Le haut des murs', text:'Une fenêtre au-dessus de la porte pour le balcon de la princesse.'},
+      5:{title:'Le milieu du toit', text:'Une rangée rose au milieu. Les tours continuent de monter, avec une fenêtre devant.'},
+    },
+    after:{
+      4:[{title:'Le toit', text:'Des pentes roses devant et derrière, la partie haute vers le milieu.',
+        parts:[SL(2,16,7,4,2,'pink','+z'),SL(6,16,7,4,2,'pink','+z'),SL(2,16,3,4,2,'pink','-z'),SL(6,16,3,4,2,'pink','-z')]}],
+      5:[{title:'Le faîte du toit', text:'Des tuiles roses lisses tout en haut du toit.', parts:[T(2,19,5,4,2,'pink'),T(6,19,5,4,2,'pink')]}],
+    },
+    post:[
+      {title:'Les toits pointus', text:'Un cône rose sur chaque tour. Ça devient un vrai château de princesse !', parts:[CO(0,25,7,2,'pink'),CO(10,25,7,2,'pink')]},
+      {title:'L’allée et les fleurs', text:'Une allée beige jusqu’à la porte, et des fleurs de toutes les couleurs.',
+        parts:[T(5,1,9,2,3,'tan'), R(3,1,10,'pink'), R(8,1,10,'yellow'), R(1,1,10,'red'), R(10,1,10,'pink'), R(3,1,11,'yellow'), R(8,1,11,'red')]},
+    ]};
+}
+
+function cabane(){
+  const v = new Vox();
+  for(let L=0;L<4;L++) v.ring(2,9,L,L+1,2,8, L%2?'dbrown':'brown');
+  v.fill(5,7,0,3,7,8,'red');
+  for(const x of [3,8]) v.fill(x,x+1,1,3,7,8,'yellow');
+  v.fill(2,3,1,3,4,6,'yellow'); v.fill(8,9,1,3,4,6,'yellow');
+  v.fill(2,9,4,5,4,6,'white'); v.fill(7,8,4,7,4,5,'dgray');
+  // sapin
+  v.set(10,0,9,'brown');
+  v.fill(9,12,1,3,8,11,'green'); v.set(9,1,8,'red'); v.set(11,1,10,'yellow'); v.set(11,2,8,'red'); v.set(9,2,10,'yellow');
+  v.fill(10,11,3,4,8,11,'green'); v.fill(9,12,3,4,9,10,'green'); v.set(10,4,9,'green');
+  return { id:'cabane', name:'La cabane de Noël', emoji:'🎄', level:3, view:[0.75,0.7,1.5],
+    yBase:1, vox:v,
+    pre:[{title:'La neige', text:'Une grande plaque blanche : tout est enneigé !', parts:[P(0,0,0,12,12,'white')]}],
+    notes:{
+      0:{title:'Les premiers rondins', text:'Les murs en marron, une porte rouge devant. Le petit tronc du sapin va à droite devant.'},
+      1:{title:'Les fenêtres allumées', text:'Les murs alternent deux marrons, comme des rondins de bois. Les fenêtres jaunes sont allumées ! Le sapin commence avec ses boules.'},
+      2:{title:'Encore des rondins', text:'Continue les murs et le sapin.'},
+      3:{title:'Le haut des murs', text:'Le haut des murs ferme les fenêtres et la porte. Le sapin rétrécit en croix.'},
+      4:{title:'La cheminée et la cime', text:'Le haut du toit tout blanc, la cheminée grise, et la cime du sapin.'},
+    },
+    after:{
+      3:[{title:'Le toit enneigé', text:'Des pentes blanches devant et derrière : la neige est tombée sur le toit !',
+        parts:[SL(2,13,6,4,2,'white','+z'),SL(6,13,6,3,2,'white','+z'),SL(2,13,2,4,2,'white','-z'),SL(6,13,2,3,2,'white','-z')]}],
+    },
+    post:[
+      {title:'Le faîte et la fumée', text:'Des tuiles blanches tout en haut du toit, et de la fumée grise qui sort de la cheminée.',
+        parts:[T(2,16,4,4,2,'white'), T(6,16,5,1,1,'white'), T(8,16,4,1,2,'white'), R(7,22,4,'lgray'), R(7,23,4,'white')]},
+      {title:'L’étoile', text:'L’étoile jaune tout en haut du sapin.', parts:[R(10,16,9,'yellow',3)]},
+      {title:'Le bonhomme de neige', text:'Deux boules blanches et un chapeau noir.', parts:[R(1,1,10,'white',3), R(1,4,10,'white',3), R(1,7,10,'black')]},
+      {title:'Les cadeaux', text:'Des cadeaux au pied du sapin. Joyeux Noël !', parts:[B(7,1,9,1,1,'red'), B(8,1,10,1,1,'blue'), B(7,1,10,1,1,'yellow')]},
+    ]};
+}
+
+function chien(){
+  const v = new Vox();
+  for(const x of [2,8]) for(const z of [0,3]){ v.fill(x,x+2,0,1,z,z+1,'white'); v.fill(x,x+2,1,3,z,z+1,'rust'); }
+  v.fill(1,11,3,6,0,4,'black'); v.fill(10,11,3,6,0,4,'white'); v.fill(4,9,3,4,1,3,'white');
+  v.fill(0,1,5,6,1,3,'black');
+  v.fill(8,11,6,7,0,4,'white'); v.fill(11,14,6,7,1,3,'white'); v.fill(14,15,6,7,1,3,'black');
+  v.fill(9,13,7,8,0,4,'black'); v.set(12,7,0,'rust'); v.set(12,7,3,'rust'); v.fill(12,13,7,8,1,3,'white');
+  v.fill(9,13,8,9,0,4,'black'); v.fill(12,13,8,9,1,3,'white'); v.set(12,8,0,'azure'); v.set(12,8,3,'azure');
+  v.fill(9,12,9,10,0,4,'black'); v.set(11,9,0,'rust'); v.set(11,9,3,'rust');
+  v.fill(9,11,10,11,0,1,'black'); v.fill(9,11,10,11,3,4,'black');
+  return { id:'chien', name:'Le berger australien', emoji:'🐕', level:3, view:[0.55,0.4,1.6],
+    yBase:1, vox:v, chunk:5,
+    pre:[{title:'La pelouse', text:'Une longue plaque verte pour le jardin du chien.', parts:[P(0,0,-1,16,6,'green')]}],
+    notes:{
+      0:{title:'Les pattes blanches', text:'Quatre petites pattes blanches : deux devant, deux derrière, de chaque côté.'},
+      1:{title:'Les pattes cuivrées', text:'Le berger australien tricolore a les pattes couleur cuivre (roux).'},
+      3:{title:'Le ventre', text:'Le corps noir se pose sur les 4 pattes. Le ventre et le poitrail sont blancs.'},
+      4:{title:'Le dos', text:'Le dos est tout noir, avec le poitrail blanc devant.'},
+      5:{title:'Le dos et la queue', text:'Le berger australien a souvent une toute petite queue.'},
+      6:{title:'Le collier blanc et le museau', text:'Le collier blanc fait le tour du cou, le museau blanc avance avec la truffe noire au bout.'},
+      7:{title:'Les joues', text:'La tête est noire avec des joues cuivrées et une bande blanche au milieu.'},
+      8:{title:'Les yeux bleus', text:'Beaucoup de bergers australiens ont les yeux bleus !'},
+      9:{title:'Les sourcils', text:'Deux taches cuivrées au-dessus des yeux, comme des sourcils.'},
+      10:{title:'Les oreilles', text:'Deux oreilles noires sur les côtés. Ouaf !'},
+    },
+    post:[{title:'La balle', text:'Une balle rouge pour jouer !', parts:[R(14,1,4,'red',3)]}]};
+}
+
+function vaisseau(){
+  const v = new Vox();
+  const dz = z => Math.abs(z+0.5-10);
+  // L0 : fuselage + ailes en delta
+  v.fill(0,22,0,1,7,13,'lgray'); v.fill(22,24,0,1,9,11,'red');
+  for(let x=2;x<15;x++) for(let z=0;z<20;z++){
+    const span = 3 + (14-x)*0.55, d = dz(z);
+    if(d<=span && d>3) v.set(x,0,z, d>span-1 ? 'dgray' : (d>6 && d<=7 ? 'orange' : 'lgray'));
+  }
+  // L1 : fuselage, bandes, moteurs latéraux, canons
+  v.fill(0,21,1,2,7,13,'lgray'); v.fill(3,17,1,2,7,8,'orange'); v.fill(3,17,1,2,12,13,'orange');
+  for(const z0 of [3,14]){ v.fill(0,7,1,3,z0,z0+3,'dgray'); v.fill(0,1,1,3,z0,z0+3,'orange'); }
+  v.fill(1,10,1,2,1,2,'dgray'); v.fill(1,10,1,2,18,19,'dgray');
+  // L2 : fuselage + cockpit
+  v.fill(0,19,2,3,7,13,'lgray'); v.fill(13,17,2,3,8,12,'glass');
+  v.fill(0,1,2,3,8,12,'orange');
+  // L3 : dessus + verrière
+  v.fill(1,13,3,4,8,12,'lgray'); v.fill(13,16,3,4,9,11,'glass'); v.fill(13,15,3,4,8,9,'lgray'); v.fill(13,15,3,4,11,12,'lgray');
+  // L4-L6 : tourelle et aileron
+  v.fill(8,10,4,5,9,11,'dgray');
+  v.fill(1,5,4,6,9,11,'lgray'); v.fill(1,3,6,7,9,11,'dgray');
+  return { id:'vaisseau', name:'Le chasseur stellaire', emoji:'🚀', level:4, view:[0.7,1.0,1.1],
+    yBase:10, vox:v,
+    pre:[
+      {title:'Le socle', text:'Une plaque gris foncé : c’est le support d’exposition.', parts:[P(8,0,8,4,4,'dgray')]},
+      {title:'Le pied', text:'Empile trois briques gris foncé au milieu du socle. Le vaisseau va se poser dessus.', parts:[B(9,1,9,2,2,'dgray'),B(9,4,9,2,2,'dgray'),B(9,7,9,2,2,'dgray')]},
+    ],
+    notes:{
+      0:{title:'Le fuselage et les ailes', text:'Le long corps central, puis les grandes ailes en triangle de chaque côté. Les bords des ailes sont gris foncé avec une bande orange. Nez rouge à l’avant !'},
+      1:{title:'Les moteurs et les canons', text:'Deux gros moteurs sur les ailes (sortie orange à l’arrière), deux canons laser au bout des ailes, et deux bandes orange sur le fuselage.'},
+      2:{title:'Le cockpit', text:'Le dessus du fuselage et la verrière transparente du pilote. Le moteur central brille en orange à l’arrière.'},
+      3:{title:'La verrière', text:'Le haut de la verrière et le dos du vaisseau.'},
+      4:{title:'La tourelle et l’aileron', text:'Une tourelle gris foncé au milieu du dos, et l’aileron à l’arrière.'},
+      6:{title:'Le haut de l’aileron', text:'Le sommet de l’aileron en gris foncé.'},
+    },
+    post:[
+      {title:'Les antennes', text:'Deux antennes sur l’aileron. Le chasseur est prêt pour l’hyperespace !', parts:[R(1,31,9,'red',3), R(2,31,10,'lgray')]},
+    ]};
+}
+
+const MODELS = [flamant(), helico(), camion(), chien(), trex(), cabane(), princesse(), bateau(), chateau(), vaisseau()].map(m=>({...m, steps:buildSteps(m)}));
+
+/* =========================================================
+   Géométries
+   ========================================================= */
+const matCache = {};
+function mat(c){
+  if(matCache[c]) return matCache[c];
+  const col = COLORS[c];
+  const m = new THREE.MeshStandardMaterial({
+    color:col.hex, roughness: col.glass?0.1:0.32, metalness:0,
+    transparent:!!col.glass, opacity: col.glass?0.55:1,
+  });
+  return matCache[c]=m;
+}
+const edgeMatCache = {};
+function edgeMat(c){
+  if(edgeMatCache[c]) return edgeMatCache[c];
+  const base = new THREE.Color(COLORS[c].hex);
+  const dark = c==='black' ? new THREE.Color(0x58636b) : base.clone().multiplyScalar(0.55);
+  return edgeMatCache[c] = new THREE.LineBasicMaterial({color:dark, transparent:true, opacity:0.7});
+}
+const studGeo = new THREE.CylinderGeometry(0.3,0.3,0.18,20);
+const hubGeo  = new THREE.CylinderGeometry(0.42,0.42,0.62,24);
+
+function addStuds(g, cols, rows, y, c, ox, oz){
+  for(let i=0;i<cols;i++) for(let j=0;j<rows;j++){
+    const s = new THREE.Mesh(studGeo, mat(c));
+    s.position.set(ox + i + 0.5, y + 0.09, oz + j + 0.5);
+    s.castShadow = true; g.add(s);
+  }
+}
+function boxWithEdges(g, w,h,d, cx,cy,cz, c){
+  const geo = new THREE.BoxGeometry(w,h,d);
+  const m = new THREE.Mesh(geo, mat(c));
+  m.position.set(cx,cy,cz); m.castShadow = m.receiveShadow = true; g.add(m);
+  const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat(c));
+  e.position.copy(m.position); g.add(e);
+}
+
+function makePart(p){
+  const g = new THREE.Group();
+  if(p.t==='wheel'){
+    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,0.6,32), mat('black'));
+    tire.rotation.x = Math.PI/2; tire.castShadow = true;
+    const hub = new THREE.Mesh(hubGeo, mat('lgray')); hub.rotation.x = Math.PI/2;
+    g.add(tire, hub);
+    g.position.set(p.cx, p.cy, p.cz);
+    return g;
+  }
+  const w = p.w*S, d = p.d*S, h = p.h*PH;
+  const x0 = p.x*S, y0 = p.y*PH, z0 = p.z*S;
+  if(p.t==='brick' || p.t==='plate' || p.t==='tile'){
+    boxWithEdges(g, w-GAP, h, d-GAP, x0+w/2, y0+h/2, z0+d/2, p.c);
+    if(p.t!=='tile') addStuds(g, p.w, p.d, y0+h, p.c, x0, z0);
+  } else if(p.t==='round'){
+    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(0.46,0.46,h,28), mat(p.c));
+    cyl.position.set(x0+0.5, y0+h/2, z0+0.5); cyl.castShadow = true; g.add(cyl);
+    addStuds(g,1,1,y0+h,p.c,x0,z0);
+  } else if(p.t==='cone'){
+    const cone = new THREE.Mesh(new THREE.CylinderGeometry(0.12, w/2-0.03, h, 32), mat(p.c));
+    cone.position.set(x0+w/2, y0+h/2, z0+d/2); cone.castShadow = true; g.add(cone);
+  } else if(p.t==='slope'){
+    // profil dessiné dans le plan (u = sens de la descente, v = hauteur), extrudé sur la largeur
+    const alongX = p.dir.includes('x');
+    const L = (alongX ? p.w : p.d)*S - GAP, W = (alongX ? p.d : p.w)*S - GAP;
+    const lip = 0.16;
+    const shape = new THREE.Shape();
+    shape.moveTo(0,0); shape.lineTo(L,0); shape.lineTo(L,lip); shape.lineTo(1,h); shape.lineTo(0,h); shape.lineTo(0,0);
+    const geo = new THREE.ExtrudeGeometry(shape,{depth:W, bevelEnabled:false});
+    geo.translate(-L/2,0,-W/2);
+    const inner = new THREE.Group();
+    const m = new THREE.Mesh(geo, mat(p.c)); m.castShadow = m.receiveShadow = true;
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), edgeMat(p.c));
+    inner.add(m,e);
+    // tenons sur la partie haute (1 rangée)
+    const nW = Math.round(W);
+    for(let k=0;k<nW;k++){
+      const s = new THREE.Mesh(studGeo, mat(p.c));
+      s.position.set(-L/2+0.5, h+0.09, -W/2 + k + 0.5); s.castShadow = true; inner.add(s);
+    }
+    const rot = {'+x':0, '-x':Math.PI, '+z':-Math.PI/2, '-z':Math.PI/2}[p.dir];
+    inner.rotation.y = rot;
+    inner.position.set(x0+w/2, y0, z0+d/2);
+    g.add(inner);
+  }
+  return g;
+}
+
+/* =========================================================
+   Rendu des vignettes (pièces + modèles)
+   ========================================================= */
+const thumbR = new THREE.WebGLRenderer({antialias:true, alpha:true, preserveDrawingBuffer:true});
+thumbR.setPixelRatio(1);
+const thumbCache = {};
+function lightRig(scene){
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xb9a988, 1.6));
+  const d = new THREE.DirectionalLight(0xffffff, 1.9); d.position.set(5,10,7); scene.add(d);
+  return d;
+}
+function renderThumb(obj, size, dirVec=[1,0.85,1.3], bg=null){
+  const scene = new THREE.Scene(); if(bg) scene.background = new THREE.Color(bg);
+  lightRig(scene); scene.add(obj);
+  const box = new THREE.Box3().setFromObject(obj);
+  const sph = box.getBoundingSphere(new THREE.Sphere());
+  const cam = new THREE.PerspectiveCamera(30,1,0.1,500);
+  const dir = new THREE.Vector3(...dirVec).normalize();
+  const dist = sph.radius / Math.sin(THREE.MathUtils.degToRad(15)) * 1.05;
+  cam.position.copy(sph.center).addScaledVector(dir, dist); cam.lookAt(sph.center);
+  thumbR.setSize(size,size,false);
+  thumbR.setClearColor(0x000000, 0);
+  thumbR.render(scene,cam);
+  return thumbR.domElement.toDataURL('image/png');
+}
+function partThumb(p){
+  const key = partKey(p);
+  if(thumbCache[key]) return thumbCache[key];
+  // pièce normalisée (posée à l'origine, orientée pour bien la voir)
+  const q = {...p};
+  if(q.t==='wheel'){ q.cx=0;q.cy=0;q.cz=0; }
+  else { q.x=0;q.y=0;q.z=0; if(q.t==='slope') q.dir = (q.w>=q.d? (q.d>=2?'+z':'+x') : '+x'); }
+  if(q.t==='slope'){ // largeur sur x, descente vers l'avant
+    const a=Math.min(p.w,p.d), b=Math.max(p.w,p.d);
+    q.w=b; q.d=a; q.dir='+z';
+    if(a===2&&b===2){q.dir='+z';}
+  }
+  return thumbCache[key] = renderThumb(makePart(q), 160, q.t==='wheel'?[0.5,0.5,1.4]:[1,1,1.4]);
+}
+
+/* =========================================================
+   Scène principale
+   ========================================================= */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+stage.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xfff8e7);
+const sun = lightRig(scene);
+sun.castShadow = true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-15,right:15,top:15,bottom:-15,near:1,far:60});
+sun.shadow.bias = -0.0005; sun.shadow.radius = 4;
+
+const ground = new THREE.Mesh(new THREE.CircleGeometry(14,64), new THREE.MeshStandardMaterial({color:0xf1e6c8, roughness:1}));
+ground.rotation.x = -Math.PI/2; ground.position.y = -0.001; ground.receiveShadow = true; scene.add(ground);
+const ring = new THREE.Mesh(new THREE.RingGeometry(13.6,14,64), new THREE.MeshBasicMaterial({color:0xe2d3ad}));
+ring.rotation.x = -Math.PI/2; ring.position.y=0.002; scene.add(ring);
+
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 300);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.maxPolarAngle = Math.PI*0.49; controls.minDistance = 4; controls.maxDistance = 60;
+controls.enablePan = false;
+controls.autoRotateSpeed = 2.2;
+controls.addEventListener('start', ()=>{ document.getElementById('hint').style.opacity=0; });
+
+const modelRoot = new THREE.Group(); scene.add(modelRoot);
+const arrows = new THREE.Group(); scene.add(arrows);
+const arrowGeo = new THREE.ConeGeometry(0.35,0.8,20); arrowGeo.rotateX(Math.PI); arrowGeo.translate(0,0.4,0);
+const arrowMat = new THREE.MeshStandardMaterial({color:0xff6b00, emissive:0xff4400, emissiveIntensity:0.35});
+
+function resize(){
+  const r = stage.getBoundingClientRect();
+  renderer.setSize(r.width, r.height, false);
+  camera.aspect = r.width/Math.max(r.height,1); camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+
+/* ---------- état ---------- */
+let current = null;      // modèle courant
+let stepIdx = 0;         // -1 = "rassemble tes pièces"
+let partObjs = [];       // [stepIndex][i] -> Group
+let anims = [];
+let offset = new THREE.Vector3();
+
+function loadProgress(){ try{ return JSON.parse(localStorage.getItem('legobuilder')||'{}'); }catch(e){ return {}; } }
+function saveProgress(id, val){ try{ const p=loadProgress(); p[id]=val; localStorage.setItem('legobuilder', JSON.stringify(p)); }catch(e){} }
+
+function buildModelObjects(model){
+  modelRoot.clear(); partObjs = [];
+  const all = new THREE.Group();
+  model.steps.forEach((st,si)=>{
+    partObjs[si] = st.parts.map(p=>{ const o = makePart(p); o.userData.base = o.position.clone(); all.add(o); return o; });
+  });
+  // centrer le modèle
+  const box = new THREE.Box3().setFromObject(all);
+  offset.set(-(box.min.x+box.max.x)/2, -box.min.y, -(box.min.z+box.max.z)/2);
+  all.position.copy(offset);
+  modelRoot.add(all);
+  return box;
+}
+
+function frameCamera(model, box){
+  const size = box.getSize(new THREE.Vector3());
+  const radius = size.length()/2;
+  const dir = new THREE.Vector3(...model.view).normalize();
+  const target = new THREE.Vector3(0, size.y*0.4, 0);
+  controls.target.copy(target);
+  const vf = THREE.MathUtils.degToRad(camera.fov);
+  const hf = 2*Math.atan(Math.tan(vf/2)*camera.aspect);
+  const dist = radius / Math.sin(Math.min(vf,hf)/2) * 0.92;
+  camera.position.copy(target).addScaledVector(dir, dist);
+  controls.maxDistance = dist*2;
+  controls.update();
+}
+
+/* ---------- affichage d'une étape ---------- */
+const $ = id => document.getElementById(id);
+
+function countParts(list){
+  const m = new Map();
+  list.forEach(p=>{ const k=partKey(p); if(!m.has(k)) m.set(k,{p,n:0}); m.get(k).n++; });
+  return [...m.values()];
+}
+function renderPartsList(list){
+  const el = $('parts'); el.innerHTML='';
+  countParts(list).forEach(({p,n})=>{
+    const d = document.createElement('div'); d.className='part';
+    d.innerHTML = `<span class="qty">${n}×</span><img alt="" src="${partThumb(p)}"><div class="nm">${partName(p)}<br><b>${COLORS[p.c].fr}</b></div>`;
+    d.onclick = ()=>{ d.classList.toggle('check'); pop(660); };
+    el.appendChild(d);
+  });
+}
+
+function showStep(i, animate=true){
+  stepIdx = i;
+  const n = current.steps.length;
+  anims = []; arrows.clear();
+  saveProgress(current.id, i);
+  $('bar').style.width = ((i+1)/(n+1)*100)+'%';
+  $('prev').disabled = i<0;
+
+  if(i<0){
+    // écran de départ : toutes les pièces
+    partObjs.flat().forEach(o=>{ o.visible = true; o.position.copy(o.userData.base); });
+    $('stepnum').textContent = '🧺';
+    $('sTitle').textContent = 'Rassemble tes pièces';
+    const total = current.steps.reduce((a,s)=>a+s.parts.length,0);
+    $('sText').textContent = `Voici ce que tu vas construire ! Il te faut ${total} pièces. Touche une pièce quand tu l’as trouvée.`;
+    renderPartsList(current.steps.flatMap(s=>s.parts));
+    $('next').innerHTML = 'C’est parti ▶';
+    return;
+  }
+
+  const st = current.steps[i];
+  partObjs.forEach((objs,si)=>objs.forEach(o=>{
+    o.visible = si<=i;
+    o.position.copy(o.userData.base);
+  }));
+  $('stepnum').textContent = i+1;
+  $('sTitle').textContent = st.title;
+  $('sText').textContent = st.text;
+  renderPartsList(st.parts);
+  $('next').innerHTML = i===n-1 ? 'Terminé ! 🎉' : 'Suivant ▶';
+
+  // flèches + animation de chute pour les nouvelles pièces
+  const t0 = performance.now();
+  partObjs[i].forEach((o,k)=>{
+    const bb = new THREE.Box3().setFromObject(o);
+    const top = new THREE.Vector3((bb.min.x+bb.max.x)/2, bb.max.y, (bb.min.z+bb.max.z)/2);
+    const a = new THREE.Mesh(arrowGeo, arrowMat);
+    a.userData = {baseY: top.y+0.6, phase:k*0.7};
+    a.position.copy(top);
+    arrows.add(a);
+    if(animate){
+      anims.push({o, start:t0+k*180, dur:650});
+      o.position.y = o.userData.base.y + 6;
+    }
+  });
+  if(animate) setTimeout(()=>pop(520), 450);
+}
+
+const easeOutBounce = x => {
+  const n1=7.5625, d1=2.75;
+  if(x<1/d1) return n1*x*x;
+  if(x<2/d1) return n1*(x-=1.5/d1)*x+0.75;
+  if(x<2.5/d1) return n1*(x-=2.25/d1)*x+0.9375;
+  return n1*(x-=2.625/d1)*x+0.984375;
+};
+
+function loop(){
+  requestAnimationFrame(loop);
+  const t = performance.now();
+  if($('builder').classList.contains('hidden')) return;
+  anims.forEach(a=>{
+    const k = Math.min(Math.max((t-a.start)/a.dur,0),1);
+    a.o.position.y = a.o.userData.base.y + 6*(1-easeOutBounce(k));
+  });
+
+  arrows.children.forEach(a=>{
+    a.position.y = a.userData.baseY + Math.abs(Math.sin(t/260 + a.userData.phase))*0.6;
+    a.rotation.y = t/600;
+  });
+  arrows.visible = !controls.autoRotate || stepIdx<current.steps.length;
+  controls.update();
+  renderer.render(scene,camera);
+}
+
+/* =========================================================
+   Sons & voix
+   ========================================================= */
+let ac = null;
+function audio(){ try{ ac = ac || new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended') ac.resume(); }catch(e){} return ac; }
+function pop(freq=520){
+  const a = audio(); if(!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type='triangle'; o.frequency.setValueAtTime(freq,a.currentTime);
+  o.frequency.exponentialRampToValueAtTime(freq*1.8,a.currentTime+0.08);
+  g.gain.setValueAtTime(0.0001,a.currentTime); g.gain.exponentialRampToValueAtTime(0.25,a.currentTime+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.18);
+  o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime+0.2);
+}
+function fanfare(){
+  const a = audio(); if(!a) return;
+  [523,659,784,1047].forEach((f,i)=>{
+    const o=a.createOscillator(), g=a.createGain(), t=a.currentTime+i*0.14;
+    o.type='square'; o.frequency.value=f;
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.12,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+(i===3?0.6:0.14));
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t+0.7);
+  });
+}
+let voice = null;
+function pickVoice(){
+  try{
+    const vs = speechSynthesis.getVoices().filter(v=>v.lang && v.lang.toLowerCase().startsWith('fr'));
+    const pref = ['Amélie','Amelie','Audrey','Marie','Aurélie','Aurelie','Julie','Céline','Denise','Hortense','Google français'];
+    voice = vs.find(v=>pref.some(p=>v.name.includes(p))) || vs[0] || null;
+  }catch(e){}
+}
+try{ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }catch(e){}
+function say(text){
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='fr-FR'; if(voice) u.voice=voice; u.rate=0.95; u.pitch=1.1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* =========================================================
+   Confettis
+   ========================================================= */
+function confetti(){
+  const cv = $('confetti'); cv.classList.remove('hidden');
+  const ctx = cv.getContext('2d');
+  cv.width = innerWidth*devicePixelRatio; cv.height = innerHeight*devicePixelRatio;
+  const cols = ['#c91a09','#0055bf','#f2cd37','#237841','#fe8a18','#f785b1'];
+  const bits = Array.from({length:140},()=>({x:Math.random()*cv.width, y:-Math.random()*cv.height*0.6,
+    w:(8+Math.random()*10)*devicePixelRatio, h:(5+Math.random()*6)*devicePixelRatio,
+    vy:(2+Math.random()*4)*devicePixelRatio, vx:(Math.random()-0.5)*3*devicePixelRatio,
+    r:Math.random()*6, vr:(Math.random()-0.5)*0.3, c:cols[Math.floor(Math.random()*cols.length)]}));
+  const t0 = performance.now();
+  (function frame(t){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    bits.forEach(b=>{ b.x+=b.vx; b.y+=b.vy; b.r+=b.vr;
+      ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(b.r); ctx.fillStyle=b.c; ctx.fillRect(-b.w/2,-b.h/2,b.w,b.h); ctx.restore(); });
+    if(t-t0<4500) requestAnimationFrame(frame); else { ctx.clearRect(0,0,cv.width,cv.height); cv.classList.add('hidden'); }
+  })(t0);
+}
+
+/* =========================================================
+   Navigation
+   ========================================================= */
+function openModel(m){
+  current = m;
+  $('home').classList.add('hidden'); $('builder').classList.remove('hidden');
+  $('mTitle').textContent = `${m.emoji} ${m.name}`;
+  $('hint').style.opacity = 1;
+  controls.autoRotate = false; $('spin').classList.remove('on');
+  resize();
+  const box = buildModelObjects(m);
+  frameCamera(m, box);
+  const saved = loadProgress()[m.id];
+  const start = (typeof saved==='number' && saved>=0 && saved<m.steps.length) ? saved : -1;
+  showStep(start, start>=0);
+}
+function goHome(){
+  try{ speechSynthesis.cancel(); }catch(e){}
+  $('builder').classList.add('hidden'); $('bravo').classList.add('hidden');
+  $('home').classList.remove('hidden');
+  renderHome();
+}
+
+$('next').onclick = ()=>{
+  audio();
+  if(stepIdx < current.steps.length-1){ showStep(stepIdx+1); }
+  else {
+    saveProgress(current.id, 'done');
+    arrows.clear(); fanfare(); confetti();
+    $('bravoText').textContent = `Tu as construit ${current.name.toLowerCase()} tout seul. Super travail !`;
+    $('bravo').classList.remove('hidden');
+    say('Bravo ! Tu as terminé ' + current.name.toLowerCase() + ' !');
+  }
+};
+$('prev').onclick = ()=>{ if(stepIdx>-1) showStep(stepIdx-1, stepIdx-1>=0); };
+$('back').onclick = goHome;
+$('again').onclick = goHome;
+$('admire').onclick = ()=>{
+  $('bravo').classList.add('hidden');
+  controls.autoRotate = true; $('spin').classList.add('on');
+};
+$('spin').onclick = ()=>{ controls.autoRotate = !controls.autoRotate; $('spin').classList.toggle('on', controls.autoRotate); };
+$('speak').onclick = ()=>{ audio(); say($('sTitle').textContent + '. ' + $('sText').textContent); };
+addEventListener('keydown', e=>{
+  if($('builder').classList.contains('hidden')) return;
+  if(e.key==='ArrowRight') $('next').click();
+  if(e.key==='ArrowLeft') $('prev').click();
+});
+
+/* ---------- accueil ---------- */
+const modelThumbs = {};
+function renderHome(){
+  const grid = $('grid'); grid.innerHTML='';
+  const prog = loadProgress();
+  MODELS.forEach(m=>{
+    if(!modelThumbs[m.id]){
+      const g = new THREE.Group(); m.steps.forEach(s=>s.parts.forEach(p=>g.add(makePart(p))));
+      modelThumbs[m.id] = renderThumb(g, 360, m.view);
+    }
+    const total = m.steps.reduce((a,s)=>a+s.parts.length,0);
+    const st = prog[m.id];
+    const badge = st==='done' ? '<span class="badge">✓ Réussi</span>'
+      : (typeof st==='number' && st>=0) ? `<span class="badge prog">Étape ${st+1}/${m.steps.length}</span>` : '';
+    const c = document.createElement('button'); c.className='card';
+    c.innerHTML = `${badge}<img class="thumb" alt="${m.name}" src="${modelThumbs[m.id]}">
+      <h3>${m.emoji} ${m.name}</h3>
+      <div class="meta"><span class="stars">${'★'.repeat(m.level)}${'☆'.repeat(4-m.level)}</span><span>${total} pièces · ${m.steps.length} étapes</span></div>`;
+    c.onclick = ()=>{ audio(); pop(600); if(prog[m.id]==='done') saveProgress(m.id,-1); openModel(m); };
+    grid.appendChild(c);
+  });
+}
+
+$('loading').remove();
+$('home').classList.remove('hidden');
+renderHome();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
