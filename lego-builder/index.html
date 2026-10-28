@@ -233,50 +233,106 @@ class Vox {
     if((x===x0||x===x1-1||z===z0||z===z1-1) && keep(x,L,z)) this.set(x,L,z,c); }
 }
 const SIZES = [[2,8],[2,6],[2,4],[2,3],[2,2],[1,8],[1,6],[1,4],[1,3],[1,2],[1,1]];
+const PLATE_SIZES = [[8,16],[6,16],[6,12],[6,10],[6,8],[6,6],[4,12],[4,10],[4,8],[4,6],[4,4],[2,16],[2,12],[2,10],[2,8],[2,6],[2,4],[2,3],[2,2],[1,12],[1,10],[1,8],[1,6],[1,4],[1,3],[1,2],[1,1]];
+// hauteur (en plaques) de chaque rangée : 3 pour une rangée de briques, 1 pour une rangée de plaques
+function layerY(yBase, plates=[]){ const ps=new Set(plates); return L=>{ let y=yBase; for(let l=0;l<L;l++) y += ps.has(l)?1:3; return y; }; }
 
-function compileVox(vox, yBase){
-  const byL = new Map();
-  for(const [k,c] of vox.m){ const [x,L,z]=k.split(',').map(Number); if(!byL.has(L)) byL.set(L,[]); byL.get(L).push([x,z,c]); }
-  const Ls = [...byL.keys()].sort((a,b)=>a-b);
-  let below = new Map(), belowRect = [];
-  const layers = [];
-  for(const L of Ls){
-    const cells = new Map(byL.get(L).map(([x,z,c])=>[x+','+z,c]));
-    const own = new Map(), rects = [], bricks = [];
-    const order = byL.get(L).map(([x,z])=>[x,z]).sort(L%2 ? (a,b)=>a[0]-b[0]||a[1]-b[1] : (a,b)=>a[1]-b[1]||a[0]-b[0]);
-    for(const [x,z] of order){
-      const k0 = x+','+z; if(own.has(k0)) continue;
-      const c = cells.get(k0);
-      let best = null;
-      for(const [a,b] of SIZES) for(const [w,d] of (a===b?[[a,b]]:[[a,b],[b,a]])){
-        let ok = true, sup = 0; const ids = new Set();
-        for(let i=0;i<w&&ok;i++) for(let j=0;j<d;j++){
-          const kk=(x+i)+','+(z+j);
-          if(cells.get(kk)!==c || own.has(kk)){ ok=false; break; }
-          const bid = below.get(kk); if(bid!==undefined){ sup++; ids.add(bid); }
-        }
-        if(!ok) continue;
-        let score = w*d*10 + Math.max(ids.size-1,0)*14 + sup*2;
-        if(sup===0 && L!==Ls[0]) score -= 1000;
-        if(ids.size===1){ const r = belowRect[[...ids][0]]; if(r.x===x&&r.z===z&&r.w===w&&r.d===d) score -= 30; }
-        if(w!==d && (w>d)===(L%2===0)) score += 3;
-        if(!best || score>best.score) best = {w,d,score};
-      }
-      const id = rects.length;
-      rects.push({x,z,w:best.w,d:best.d});
-      for(let i=0;i<best.w;i++) for(let j=0;j<best.d;j++) own.set((x+i)+','+(z+j), id);
-      bricks.push(B(x, yBase+3*L, z, best.w, best.d, c));
+// tenons disponibles sur le dessus d'une pièce
+function topStuds(p){
+  if(p.t==='tile'||p.t==='cone'||p.t==='wheel') return [];
+  const r=[];
+  for(let i=0;i<p.w;i++) for(let j=0;j<p.d;j++){
+    if(p.t==='slope'){
+      const ok = p.dir==='+x'? i===0 : p.dir==='-x'? i===p.w-1 : p.dir==='+z'? j===0 : j===p.d-1;
+      if(!ok) continue;
     }
-    layers.push({L, bricks});
-    below = own; belowRect = rects;
+    r.push((p.x+i)+','+(p.z+j));
   }
-  return layers;
+  return r;
+}
+
+// Découpe une rangée en briques : chaque brique doit s'emboîter sur au moins un tenon déjà posé.
+function solveLayer(cellList, supported, prevOwner, L, seed, sizes=SIZES, jit=6){
+  const cells = new Map(cellList.map(([x,z,c])=>[x+','+z,c]));
+  const cands = [];
+  for(const [x,z] of cellList) for(const [a,b] of sizes) for(const [w,d] of (a===b?[[a,b]]:[[a,b],[b,a]])){
+    const c = cells.get(x+','+z); let ok=true, sup=0; const ks=[], ids=new Set();
+    for(let i=0;i<w&&ok;i++) for(let j=0;j<d;j++){
+      const k=(x+i)+','+(z+j);
+      if(cells.get(k)!==c){ ok=false; break; }
+      ks.push(k); if(supported.has(k)) sup++;
+      const o=prevOwner.get(k); if(o!==undefined) ids.add(o);
+    }
+    if(!ok || sup===0) continue;
+    let score = w*d*10 + Math.max(ids.size-1,0)*14 + sup;
+    if(w!==d && (w>d)===(L%2===0)) score += 3;
+    cands.push({x,z,w,d,c,ks,score});
+  }
+  let rnd = seed; const rand=()=>((rnd=(rnd*16807)%2147483647)/2147483647);
+  const byCell = new Map(); cands.forEach((cd,i)=>cd.ks.forEach(k=>{ if(!byCell.has(k)) byCell.set(k,[]); byCell.get(k).push(i); }));
+  const jitter = cands.map(()=>rand()*jit);
+  const keys = [...cells.keys()];
+  const errors = keys.filter(k=>!byCell.has(k));       // cases sans aucune brique possible
+  const covered = new Set(errors), chosen = [];
+  const free = cd => cd.ks.every(k=>!covered.has(k));
+  let budget = 3000, best = null;
+  // recherche en profondeur : on traite toujours la case la plus contrainte d'abord
+  const dfs = ()=>{
+    if(--budget < 0) return false;
+    let bestCell=null, bestOpts=null;
+    for(const k of keys){ if(covered.has(k)) continue;
+      const opts = byCell.get(k).filter(i=>free(cands[i]));
+      if(!bestOpts || opts.length<bestOpts.length){ bestCell=k; bestOpts=opts; if(opts.length<=1) break; } }
+    if(bestCell===null) return true;
+    if(!bestOpts.length) { if(!best || chosen.length>best.length) best=[...chosen]; return false; }
+    bestOpts.sort((i,j)=>(cands[j].score+jitter[j])-(cands[i].score+jitter[i]));
+    for(const i of bestOpts.slice(0,6)){
+      const cd=cands[i]; cd.ks.forEach(k=>covered.add(k)); chosen.push(cd);
+      if(dfs()) return true;
+      chosen.pop(); cd.ks.forEach(k=>covered.delete(k));
+      if(budget<0) return false;
+    }
+    return false;
+  };
+  if(!dfs()){
+    // pas de solution complète trouvée : glouton pour le reste, cases restantes signalées
+    chosen.length=0; covered.clear(); errors.forEach(k=>covered.add(k));
+    for(const k of keys){ if(covered.has(k)) continue;
+      const opts=byCell.get(k).filter(i=>free(cands[i])).sort((i,j)=>cands[j].score-cands[i].score);
+      if(!opts.length){ errors.push(k); covered.add(k); continue; }
+      const cd=cands[opts[0]]; cd.ks.forEach(kk=>covered.add(kk)); chosen.push(cd); }
+  }
+  return {chosen, errors};
 }
 
 function buildSteps(m){
-  const steps = [...(m.pre||[])];
-  const layers = compileVox(m.vox, m.yBase);
-  layers.forEach(({L,bricks},li)=>{
+  const steps = [];
+  const studs = new Map(); // y -> Set("x,z")
+  const addParts = parts => parts.forEach(p=>{ const y=p.y+p.h; if(p.t==='wheel') return;
+    if(!studs.has(y)) studs.set(y,new Set()); topStuds(p).forEach(k=>studs.get(y).add(k)); });
+  const push = st => { steps.push(st); addParts(st.parts); };
+  (m.pre||[]).forEach(push);
+  const byL = new Map();
+  for(const [k,c] of m.vox.m){ const [x,L,z]=k.split(',').map(Number); if(!byL.has(L)) byL.set(L,[]); byL.get(L).push([x,z,c]); }
+  const Ls = [...byL.keys()].sort((a,b)=>a-b);
+  let prevOwner = new Map();
+  m.errors = [];
+  Ls.forEach((L,li)=>{
+    const isPlate = (m.plates||[]).includes(L);
+    const y = layerY(m.yBase, m.plates)(L);
+    const supported = studs.get(y) || new Set();
+    let best=null;
+    for(let s=1;s<=12;s++){
+      const r = solveLayer(byL.get(L), supported, prevOwner, L, s*7919, isPlate?PLATE_SIZES:SIZES, s<=8?6:40);
+      const cost = r.errors.length*1000 + r.chosen.length;
+      if(!best || cost<best.cost) best={...r,cost};
+      if(r.errors.length===0) break;
+    }
+    best.errors.forEach(k=>m.errors.push(`rangée ${L} case ${k} (${byL.get(L).find(([x,z])=>x+','+z===k)[2]})`));
+    const own = new Map();
+    best.chosen.forEach((cd,i)=>cd.ks.forEach(k=>own.set(k,i)));
+    prevOwner = own;
+    const bricks = best.chosen.map(cd=>isPlate ? P(cd.x, y, cd.z, cd.w, cd.d, cd.c) : B(cd.x, y, cd.z, cd.w, cd.d, cd.c));
     const note = (m.notes||{})[L] || {};
     const sorted = bricks.sort((a,b)=> (a.z-b.z) || (a.x-b.x));
     const nCh = Math.ceil(sorted.length / (m.chunk||6));
@@ -286,11 +342,11 @@ function buildSteps(m){
       const title = (note.title || `Rangée ${li+1}`) + (nCh>1 ? ` (${c+1}/${nCh})` : '');
       const text = (c===0 && note.text) ? note.text
         : `Pose ${parts.length>1 ? 'les '+parts.length+' pièces' : 'la pièce'} montrée${parts.length>1?'s':''} par les flèches.`;
-      steps.push({title, text, parts});
+      push({title, text, parts});
     }
-    ((m.after||{})[L]||[]).forEach(s=>steps.push(s));
+    ((m.after||{})[L]||[]).forEach(push);
   });
-  (m.post||[]).forEach(s=>steps.push(s));
+  (m.post||[]).forEach(push);
   return steps;
 }
 
@@ -335,9 +391,9 @@ function trex(){
   const v = new Vox();
   v.fill(4,8,0,1,0,2,'green'); v.fill(4,7,1,3,0,2,'green');
   v.fill(8,12,0,1,2,4,'green'); v.fill(8,11,1,3,2,4,'green');
-  v.fill(3,12,3,6,0,4,'green'); v.fill(5,11,3,4,0,4,'lime');
+  v.fill(3,12,3,6,0,4,'green'); v.fill(5,12,3,4,0,4,'lime');
   v.fill(-2,3,4,5,1,3,'green'); v.fill(-5,0,5,6,1,3,'green'); v.fill(-7,-4,6,7,1,3,'green');
-  for(const z of [0,3]){ v.set(12,5,z,'green'); v.set(13,5,z,'green'); v.set(13,4,z,'green'); }
+  for(const z of [0,3]){ v.set(12,5,z,'green'); v.set(13,5,z,'green'); }
   v.fill(10,13,6,8,1,3,'green');
   v.fill(10,16,8,9,0,4,'green');
   v.fill(10,13,9,10,0,4,'green'); v.fill(13,16,9,10,0,4,'white');
@@ -350,7 +406,7 @@ function trex(){
       0:{title:'Les pattes', text:'Deux pattes décalées : une en avant, une en arrière. Le T-rex marche !'},
       1:{title:'Les jambes', text:'Monte chaque jambe juste au-dessus de sa patte.'},
       3:{title:'Le ventre', text:'Le ventre vert clair relie les deux jambes. Attention : il dépasse un peu à l’avant et à l’arrière.'},
-      4:{title:'Le corps et la queue', text:'La queue part vers l’arrière et dépasse dans le vide, c’est normal. Les petites griffes s’accrochent sous les bras.'},
+      4:{title:'Le corps et la queue', text:'La queue part vers l’arrière et dépasse dans le vide, c’est normal. '},
       5:{title:'Les bras et la queue', text:'Les petits bras sortent devant, la queue monte vers l’arrière.'},
       6:{title:'Le cou', text:'Le cou commence, et le bout de la queue se termine.'},
       8:{title:'La mâchoire', text:'La mâchoire du bas avance bien vers l’avant.'},
@@ -365,8 +421,8 @@ function helico(){
   v.fill(3,11,0,1,2,6,'red');
   v.fill(2,12,1,2,2,6,'white'); v.fill(10,12,1,2,2,6,'glass');
   for(const z of [2,5]) v.fill(6,8,1,2,z,z+1,'glass');
-  v.fill(2,11,2,3,2,6,'red'); v.fill(9,11,2,3,2,6,'glass'); v.fill(-6,2,2,3,3,5,'red');
-  v.fill(3,9,3,4,2,6,'red'); v.fill(-6,-4,3,5,3,5,'white');
+  v.fill(2,11,2,3,2,6,'red'); v.fill(9,11,2,3,2,6,'glass'); v.fill(-5,2,2,3,3,5,'red');
+  v.fill(3,9,3,4,2,6,'red'); v.fill(-5,-3,3,5,3,5,'white');
   v.fill(5,7,4,5,3,5,'dgray');
   return { id:'helico', name:'L’hélicoptère de secours', emoji:'🚁', level:2, view:[0.8,0.6,1.5],
     yBase:4, vox:v,
@@ -423,69 +479,78 @@ function chateau(){
 
 function bateau(){
   const v = new Vox();
-  const hw = (L,x)=>{ let b=[2,3,4,4][Math.min(L,3)]; if(x>11) b -= (x-11)*0.65; return b; };
-  const inS = (L,x,z)=> x>=0 && x<18 && Math.abs(z+0.5-4) <= hw(L,x);
+  const W = [2,3,3,4,4,4];
+  const hw = (L,x)=>{ let b=W[Math.min(L,5)]; if(x>11) b -= (x-11)*0.5; return L===0 ? Math.max(b,1) : b; };
+  const inS = (L,x,z)=> x>=0 && x<17 && Math.abs(z+0.5-4) <= hw(L,x);
   const edge = (L,x,z)=> !(inS(L,x+1,z)&&inS(L,x-1,z)&&inS(L,x,z+1)&&inS(L,x,z-1));
-  for(let x=1;x<17;x++) for(let z=0;z<8;z++){
-    if(inS(0,x,z)) v.set(x,0,z,'brown');
-  }
   for(let x=0;x<18;x++) for(let z=0;z<8;z++){
-    if(inS(1,x,z)) v.set(x,1,z, edge(1,x,z)?'brown':'tan');
-    if(inS(2,x,z) && (edge(2,x,z) || x<5)) v.set(x,2,z,'brown');
-    if(x<5 && inS(3,x,z) && (x===0||x===4||edge(3,x,z))) v.set(x,3,z,'brown');
+    if(x>=1 && x<17 && inS(0,x,z)) v.set(x,0,z,'brown');
+    if(inS(1,x,z)) v.set(x,1,z,'brown');
+    if(inS(2,x,z)) v.set(x,2,z,'brown');
+    if(inS(3,x,z)) v.set(x,3,z,'tan');
+    if(inS(4,x,z) && (edge(4,x,z) || x<5)) v.set(x,4,z,'brown');
+    if(x<5 && inS(5,x,z) && (x===0||x===4||edge(5,x,z))) v.set(x,5,z,'brown');
   }
-  for(const x of [6,9]){ v.set(x,2,0,'black'); v.set(x,2,7,'black'); }
+  for(const x of [6,9]){ v.set(x,4,0,'black'); v.set(x,4,7,'black'); }
   // grand mât
-  v.fill(10,11,2,4,3,4,'brown');
-  v.fill(10,11,4,8,0,8,'white'); v.fill(10,11,5,6,0,8,'red');
-  v.fill(10,11,8,10,3,4,'brown'); v.fill(10,11,10,11,3,6,'black');
+  v.fill(10,11,4,6,3,4,'brown');
+  v.fill(10,11,6,10,0,8,'white'); v.fill(10,11,7,8,0,8,'red');
+  v.fill(10,11,10,12,3,4,'brown'); v.fill(10,11,12,13,3,6,'black');
   // petit mât
-  v.fill(6,7,2,4,3,4,'brown');
-  v.fill(6,7,4,7,1,7,'white');
-  v.fill(6,7,7,8,3,4,'brown'); v.fill(6,7,8,9,3,5,'red');
+  v.fill(6,7,4,6,3,4,'brown');
+  v.fill(6,7,6,9,1,7,'white');
+  v.fill(6,7,9,10,3,4,'brown'); v.fill(6,7,10,11,3,5,'red');
   // coffre au trésor
-  v.fill(13,15,2,3,3,5,'brown');
+  v.fill(13,15,4,5,3,5,'brown');
   return { id:'pirate', name:'Le bateau pirate', emoji:'🏴‍☠️', level:3, view:[0.9,0.55,1.5],
-    yBase:1, vox:v,
+    yBase:1, plates:[1,3], vox:v,
     pre:[{title:'La mer', text:'La grande plaque bleue, c’est l’océan.', parts:[P(-3,0,-2,24,12,'blue')]}],
     notes:{
       0:{title:'La quille', text:'Le fond du bateau, étroit et pointu vers l’avant.'},
-      1:{title:'Le pont', text:'Le pont beige au milieu, bordé de marron. La coque s’élargit.'},
-      2:{title:'Le bastingage', text:'Le rebord du bateau, avec 4 canons noirs. À l’arrière, le château du capitaine est plein. Plante les deux mâts et le coffre au trésor.'},
-      3:{title:'La rambarde du capitaine', text:'Un rebord tout autour du château arrière.'},
-      4:{title:'Les voiles', text:'Les voiles blanches se posent en travers du bateau, sur les mâts.'},
-      5:{title:'La bande rouge', text:'Une rangée rouge sur la grande voile.'},
-      8:{title:'Le haut des mâts', text:'Les mâts continuent au-dessus des voiles. Petit drapeau rouge sur le petit mât.'},
-      10:{title:'Le drapeau pirate', text:'Le drapeau noir tout en haut. À l’abordage !'},
+      1:{title:'La coque s’élargit', text:'Des plaques marron un peu plus larges que la quille, à cheval dessus.'},
+      2:{title:'La coque', text:'Une rangée de briques marron.'},
+      3:{title:'Le pont', text:'Les plaques beiges du pont. Elles dépassent encore un peu de chaque côté.'},
+      4:{title:'Le bastingage', text:'Le rebord du bateau avec 4 canons noirs. À l’arrière, le château du capitaine est plein. Plante les deux mâts et le coffre au trésor.'},
+      5:{title:'La rambarde du capitaine', text:'Un rebord tout autour du château arrière. Les mâts montent.'},
+      6:{title:'Les voiles', text:'Les voiles blanches se posent en travers du bateau, sur les mâts.'},
+      7:{title:'La bande rouge', text:'Une rangée rouge sur la grande voile.'},
+      9:{title:'Le haut du petit mât', text:'Le petit mât dépasse au-dessus de sa voile.'},
+      10:{title:'Le haut du grand mât', text:'Le grand mât continue, petit drapeau rouge sur le petit mât.'},
+      12:{title:'Le drapeau pirate', text:'Le drapeau noir tout en haut. À l’abordage !'},
     }};
 }
 
 function flamant(){
   const v = new Vox();
   v.fill(3,6,0,1,3,4,'pink'); v.fill(4,5,1,4,3,4,'pink');
-  v.fill(2,7,4,5,2,5,'pink');
-  v.fill(1,8,5,6,2,5,'pink'); v.fill(2,7,5,6,1,2,'magenta'); v.fill(2,7,5,6,5,6,'magenta');
-  v.fill(0,7,6,7,2,5,'pink'); v.fill(0,1,6,7,2,5,'black');
-  v.fill(6,8,7,8,3,4,'pink'); v.fill(7,9,8,9,3,4,'pink'); v.fill(8,10,9,10,3,4,'pink');
-  v.fill(7,9,10,11,3,4,'pink'); v.fill(6,8,11,12,3,4,'pink');
-  v.fill(6,9,12,13,2,5,'pink'); v.set(7,12,2,'black'); v.set(7,12,4,'black'); v.set(9,12,3,'white');
-  v.set(9,11,3,'black');
+  v.fill(1,7,4,5,1,5,'pink');
+  v.fill(0,8,5,6,2,4,'pink'); v.fill(1,7,5,6,1,2,'magenta'); v.fill(1,7,5,6,4,5,'magenta');
+  v.fill(1,7,6,7,1,5,'pink'); v.fill(0,1,6,7,2,4,'black');
+  v.fill(6,8,7,8,2,3,'pink'); v.fill(7,9,8,9,2,3,'pink'); v.fill(8,10,9,10,2,3,'pink');
+  v.fill(7,9,10,11,2,3,'pink'); v.fill(6,8,11,12,2,3,'pink');
+  v.fill(5,9,12,13,1,3,'pink');
+  v.fill(5,9,13,14,1,3,'pink'); v.set(6,13,1,'black'); v.set(6,13,2,'black');
+  const plates=[4,12], Y=layerY(1,plates);
   return { id:'flamant', name:'Le flamant rose', emoji:'🦩', level:2, view:[0.35,0.45,1.6],
-    yBase:1, vox:v, chunk:5,
+    yBase:1, plates, vox:v, chunk:5,
     pre:[{title:'L’étang', text:'Une plaque bleue : c’est l’eau où se tient le flamant.', parts:[P(0,0,0,8,8,'blue')]}],
     notes:{
       0:{title:'Le pied', text:'Le flamant tient sur UNE seule patte. Pose le pied rose au milieu de l’étang.'},
-      1:{title:'La patte', text:'Empile les petites briques 1×1 pour faire la longue patte fine.'},
-      4:{title:'Le ventre', text:'Le ventre se pose sur la patte et dépasse de chaque côté.'},
-      5:{title:'Les ailes', text:'Les ailes rose foncé se placent sur les deux côtés.'},
-      6:{title:'Le dos et la queue', text:'Le bout noir à l’arrière, ce sont les plumes de la queue.'},
-      7:{title:'Le cou', text:'Le long cou commence. Il va onduler comme un S !'},
-      10:{title:'Le cou repart en arrière', text:'Le cou revient vers l’arrière pour former le S.'},
-      11:{title:'Le bec', text:'Le bout du bec est noir et recourbé vers le bas.'},
-      12:{title:'La tête', text:'La tête avec deux yeux noirs et le haut du bec blanc.'},
+      1:{title:'La patte', text:'Empile les petites briques 1×1 bien droites pour faire la longue patte fine.'},
+      4:{title:'Le dessous du ventre', text:'Une grande plaque rose posée sur le haut de la patte. C’est elle qui va porter tout le corps.'},
+      5:{title:'Les ailes', text:'Le corps rose au milieu, les ailes rose foncé sur les deux côtés.'},
+      6:{title:'Le dos et la queue', text:'Le dos recouvre les ailes. Le bout noir à l’arrière, ce sont les plumes de la queue.'},
+      7:{title:'Le cou', text:'Le long cou commence au bout du dos. Il va onduler comme un S !'},
+      8:{title:'Le cou avance', text:'Chaque brique est décalée d’un tenon vers l’avant.'},
+      10:{title:'Le cou repart en arrière', text:'Maintenant chaque brique se décale vers l’arrière pour former le S.'},
+      12:{title:'Le dessous de la tête', text:'Une plaque rose posée sur le haut du cou.'},
+      13:{title:'La tête et les yeux', text:'La tête, avec une brique noire au milieu pour les yeux (on les voit des deux côtés).'},
     },
-    post:[{title:'Les roseaux', text:'Des briques rondes vertes dans un coin de l’étang.',
-      parts:[R(0,1,6,'green',3), R(0,4,6,'green',3), R(1,1,7,'lime',3), R(7,1,0,'green',3), R(1,1,1,'lime')]}]};
+    post:[
+      {title:'Le bec', text:'Une plaque blanche sur le devant de la tête : elle dépasse vers l’avant.', parts:[P(8,Y(14),1,3,2,'white')]},
+      {title:'Le bout du bec', text:'Une tuile noire au bout du bec.', parts:[T(10,Y(14)+1,1,1,2,'black')]},
+      {title:'Les roseaux', text:'Des briques rondes vertes dans les coins de l’étang.',
+        parts:[R(0,1,6,'green',3), R(0,4,6,'green',3), R(1,1,7,'lime',3), R(7,1,0,'green',3), R(1,1,1,'lime')]}]};
 }
 
 function princesse(){
@@ -528,55 +593,57 @@ function cabane(){
   v.fill(5,7,0,3,7,8,'red');
   for(const x of [3,8]) v.fill(x,x+1,1,3,7,8,'yellow');
   v.fill(2,3,1,3,4,6,'yellow'); v.fill(8,9,1,3,4,6,'yellow');
-  v.fill(2,9,4,5,4,6,'white'); v.fill(7,8,4,7,4,5,'dgray');
-  // sapin
-  v.set(10,0,9,'brown');
-  v.fill(9,12,1,3,8,11,'green'); v.set(9,1,8,'red'); v.set(11,1,10,'yellow'); v.set(11,2,8,'red'); v.set(9,2,10,'yellow');
-  v.fill(10,11,3,4,8,11,'green'); v.fill(9,12,3,4,9,10,'green'); v.set(10,4,9,'green');
+  v.fill(2,9,4,5,4,6,'white'); v.fill(8,9,4,7,4,5,'dgray');
   return { id:'cabane', name:'La cabane de Noël', emoji:'🎄', level:3, view:[0.75,0.7,1.5],
     yBase:1, vox:v,
     pre:[{title:'La neige', text:'Une grande plaque blanche : tout est enneigé !', parts:[P(0,0,0,12,12,'white')]}],
     notes:{
-      0:{title:'Les premiers rondins', text:'Les murs en marron, une porte rouge devant. Le petit tronc du sapin va à droite devant.'},
-      1:{title:'Les fenêtres allumées', text:'Les murs alternent deux marrons, comme des rondins de bois. Les fenêtres jaunes sont allumées ! Le sapin commence avec ses boules.'},
-      2:{title:'Encore des rondins', text:'Continue les murs et le sapin.'},
-      3:{title:'Le haut des murs', text:'Le haut des murs ferme les fenêtres et la porte. Le sapin rétrécit en croix.'},
-      4:{title:'La cheminée et la cime', text:'Le haut du toit tout blanc, la cheminée grise, et la cime du sapin.'},
+      0:{title:'Les premiers rondins', text:'Les murs en marron, avec une porte rouge devant.'},
+      1:{title:'Les fenêtres allumées', text:'Les murs alternent deux marrons, comme des rondins de bois. Les fenêtres jaunes sont allumées !'},
+      2:{title:'Encore des rondins', text:'Continue les murs et les fenêtres.'},
+      3:{title:'Le haut des murs', text:'Le haut des murs ferme les fenêtres et la porte.'},
+      4:{title:'Le milieu du toit et la cheminée', text:'Le milieu du toit en blanc, et la cheminée grise posée sur le mur de droite.'},
+      5:{title:'La cheminée monte', text:'Empile des briques grises sur la cheminée.'},
     },
     after:{
       3:[{title:'Le toit enneigé', text:'Des pentes blanches devant et derrière : la neige est tombée sur le toit !',
         parts:[SL(2,13,6,4,2,'white','+z'),SL(6,13,6,3,2,'white','+z'),SL(2,13,2,4,2,'white','-z'),SL(6,13,2,3,2,'white','-z')]}],
     },
     post:[
-      {title:'Le faîte et la fumée', text:'Des tuiles blanches tout en haut du toit, et de la fumée grise qui sort de la cheminée.',
-        parts:[T(2,16,4,4,2,'white'), T(6,16,5,1,1,'white'), T(8,16,4,1,2,'white'), R(7,22,4,'lgray'), R(7,23,4,'white')]},
-      {title:'L’étoile', text:'L’étoile jaune tout en haut du sapin.', parts:[R(10,16,9,'yellow',3)]},
+      {title:'Le faîte et la fumée', text:'Des tuiles blanches tout en haut du toit, et de la fumée qui sort de la cheminée.',
+        parts:[T(2,16,4,4,2,'white'), T(6,16,4,2,2,'white'), T(8,16,5,1,1,'white'), R(8,22,4,'lgray'), R(8,23,4,'white')]},
+      {title:'Le tronc du sapin', text:'Une brique marron devant la cabane, à droite.', parts:[B(9,1,9,2,2,'brown')]},
+      {title:'Les branches', text:'Une plaque verte carrée posée sur le tronc.', parts:[P(8,4,8,4,4,'green')]},
+      {title:'Les boules de Noël', text:'Des briques vertes, et des boules rouges et jaunes aux quatre coins.',
+        parts:[B(8,5,8,1,1,'red'), B(9,5,8,2,1,'green'), B(11,5,8,1,1,'yellow'), B(8,5,9,4,2,'green'), B(8,5,11,1,1,'yellow'), B(9,5,11,2,1,'green'), B(11,5,11,1,1,'red')]},
+      {title:'La cime et l’étoile', text:'Une brique verte au milieu, puis l’étoile jaune tout en haut.', parts:[B(9,8,9,2,2,'green'), R(9,11,9,'yellow',3)]},
       {title:'Le bonhomme de neige', text:'Deux boules blanches et un chapeau noir.', parts:[R(1,1,10,'white',3), R(1,4,10,'white',3), R(1,7,10,'black')]},
-      {title:'Les cadeaux', text:'Des cadeaux au pied du sapin. Joyeux Noël !', parts:[B(7,1,9,1,1,'red'), B(8,1,10,1,1,'blue'), B(7,1,10,1,1,'yellow')]},
+      {title:'Les cadeaux', text:'Des cadeaux devant la cabane. Joyeux Noël !', parts:[B(3,1,9,1,1,'red'), B(4,1,10,1,1,'blue'), B(3,1,10,1,1,'yellow')]},
     ]};
 }
 
 function chien(){
   const v = new Vox();
   for(const x of [2,8]) for(const z of [0,3]){ v.fill(x,x+2,0,1,z,z+1,'white'); v.fill(x,x+2,1,3,z,z+1,'rust'); }
-  v.fill(1,11,3,6,0,4,'black'); v.fill(10,11,3,6,0,4,'white'); v.fill(4,9,3,4,1,3,'white');
-  v.fill(0,1,5,6,1,3,'black');
-  v.fill(8,11,6,7,0,4,'white'); v.fill(11,14,6,7,1,3,'white'); v.fill(14,15,6,7,1,3,'black');
-  v.fill(9,13,7,8,0,4,'black'); v.set(12,7,0,'rust'); v.set(12,7,3,'rust'); v.fill(12,13,7,8,1,3,'white');
+  v.fill(1,11,3,4,0,4,'black');
+  v.fill(1,11,4,5,0,4,'black'); v.fill(9,11,4,5,0,4,'white');
+  v.fill(1,11,5,6,0,4,'black'); v.fill(10,11,5,6,0,4,'white'); v.fill(0,1,5,6,1,3,'black');
+  v.fill(8,14,6,7,0,4,'white'); v.fill(14,15,6,7,1,3,'white');
+  v.fill(9,13,7,8,0,4,'black'); v.set(12,7,0,'rust'); v.set(12,7,3,'rust'); v.fill(12,13,7,8,1,3,'white'); v.fill(14,15,7,8,1,3,'black');
   v.fill(9,13,8,9,0,4,'black'); v.fill(12,13,8,9,1,3,'white'); v.set(12,8,0,'azure'); v.set(12,8,3,'azure');
   v.fill(9,12,9,10,0,4,'black'); v.set(11,9,0,'rust'); v.set(11,9,3,'rust');
   v.fill(9,11,10,11,0,1,'black'); v.fill(9,11,10,11,3,4,'black');
   return { id:'chien', name:'Le berger australien', emoji:'🐕', level:3, view:[0.55,0.4,1.6],
-    yBase:1, vox:v, chunk:5,
+    yBase:1, plates:[3], vox:v, chunk:5,
     pre:[{title:'La pelouse', text:'Une longue plaque verte pour le jardin du chien.', parts:[P(0,0,-1,16,6,'green')]}],
     notes:{
       0:{title:'Les pattes blanches', text:'Quatre petites pattes blanches : deux devant, deux derrière, de chaque côté.'},
-      1:{title:'Les pattes cuivrées', text:'Le berger australien tricolore a les pattes couleur cuivre (roux).'},
-      3:{title:'Le ventre', text:'Le corps noir se pose sur les 4 pattes. Le ventre et le poitrail sont blancs.'},
-      4:{title:'Le dos', text:'Le dos est tout noir, avec le poitrail blanc devant.'},
+      1:{title:'Les pattes cuivrées', text:'Le berger australien tricolore a les pattes couleur cuivre.'},
+      3:{title:'Le dessous du ventre', text:'Une grande plaque noire posée sur les 4 pattes : elle relie tout le corps.'},
+      4:{title:'Le corps et le poitrail', text:'Le corps noir, avec le poitrail blanc à l’avant.'},
       5:{title:'Le dos et la queue', text:'Le berger australien a souvent une toute petite queue.'},
-      6:{title:'Le collier blanc et le museau', text:'Le collier blanc fait le tour du cou, le museau blanc avance avec la truffe noire au bout.'},
-      7:{title:'Les joues', text:'La tête est noire avec des joues cuivrées et une bande blanche au milieu.'},
+      6:{title:'Le collier blanc et le museau', text:'Le collier blanc fait le tour du cou et continue vers l’avant pour faire le museau.'},
+      7:{title:'Les joues et la truffe', text:'La tête noire avec des joues cuivrées, une bande blanche au milieu, et la truffe noire au bout du museau.'},
       8:{title:'Les yeux bleus', text:'Beaucoup de bergers australiens ont les yeux bleus !'},
       9:{title:'Les sourcils', text:'Deux taches cuivrées au-dessus des yeux, comme des sourcils.'},
       10:{title:'Les oreilles', text:'Deux oreilles noires sur les côtés. Ouaf !'},
@@ -587,44 +654,51 @@ function chien(){
 function vaisseau(){
   const v = new Vox();
   const dz = z => Math.abs(z+0.5-10);
-  // L0 : fuselage + ailes en delta
-  v.fill(0,22,0,1,7,13,'lgray'); v.fill(22,24,0,1,9,11,'red');
+  const span = x => Math.min(8, 3 + (14-x)*0.55);
+  // 0 : plaque de fixation, 1 : grandes plaques du fuselage et des ailes
+  v.fill(1,17,0,1,7,13,'dgray');
+  v.fill(0,22,1,2,7,13,'lgray'); v.fill(22,24,1,2,9,11,'lgray');
+  for(let x=2;x<15;x++) for(let z=0;z<20;z++){ const d=dz(z); if(d<=span(x) && d>3) v.set(x,1,z,'lgray'); }
+  // 2 : fuselage + ailes décorées
+  v.fill(0,22,2,3,7,13,'lgray'); v.fill(22,24,2,3,9,11,'red');
   for(let x=2;x<15;x++) for(let z=0;z<20;z++){
-    const span = 3 + (14-x)*0.55, d = dz(z);
-    if(d<=span && d>3) v.set(x,0,z, d>span-1 ? 'dgray' : (d>6 && d<=7 ? 'orange' : 'lgray'));
+    const sp=span(x), d=dz(z);
+    if(d<=sp && d>3) v.set(x,2,z, d>sp-1 ? 'dgray' : (d>6 && d<=7 ? 'orange' : 'lgray'));
   }
-  // L1 : fuselage, bandes, moteurs latéraux, canons
-  v.fill(0,21,1,2,7,13,'lgray'); v.fill(3,17,1,2,7,8,'orange'); v.fill(3,17,1,2,12,13,'orange');
-  for(const z0 of [3,14]){ v.fill(0,7,1,3,z0,z0+3,'dgray'); v.fill(0,1,1,3,z0,z0+3,'orange'); }
-  v.fill(1,10,1,2,1,2,'dgray'); v.fill(1,10,1,2,18,19,'dgray');
-  // L2 : fuselage + cockpit
-  v.fill(0,19,2,3,7,13,'lgray'); v.fill(13,17,2,3,8,12,'glass');
-  v.fill(0,1,2,3,8,12,'orange');
-  // L3 : dessus + verrière
-  v.fill(1,13,3,4,8,12,'lgray'); v.fill(13,16,3,4,9,11,'glass'); v.fill(13,15,3,4,8,9,'lgray'); v.fill(13,15,3,4,11,12,'lgray');
-  // L4-L6 : tourelle et aileron
-  v.fill(8,10,4,5,9,11,'dgray');
-  v.fill(1,5,4,6,9,11,'lgray'); v.fill(1,3,6,7,9,11,'dgray');
+  // 3 : fuselage, bandes, moteurs, canons
+  v.fill(0,21,3,4,7,13,'lgray'); v.fill(3,17,3,4,7,8,'orange'); v.fill(3,17,3,4,12,13,'orange');
+  for(const z0 of [3,14]){ v.fill(2,9,3,5,z0,z0+3,'dgray'); v.fill(2,3,3,5,z0,z0+3,'orange'); }
+  v.fill(1,9,3,4,2,3,'dgray'); v.fill(1,9,3,4,17,18,'dgray');
+  // 4 : fuselage + cockpit
+  v.fill(0,19,4,5,7,13,'lgray'); v.fill(13,17,4,5,8,12,'glass'); v.fill(0,1,4,5,8,12,'orange');
+  // 5 : dessus + verrière
+  v.fill(1,13,5,6,8,12,'lgray'); v.fill(13,16,5,6,9,11,'glass'); v.fill(13,15,5,6,8,9,'lgray'); v.fill(13,15,5,6,11,12,'lgray');
+  // 6-8 : tourelle et aileron
+  v.fill(8,10,6,7,9,11,'dgray');
+  v.fill(1,5,6,8,9,11,'lgray'); v.fill(1,3,8,9,9,11,'dgray');
+  const plates=[0,1], Y=layerY(10,plates);
   return { id:'vaisseau', name:'Le chasseur stellaire', emoji:'🚀', level:4, view:[0.7,1.0,1.1],
-    yBase:10, vox:v,
+    yBase:10, plates, vox:v,
     pre:[
       {title:'Le socle', text:'Une plaque gris foncé : c’est le support d’exposition.', parts:[P(8,0,8,4,4,'dgray')]},
       {title:'Le pied', text:'Empile trois briques gris foncé au milieu du socle. Le vaisseau va se poser dessus.', parts:[B(9,1,9,2,2,'dgray'),B(9,4,9,2,2,'dgray'),B(9,7,9,2,2,'dgray')]},
     ],
     notes:{
-      0:{title:'Le fuselage et les ailes', text:'Le long corps central, puis les grandes ailes en triangle de chaque côté. Les bords des ailes sont gris foncé avec une bande orange. Nez rouge à l’avant !'},
-      1:{title:'Les moteurs et les canons', text:'Deux gros moteurs sur les ailes (sortie orange à l’arrière), deux canons laser au bout des ailes, et deux bandes orange sur le fuselage.'},
-      2:{title:'Le cockpit', text:'Le dessus du fuselage et la verrière transparente du pilote. Le moteur central brille en orange à l’arrière.'},
-      3:{title:'La verrière', text:'Le haut de la verrière et le dos du vaisseau.'},
-      4:{title:'La tourelle et l’aileron', text:'Une tourelle gris foncé au milieu du dos, et l’aileron à l’arrière.'},
-      6:{title:'Le haut de l’aileron', text:'Le sommet de l’aileron en gris foncé.'},
+      0:{title:'La plaque de fixation', text:'Une longue plaque gris foncé posée sur le pied. Tout le vaisseau va s’accrocher dessus.'},
+      1:{title:'Le squelette du vaisseau', text:'De grandes plaques grises pour le fuselage et les ailes en triangle. Chaque plaque doit tenir sur la plaque gris foncé du dessous.'},
+      2:{title:'Le fuselage et les ailes', text:'Les bords des ailes sont gris foncé avec une bande orange. Nez rouge à l’avant !'},
+      3:{title:'Les moteurs et les canons', text:'Deux gros moteurs sur les ailes (sortie orange à l’arrière), deux canons laser au bord des ailes, et deux bandes orange sur le fuselage.'},
+      4:{title:'Le cockpit', text:'Le haut des moteurs, le dessus du fuselage et la verrière transparente du pilote.'},
+      5:{title:'La verrière', text:'Le haut de la verrière et le dos du vaisseau.'},
+      6:{title:'La tourelle et l’aileron', text:'Une tourelle gris foncé au milieu du dos, et l’aileron à l’arrière.'},
+      8:{title:'Le haut de l’aileron', text:'Le sommet de l’aileron en gris foncé.'},
     },
     post:[
-      {title:'Les antennes', text:'Deux antennes sur l’aileron. Le chasseur est prêt pour l’hyperespace !', parts:[R(1,31,9,'red',3), R(2,31,10,'lgray')]},
+      {title:'Les antennes', text:'Deux antennes sur l’aileron. Le chasseur est prêt pour l’hyperespace !', parts:[R(1,Y(9),9,'red',3), R(2,Y(9),10,'lgray')]},
     ]};
 }
 
-const MODELS = [flamant(), helico(), camion(), chien(), trex(), cabane(), princesse(), bateau(), chateau(), vaisseau()].map(m=>({...m, steps:buildSteps(m)}));
+const MODELS = [flamant(), helico(), camion(), chien(), trex(), cabane(), princesse(), bateau(), chateau(), vaisseau()].map(m=>{ m.steps = buildSteps(m); return m; });
 
 /* =========================================================
    Géométries

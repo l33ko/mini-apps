@@ -30,3 +30,15 @@ Les modèles sont des créations originales, pas des notices officielles Lego.
 ## Ajouter un modèle
 
 Les modèles sont décrits « en cubes » dans le code (classe `Vox`) : on remplit les cases de chaque rangée avec une couleur, et l'application découpe automatiquement chaque rangée en briques classiques (1×1 à 2×8) en croisant les joints d'une rangée à l'autre, comme pour un vrai mur. Les pièces spéciales (plaques, pentes, cônes, roues, tuiles) s'ajoutent à la main avant, entre ou après les rangées.
+
+## Solidité des constructions
+
+Chaque brique doit s'emboîter sur au moins un tenon déjà posé : le découpage refuse toute brique qui flotterait, même pour une étape. Quand une partie est plus large que ce qui la porte (ventre du flamant, coque du bateau, ailes du vaisseau…), une rangée de plaques fait le pont, comme dans les vraies notices.
+
+Pour vérifier tous les modèles après une modification :
+
+```
+node lego-builder/verifier.mjs
+```
+
+Le script rejoue chaque étape et signale toute pièce qui ne tient à rien, toute case impossible à poser et tout chevauchement.
