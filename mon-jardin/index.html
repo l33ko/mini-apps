@@ -2316,6 +2316,7 @@ function cfgFormHTML(f){
   if (f.mode === 'io') return `<div class="cfgf"><h3>Importer / exporter une palette</h3>
     <p class="note" style="margin-top:0"><b>Exporter</b> : toute la palette (${catalog.species.length} espèces et variétés), pour la sauvegarder, la modifier dans un tableur ou l’ouvrir sur un autre appareil.</p>
     <div class="acts" style="margin-top:4px"><button class="btn" type="button" data-cfg="exp-csv">⇩ Tableur (.csv)</button><button class="btn" type="button" data-cfg="exp-json">⇩ Fichier palette (.json)</button></div>
+    <div id="repoPal"></div>
     <p class="note" style="margin-top:14px"><b>Importer</b> un fichier .csv (colonnes Catégorie ; Espèce ; Variété ; Envergure ; Hauteur…) ou .json : les espèces et variétés absentes sont ajoutées, rien n’est supprimé ni remplacé.</p>
     <div class="acts" style="margin-top:4px"><input type="file" id="palFile" accept=".csv,.json,.txt,text/csv,application/json"><button class="btn" type="button" data-cfg="cancel">Fermer</button></div></div>`;
   let h = `<form class="cfgf" id="cfgF" data-mode="${f.mode}" autocomplete="off">`;
@@ -2353,12 +2354,23 @@ function catCommit(msg){
 }
 $('#cfgSearch').addEventListener('input', renderConfig);
 /* Import / export de la palette (CSV pour les tableurs, JSON pour l'app) */
+// palettes publiées avec l'app (dossier palettes/ du dépôt GitHub)
+const REPO_PALETTES = [{file:'palettes/jardin-foret-sylvaniers.json', name:'Jardin-forêt Sylvaniers', desc:'108 espèces, 227 variétés'}];
+let repoOK = null;
+function showRepoPalettes(){
+  const draw = () => { const el = $('#repoPal'); if (!el) return;
+    el.innerHTML = repoOK ? `<p class="note" style="margin-top:14px"><b>Palettes prêtes à charger</b></p><div class="acts" style="margin-top:4px">${REPO_PALETTES.map((r, i) => repoOK[i] ? `<button class="btn primary" type="button" data-cfg="repo" data-i="${i}">⇪ ${esc(r.name)} <small style="opacity:.8">(${r.desc})</small></button>` : '').join('')}</div>` : ''; };
+  if (repoOK) return draw();
+  if (location.protocol === 'file:' && !window.TEST_REPO) return;
+  Promise.all(REPO_PALETTES.map(r => fetch(r.file, {cache:'no-store'}).then(x => x.ok && (x.headers.get('content-type') || '').includes('json')).catch(() => false)))
+    .then(a => { repoOK = a.some(Boolean) ? a : null; draw(); });
+}
 const CSV_COLS = ['Catégorie', 'Espèce', 'Variété', 'Envergure (m)', 'Hauteur (m)', 'Couleur feuillage', 'Couleur fruits/fleurs'];
 function paletteCSV(){
-  const q = v => { v = String(v ?? ''); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-  const rows = [CSV_COLS.join(';')];
-  for (const x of catalog.species.slice().sort(bySpecies)) rows.push([CATS[x.cat].label, x.name, x.variety || '', String(x.d).replace('.', ','), String(x.h).replace('.', ','), x.color, x.accent || ''].map(q).join(';'));
-  return '﻿' + rows.join('\r\n');
+  const q = v => { v = String(v ?? ''); return /[,;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const rows = [CSV_COLS.join(',')];
+  for (const x of catalog.species.slice().sort(bySpecies)) rows.push([CATS[x.cat].label, x.name, x.variety || '', x.d, x.h, x.color, x.accent || ''].map(q).join(','));
+  return '﻿' + rows.join('\n');
 }
 function paletteJSON(){ return JSON.stringify({app:'mon-jardin', type:'palette', exported:new Date().toISOString(), species:catalog.species.slice().sort(bySpecies).map(({cid, ...x}) => x)}, null, 1); }
 function parseCSV(text){
@@ -2432,7 +2444,8 @@ $('#cfgModal').addEventListener('click', e => {
   if (c){ e.preventDefault();
     if (c.dataset.cfg === 'newsp'){ cfgForm = {mode:'newsp', preset:{name:$('#cfgSearch').value.trim()}}; $('#cfgSearch').value = ''; renderConfig(); setTimeout(() => $('#cfgF [name=name]').focus(), 30); $('#cfgForm').scrollIntoView({block:'nearest'}); }
     if (c.dataset.cfg === 'cancel'){ cfgForm = null; renderConfig(); }
-    if (c.dataset.cfg === 'io'){ cfgForm = cfgForm && cfgForm.mode === 'io' ? null : {mode:'io'}; renderConfig(); $('.cfg-main').scrollTop = 0; }
+    if (c.dataset.cfg === 'io'){ cfgForm = cfgForm && cfgForm.mode === 'io' ? null : {mode:'io'}; renderConfig(); $('.cfg-main').scrollTop = 0; showRepoPalettes(); }
+    if (c.dataset.cfg === 'repo'){ const P2 = REPO_PALETTES[+c.dataset.i]; fetch(P2.file, {cache:'no-store'}).then(r => { if (!r.ok) throw 0; return r.text(); }).then(t => importPalette(t, P2.file)).catch(() => toast('Palette indisponible ici')); }
     if (c.dataset.cfg === 'exp-csv'){ const t = paletteCSV(); tryDownload('palette-vegetale.csv', URL.createObjectURL(new Blob([t], {type:'text/csv'})), t); }
     if (c.dataset.cfg === 'exp-json'){ const t = paletteJSON(); tryDownload('palette-vegetale.json', URL.createObjectURL(new Blob([t], {type:'application/json'})), t); }
     return; }
