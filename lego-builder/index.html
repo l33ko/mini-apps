@@ -522,35 +522,48 @@ function bateau(){
 
 function flamant(){
   const v = new Vox();
-  v.fill(3,6,0,1,3,4,'pink'); v.fill(4,5,1,4,3,4,'pink');
-  v.fill(1,7,4,5,1,5,'pink');
-  v.fill(0,8,5,6,2,4,'pink'); v.fill(1,7,5,6,1,2,'magenta'); v.fill(1,7,5,6,4,5,'magenta');
-  v.fill(1,7,6,7,1,5,'pink'); v.fill(0,1,6,7,2,4,'black');
-  v.fill(6,8,7,8,2,3,'pink'); v.fill(7,9,8,9,2,3,'pink'); v.fill(8,10,9,10,2,3,'pink');
-  v.fill(7,9,10,11,2,3,'pink'); v.fill(6,8,11,12,2,3,'pink');
-  v.fill(5,9,12,13,1,3,'pink');
-  v.fill(5,9,13,14,1,3,'pink'); v.set(6,13,1,'black'); v.set(6,13,2,'black');
-  const plates=[4,12], Y=layerY(1,plates);
-  return { id:'flamant', name:'Le flamant rose', emoji:'🦩', level:2, view:[0.35,0.45,1.6],
+  // pied, longue patte fine
+  v.fill(3,6,0,1,0,2,'pink');
+  v.fill(4,5,1,5,0,2,'pink');
+  // corps en forme d'œuf
+  v.fill(2,8,5,6,0,2,'pink');
+  v.fill(1,9,6,7,0,2,'pink');
+  v.fill(1,2,7,8,0,2,'black'); v.fill(2,6,7,8,0,2,'magenta'); v.fill(6,9,7,8,0,2,'pink');
+  v.fill(2,6,8,9,0,2,'magenta'); v.fill(6,8,8,9,0,2,'pink');
+  // long cou en S
+  v.fill(7,8,9,10,0,2,'pink');
+  v.fill(7,9,10,11,0,2,'pink');
+  v.fill(8,9,11,13,0,2,'pink');
+  v.fill(7,9,13,14,0,2,'pink');
+  v.fill(7,8,14,15,0,2,'pink');
+  v.fill(6,8,15,16,0,2,'pink');
+  // tête
+  v.fill(6,7,16,17,0,2,'black'); v.fill(7,10,16,17,0,2,'pink');
+  const plates=[0,5], Y=layerY(1,plates);
+  return { id:'flamant', name:'Le flamant rose', emoji:'🦩', level:2, view:[0.3,0.35,1.6],
     yBase:1, plates, vox:v, chunk:5,
     pre:[{title:'L’étang', text:'Une plaque bleue : c’est l’eau où se tient le flamant.', parts:[P(0,0,0,8,8,'blue')]}],
     notes:{
-      0:{title:'Le pied', text:'Le flamant tient sur UNE seule patte. Pose le pied rose au milieu de l’étang.'},
-      1:{title:'La patte', text:'Empile les petites briques 1×1 bien droites pour faire la longue patte fine.'},
-      4:{title:'Le dessous du ventre', text:'Une grande plaque rose posée sur le haut de la patte. C’est elle qui va porter tout le corps.'},
-      5:{title:'Les ailes', text:'Le corps rose au milieu, les ailes rose foncé sur les deux côtés.'},
-      6:{title:'Le dos et la queue', text:'Le dos recouvre les ailes. Le bout noir à l’arrière, ce sont les plumes de la queue.'},
-      7:{title:'Le cou', text:'Le long cou commence au bout du dos. Il va onduler comme un S !'},
-      8:{title:'Le cou avance', text:'Chaque brique est décalée d’un tenon vers l’avant.'},
-      10:{title:'Le cou repart en arrière', text:'Maintenant chaque brique se décale vers l’arrière pour former le S.'},
-      12:{title:'Le dessous de la tête', text:'Une plaque rose posée sur le haut du cou.'},
-      13:{title:'La tête et les yeux', text:'La tête, avec une brique noire au milieu pour les yeux (on les voit des deux côtés).'},
+      0:{title:'Le pied', text:'Le flamant tient sur une seule patte. Pose la petite plaque rose au milieu de l’étang.'},
+      1:{title:'La longue patte', text:'Empile 4 briques roses 1×2 bien droites : les flamants ont de très longues pattes !'},
+      5:{title:'Le dessous du ventre', text:'Une plaque rose posée sur le haut de la patte : c’est elle qui porte tout le corps.'},
+      6:{title:'Le ventre', text:'Le ventre dépasse devant et derrière la patte.'},
+      7:{title:'Les ailes', text:'Les ailes rose foncé sur les côtés, la queue noire à l’arrière, le poitrail rose devant.'},
+      8:{title:'Le dos', text:'Le dos est un peu plus court : le corps s’arrondit comme un œuf.'},
+      9:{title:'Le bas du cou', text:'Le cou part de l’avant du dos.'},
+      10:{title:'Le cou avance', text:'Une brique 2×2 décale le cou vers l’avant.'},
+      11:{title:'Le cou monte', text:'Deux briques bien droites.'},
+      13:{title:'Le cou recule', text:'Le cou repart vers l’arrière pour former le S.'},
+      15:{title:'Le haut du cou', text:'Encore un petit décalage vers l’arrière, juste sous la tête.'},
+      16:{title:'La tête', text:'La tête avance au-dessus du cou. La brique noire à l’arrière, ce sont les yeux (on les voit des deux côtés).'},
     },
     post:[
-      {title:'Le bec', text:'Une plaque blanche sur le devant de la tête : elle dépasse vers l’avant.', parts:[P(8,Y(14),1,3,2,'white')]},
-      {title:'Le bout du bec', text:'Une tuile noire au bout du bec.', parts:[T(10,Y(14)+1,1,1,2,'black')]},
+      {title:'Le bec', text:'Retourne le flamant : accroche une brique blanche SOUS le bout de la tête. Le bec du flamant est courbé vers le bas.', parts:[B(9,Y(16)-3,0,1,2,'white')]},
+      {title:'Le bout du bec', text:'Une plaque noire sous la brique blanche : c’est le bout noir du bec.', parts:[P(9,Y(16)-4,0,1,2,'black')]},
+      {title:'Les plumes', text:'Une pente noire pour la queue, et deux pentes rose foncé sur le dos pour arrondir les plumes.', parts:[SL(0,Y(8),0,2,2,'black','-x'), SL(2,Y(9),0,2,2,'magenta','-x'), SL(4,Y(9),0,2,2,'magenta','-x')]},
       {title:'Les roseaux', text:'Des briques rondes vertes dans les coins de l’étang.',
-        parts:[R(0,1,6,'green',3), R(0,4,6,'green',3), R(1,1,7,'lime',3), R(7,1,0,'green',3), R(1,1,1,'lime')]}]};
+        parts:[R(0,1,6,'green',3), R(0,4,6,'green',3), R(1,1,7,'lime',3), R(7,1,0,'green',3), R(7,4,0,'green',3), R(6,1,6,'lime')]},
+    ]};
 }
 
 function princesse(){
