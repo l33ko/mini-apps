@@ -15,7 +15,7 @@ Concevoir et visualiser son jardin, à l'échelle :
 - **Trois façons de commencer** : feuille blanche (rectangle), contour libre point par point, ou photo aérienne / plan scanné mis à l'échelle à partir d'une distance connue.
 - **Relevé de l'existant sur la photo** : détection automatique des arbres et des piscines (à valider d'un toucher), et outils rapides pour tracer maison, piscine, terrasse, arbres et arbustes existants.
 - **Formes orientables** : toute zone carrée ou rectangulaire (maison, piscine, terrasse, potager, serre…) pivote avec sa poignée, au degré près.
-- **Plus de 200 espèces**, avec une large palette méditerranéenne (oliviers, agrumes, fruits à coque, arbustes de garrigue, palmiers, aromatiques…). On peut ajouter ses propres espèces et variétés.
+- **Palette végétale commune à tous les plans** (bouton ⚙), plus de 200 espèces dont une large sélection méditerranéenne, rangées par catégories : fruitiers à noyau, à pépins, à coque, agrumes, autres fruitiers, arbres d'ombrage, arbustes et haies, grimpantes, subtropicaux, potager, fleurs. Chaque espèce regroupe ses variétés ; on ajoute, modifie ou supprime espèces et variétés pour tous les plans à la fois. Sur le plan, l'espèce s'affiche en gras et la variété en petit italique.
 - **Aménagements** : maison, terrasse, piscine, potager, poulailler, serre, bassin, ruche, chemins, clôtures, haies, irrigation, repères et étiquettes.
 - **Deux vues** : détaillée (avec les noms des végétaux) et simplifiée ; curseur de croissance (de la plantation à l'âge adulte) ; contrôle des distances de plantation par rapport aux limites (art. 671 du Code civil).
 - **Export** du plan en image PNG et en sauvegarde `.json`, importable sur un autre appareil.
