@@ -68,6 +68,7 @@ h1{font-size:2rem;margin:.2em 0 0;line-height:1.2}
 .inp{font:inherit;font-size:1.4rem;padding:10px 14px;border:3px solid var(--sh);border-radius:14px;background:var(--card);color:var(--ink);flex:1;min-width:0}
 .ptxt{font-size:1.25rem;line-height:1.5;margin:0}
 .mc:disabled{opacity:1}
+.h2{font-size:1.3rem;margin:22px 0 8px}
 .sym{display:inline-flex;align-items:center;justify-content:center;width:2.7rem;height:2.7rem;border-radius:12px;color:#fff;font-size:2rem;line-height:1;font-weight:700}
 .lvgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
 .lvb{font:inherit;color:inherit;border:3px solid var(--sh);border-radius:16px;box-shadow:0 4px 0 var(--sh);font-size:1.5rem;font-weight:700;padding:12px 0;cursor:pointer}
@@ -132,21 +133,23 @@ let AC=null;
 function tone(f,t0,d,type,v){const c=AC,n=c.currentTime+t0,o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(v||.18,n+.02);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(c.destination);o.start(n);o.stop(n+d+.05)}
 function sfx(ok){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();if(ok){[523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,i*.09,.4))}else{tone(220,0,.25,'triangle',.2);tone(174.6,.16,.4,'triangle',.2)}}catch(e){}}
 let VOICE=null;
-function loadVoice(){try{const v=speechSynthesis.getVoices();const fr=v.filter(x=>/^fr/i.test(x.lang)).sort((a,b)=>(b.localService?1:0)-(a.localService?1:0)),ok=x=>!/Thomas|Daniel|Paul|Henri|Claude|Nicolas|Male/i.test(x.name);VOICE=fr.find(x=>/Aur[ée]lie|Audrey|Marie|Am[ée]lie|Julie|Denise/i.test(x.name)&&ok(x))||fr.find(x=>/^fr[-_]FR/i.test(x.lang)&&ok(x))||fr.find(ok)||fr[0]||null}catch(e){}}
+function loadVoice(){try{const v=speechSynthesis.getVoices(),pv=(()=>{try{return localStorage.getItem('cp-voice')}catch(e){return null}})();const fr=v.filter(x=>/^fr/i.test(x.lang)).sort((a,b)=>(b.localService?1:0)-(a.localService?1:0)),ok=x=>!/Thomas|Daniel|Paul|Henri|Claude|Nicolas|Male/i.test(x.name);VOICE=(pv&&v.find(x=>x.name===pv))||fr.find(x=>/Aur[ée]lie|Audrey|Marie|Am[ée]lie|Julie|Denise/i.test(x.name)&&ok(x))||fr.find(x=>/^fr[-_]FR/i.test(x.lang)&&ok(x))||fr.find(ok)||fr[0]||null}catch(e){}}
 try{loadVoice();speechSynthesis.onvoiceschanged=loadVoice}catch(e){}
+const OFF=id=>Array.isArray(D.set&&D.set.off)&&D.set.off.includes(id);
 const NAR=()=>{try{return localStorage.getItem('cp-nar')!=='0'}catch(e){return true}};
-function togNar(){try{localStorage.setItem('cp-nar',NAR()?'0':'1')}catch(e){}menu()}
+function togNar(){try{localStorage.setItem('cp-nar',NAR()?'0':'1')}catch(e){}parentPanel()}
 const spk=c=>c.nb?'':'<button class="tile" onclick="say(Q.cur.btn||Q.cur.nr)" aria-label="Écouter">🔊 Écouter</button>';
 let VERR='';
 function say(t,r){try{const s=speechSynthesis;if(!VOICE)loadVoice();if(s.speaking||s.pending)s.cancel();setTimeout(()=>{s.resume();[].concat(t).forEach(x=>{const u=new SpeechSynthesisUtterance(x);u.lang='fr-FR';if(VOICE)u.voice=VOICE;u.rate=r||.82;u.pitch=1.1;u.volume=1;u.onerror=e=>{VERR=e.error||'erreur'};s.speak(u)})},120)}catch(e){VERR=String(e)}}
 document.addEventListener('pointerdown',()=>{if(window.__vu)return;window.__vu=1;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}},true);
+function setVoice(n){try{if(n)localStorage.setItem('cp-voice',n);else localStorage.removeItem('cp-voice')}catch(e){}loadVoice();testVoice()}
 function testVoice(){VERR='';say('Bonjour ! Je suis la voix de ton cahier.');setTimeout(()=>{const m=document.getElementById('vm'),n=(()=>{try{return speechSynthesis.getVoices().length}catch(e){return 0}})();if(m)m.textContent=!window.speechSynthesis?'Ce navigateur ne sait pas parler.':`Voix : ${VOICE?VOICE.name:'aucune voix française trouvée'} (${n} voix sur l’appareil)${VERR?' · erreur : '+VERR:''}`},900)}
 
 function menu(){
  Q=null;PLAY={};setTimeout(tick,0);
  app.innerHTML=`<div class="top"><h1>Salut ${esc(P)} ! 👋</h1><span class="stars">⭐ ${stars}</span></div>
- <button class="chip" onclick="parents()">⚙️ Parents</button> <button class="chip" onclick="backup()">💾 Sauvegarde</button> <button class="chip" onclick="who()">👤 Changer de joueur</button> <button class="chip" onclick="togTheme()">${TH==='dark'?'☀️ Mode clair':'🌙 Mode sombre'}</button> <button class="chip" onclick="testVoice()">🔈 Tester la voix</button> <button class="chip" onclick="togNar()">${NAR()?'🔊 Consignes : oui':'🔇 Consignes : non'}</button><p class="msg" id="vm" style="font-size:.85rem;font-weight:400"></p><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
- MENU.map(m=>`<button class="card" style="background:var(${m.c})" onclick="lvl('${m.id}')"><span class="e">${m.e}</span>${m.t}</button>`).join('')+`</div>`;
+ <button class="chip" onclick="parents()">⚙️ Parents</button> <button class="chip" onclick="who()">👤 Changer de joueur</button> <button class="chip" onclick="togTheme()">${TH==='dark'?'☀️ Mode clair':'🌙 Mode sombre'}</button><p class="sub">À quoi veux-tu jouer ?</p><div class="grid">`+
+ MENU.filter(m=>!OFF(m.id)).map(m=>`<button class="card" style="background:var(${m.c})" onclick="lvl('${m.id}')"><span class="e">${m.e}</span>${m.t}</button>`).join('')+`</div>`;
 }
 
 const R=(a,b)=>a+rnd(b-a+1);
@@ -214,7 +217,7 @@ function genMath(op,L){L=L||1;
  if(cm)return {nr,nb,q:`<div class="math">${a} + ? = ${t}</div>`,opts,key:kb?{ml:`${a} +`,mr:`= ${t}`,ans,v:''}:null};
  return {nr,nb,q:`<div class="math"${fs}>${txt} = ?</div>`,opts,key:kb?{txt,ans,v:''}:null};
 }
-function gen(id){return id==='lec'?genLec():id==='ecr'?genEcr():id==='pho'?genPho():id==='phr'?genPhr():id==='sui'?genSui():id==='pb'?genPb():id==='cpt'?genCpt():id==='int'?genInt():genMath(id==='mix'?pick(['add','sou','cmp','mul']):id,lv(id))}
+function gen(id){return id==='lec'?genLec():id==='ecr'?genEcr():id==='pho'?genPho():id==='phr'?genPhr():id==='sui'?genSui():id==='pb'?genPb():id==='cpt'?genCpt():id==='int'?genInt():genMath(id==='mix'?pick(['add','sou','cmp','mul'].filter(o=>!OFF(o))):id,lv(id))}
 
 function start(id){if(STARTERS[id])return STARTERS[id]();Q={id,n:0,score:0,N:10};next()}
 function next(){if(Q.n>=Q.N)return end();Q.cur=gen(Q.id);Q.tries=0;Q.done=false;Q.hinted=false;draw();setTimeout(()=>{if(NAR()&&Q&&Q.cur&&!Q.done&&(Q.cur.sp||Q.cur.nr))say(Q.cur.sp||Q.cur.nr,Q.cur.rate)},350)}
@@ -389,7 +392,7 @@ function tick(){const b=document.getElementById('tm');if(!b)return;
  b.style.display=OVM?'none':'';b.textContent='⏱️ '+fmt(left);b.classList.toggle('low',left<60000)}
 setInterval(tick,1000);
 function showLock(){try{speechSynthesis.cancel()}catch(e){}
- openOv('lock',`<div class="end"><div class="emo">😴</div><h1>C’est fini pour aujourd’hui !</h1><p class="sub">Le temps de jeu est terminé. À bientôt !</p><button class="again" onclick="parents()">🔒 Parents</button><br><button class="chip" style="margin-top:14px" onclick="backup()">💾 Sauvegarde</button></div>`)}
+ openOv('lock',`<div class="end"><div class="emo">😴</div><h1>C’est fini pour aujourd’hui !</h1><p class="sub">Le temps de jeu est terminé. À bientôt !</p><button class="again" onclick="parents()">🔒 Parents</button></div>`)}
 function parents(){gate(parentPanel)}
 function gate(ok){const a=6+rnd(4),b=3+rnd(2);GATE={a,b,ok};
  openOv('other',`<h1>🔒 Espace parents</h1><p class="sub">Pour continuer, résous ce calcul :</p><div class="math" style="font-size:2.6rem;margin-bottom:14px">${a} × ${b} = ?</div><div class="top"><input id="gin" class="inp" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Réponse" onkeydown="if(event.key==='Enter')gateOk()"><button class="again" onclick="gateOk()">OK</button></div><p class="msg" id="gm"></p><button class="chip" onclick="closeOvT()">← Retour</button>`);
@@ -397,9 +400,20 @@ function gate(ok){const a=6+rnd(4),b=3+rnd(2);GATE={a,b,ok};
 function gateOk(){const v=+document.getElementById('gin').value;
  if(GATE&&v===GATE.a*GATE.b){const f=GATE.ok;GATE=null;f()}
  else if(GATE){const f=GATE.ok;sfx(false);gate(f);const m=document.getElementById('gm');if(m)m.textContent='Mauvaise réponse, voici un autre calcul.'}}
-function parentPanel(){const cur=DUR(),left=SS?LEFT():0;
- openOv('other',`<h1>⚙️ Espace parents</h1><p class="sub">Durée de jeu par session :</p><div class="row">${DURS.map(m=>`<button class="chip ${m===cur?'on':''}" onclick="setDur(${m})">${m?m+' min':'Sans limite'}</button>`).join('')}</div><p class="sub">${!cur?'Pas de limite de temps.':left>0?'Temps restant : '+fmt(left):'Temps écoulé.'}</p><button class="again" onclick="startSess()">▶️ Lancer une nouvelle session</button><p class="sub" style="margin-top:18px">Une nouvelle session démarre aussi automatiquement chaque jour.</p><div class="row"><button class="chip" onclick="backup()">💾 Sauvegarde</button><button class="chip" onclick="closeOvT()">Fermer</button></div>`)}
-function setDur(m){D.set={min:m};saveD();persist();if(!SS)newSession();parentPanel()}
+const DIS=[['mix','Maths mélangées'],['pb','Problèmes'],['mul','Doubles et moitiés'],['cmp','Compléments']];
+function togMod(id){const a=(D.set.off||[]).filter(x=>x!==id);if(!OFF(id))a.push(id);D.set.off=a;saveD();persist();parentPanel()}
+function closeCfg(){closeOvT();if(!Q&&P)menu()}
+function parentPanel(){const cur=DUR(),left=SS?LEFT():0;let fr=[];try{fr=speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang))}catch(e){}
+ let pv='';try{pv=localStorage.getItem('cp-voice')||''}catch(e){}
+ openOv('other',`<h1>⚙️ Configuration</h1>
+<h2 class="h2">⏱️ Temps de jeu</h2><div class="row">${DURS.map(m=>`<button class="chip ${m===cur?'on':''}" onclick="setDur(${m})">${m?m+' min':'Sans limite'}</button>`).join('')}</div><p class="sub">${!cur?'Pas de limite de temps.':left>0?'Temps restant : '+fmt(left):'Temps écoulé.'} Une nouvelle session démarre aussi chaque jour.</p><button class="again" onclick="startSess()">▶️ Nouvelle session</button>
+<h2 class="h2">🔊 Voix et consignes</h2><div class="row"><button class="chip ${NAR()?'on':''}" onclick="togNar()">${NAR()?'Consignes orales : oui':'Consignes orales : non'}</button></div>
+<select id="vsel" class="inp" style="width:100%;margin-bottom:10px" onchange="setVoice(this.value)"><option value="">Voix automatique</option>${fr.map(v=>`<option value="${esc(v.name)}" ${v.name===pv?'selected':''}>${esc(v.name)}${v.localService?'':' (en ligne)'}</option>`).join('')}</select>
+<button class="chip" onclick="testVoice()">🔈 Tester la voix</button><p class="msg" id="vm" style="font-size:.85rem;font-weight:400"></p>
+<h2 class="h2">🧩 Modules proposés</h2><p class="sub">Touche pour activer ou désactiver :</p><div class="row">${DIS.map(d=>`<button class="chip ${OFF(d[0])?'':'on'}" onclick="togMod('${d[0]}')">${OFF(d[0])?'✖ ':'✓ '}${d[1]}</button>`).join('')}</div>
+<h2 class="h2">💾 Sauvegarde</h2><div class="row"><button class="chip" onclick="backup(1)">Code de sauvegarde</button></div>
+<button class="again" style="margin-top:18px" onclick="closeCfg()">Fermer</button>`)}
+function setDur(m){D.set.min=m;saveD();persist();if(!SS)newSession();parentPanel()}
 function startSess(){newSession();closeOvT()}
 /* code de sauvegarde */
 function mkCode(){return 'CP1-'+btoa(unescape(encodeURIComponent(JSON.stringify({p:D.profiles,s:D.set,v:2}))))}
@@ -408,12 +422,13 @@ function applyCode(o){let n=0;const ids=MENU.map(x=>x.id);
  for(const k in o.p){const nm=String(k).trim().slice(0,16);if(!nm||nm==='__proto__')continue;const b=o.p[k]||{},st=Math.min(99999,Math.max(0,parseInt(b.stars)||0)),l={};
   for(const id of ids){let v=parseInt((b.lv||{})[id]);if(!(v>=1))continue;if(o.v!==2)v=[1,4,7][v-1]||1;if(v>=1&&v<=10)l[id]=v}
   const a=D.profiles[nm];if(!a||st>(a.stars||0))D.profiles[nm]={stars:st,lv:l};n++}
- if(o.s&&DURS.includes(+o.s.min))D.set={min:+o.s.min};
+ if(o.s){if(DURS.includes(+o.s.min))D.set.min=+o.s.min;if(Array.isArray(o.s.off))D.set.off=o.s.off.filter(x=>typeof x==='string').slice(0,20)}
  if(P&&D.profiles[P]){stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}
  saveD();persist();return n}
-function backup(){const c=mkCode();
+let BKP=false;
+function backup(f){BKP=!!f;const c=mkCode();
  openOv('other',`<h1>💾 Sauvegarde</h1><p class="sub"><b>1.</b> Sur l’ancien appareil, copie ce code :</p><textarea id="bk" class="inp" readonly onclick="this.select()">${c}</textarea><button class="again" onclick="copyCode()">📋 Copier le code</button><p class="msg" id="bm1"></p><p class="sub" style="margin-top:14px"><b>2.</b> Sur le nouvel appareil, colle le code ici :</p><textarea id="bi" class="inp" placeholder="CP1-…"></textarea><button class="again" onclick="restoreCode()">⬇️ Retrouver mes données</button><p class="msg" id="bm2"></p><button class="chip" onclick="backBk()">← Retour</button>`)}
-function backBk(){closeOvT();if(!Q){P?menu():who()}}
+function backBk(){if(BKP&&P){BKP=false;return parentPanel()}closeOvT();if(!Q){P?menu():who()}}
 function copyCode(){const t=document.getElementById('bk'),m=document.getElementById('bm1');
  const ok=()=>{m.textContent='Code copié ✔️'},ko=()=>{t.focus();t.select();t.setSelectionRange(0,99999);try{document.execCommand('copy')?ok():m.textContent='Touche le code, puis choisis Copier.'}catch(e){m.textContent='Touche le code, puis choisis Copier.'}};
  try{navigator.clipboard.writeText(t.value).then(ok,ko)}catch(e){ko()}}

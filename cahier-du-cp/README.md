@@ -51,21 +51,23 @@ Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de mul
 - Le niveau s'adapte aux résultats : il monte avec 9 bonnes réponses ou plus, et baisse avec 4 ou moins.
 - À partir du niveau 4 en maths, l'enfant tape la réponse sur un clavier de chiffres au lieu de choisir parmi des propositions.
 - **Mode clair ou sombre** : un bouton du menu change les couleurs (clair, pastel et coloré par défaut).
-- **Consignes audio** : chaque énoncé est lu à voix haute automatiquement, et un bouton 🔊 Écouter permet de le réécouter. « Essaie encore » est aussi dit en cas d’erreur ; une bonne réponse est signalée par un son, sans message. L'option « Consignes » du menu permet de couper la lecture automatique.
+- **Consignes audio** : chaque énoncé est lu à voix haute automatiquement, et un bouton 🔊 Écouter permet de le réécouter. « Essaie encore » est aussi dit en cas d’erreur ; une bonne réponse est signalée par un son, sans message. La configuration permet de couper la lecture automatique.
 - Un son distingue les bonnes et les mauvaises réponses, et un petit son accompagne chaque bouton.
 
 ## Joueurs et sauvegarde
 
 - Chaque enfant a son profil, créé avec un simple prénom. Les étoiles et les niveaux sont gardés sur l'appareil, dans le navigateur.
-- Pour passer d'un appareil à un autre, un **code de sauvegarde** (commençant par `CP1-`) se copie depuis le bouton « Sauvegarde » et se colle sur le nouvel appareil.
+- Pour passer d'un appareil à un autre, un **code de sauvegarde** (commençant par `CP1-`) se copie depuis la configuration et se colle sur le nouvel appareil.
 - Aucune donnée n'est envoyée sur un serveur. Seul le prénom saisi est conservé, sur l'appareil.
 
-## Espace parents
+## Configuration (espace parents)
 
-- Un compteur affiche le temps de jeu restant. Par défaut, une session dure **15 minutes**.
-- À la fin, l'écran se verrouille. Un adulte doit résoudre un petit calcul (par exemple 7 × 4) pour accéder à l'espace parents.
-- Les parents peuvent choisir la durée (5, 10, 15, 20, 30, 45 ou 60 minutes, ou sans limite), relancer une session ou gérer la sauvegarde.
-- Une nouvelle session démarre automatiquement chaque jour.
+Le bouton « Parents » du menu ouvre la configuration, protégée par un petit calcul (par exemple 7 × 4).
+
+- **Temps de jeu** : 5, 10, 15, 20, 30, 45 ou 60 minutes, ou sans limite. Par défaut, une session dure **15 minutes**. À la fin, l'enfant termine son exercice en cours, puis l'écran se verrouille. Une nouvelle session peut être lancée à la main, et une démarre automatiquement chaque jour.
+- **Voix et consignes** : activer ou couper les consignes orales, choisir la voix parmi les voix françaises de l'appareil et la tester.
+- **Modules proposés** : désactiver Maths mélangées, Problèmes, Doubles et moitiés ou Compléments.
+- **Sauvegarde** : le code `CP1-` pour passer d'un appareil à un autre.
 - Ce contrôle n'est pas une protection absolue : vider les données du navigateur ou changer de navigateur remet le compteur à zéro.
 
 ## Utiliser l'application
