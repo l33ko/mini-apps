@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Rétro Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0b1a; --panel:#17142b; --line:#2a2550; --ink:#efeaff; --muted:#9a93c4;
+    --pink:#ff4fa3; --cyan:#3ee6ff; --yellow:#ffd23e;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,sans-serif;min-height:100%}
+  body{
+    padding:calc(env(safe-area-inset-top) + 18px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 24px) calc(env(safe-area-inset-left) + 16px);
+    background:
+      radial-gradient(1200px 500px at 50% -200px, #2b1d5c 0%, transparent 70%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 2px, transparent 2px 4px),
+      var(--bg);
+  }
+  .wrap{max-width:860px;margin:0 auto}
+  header{text-align:center;margin:8px 0 22px}
+  h1{font-family:"Press Start 2P",monospace;font-size:clamp(18px,5vw,30px);margin:0;letter-spacing:1px;
+     background:linear-gradient(90deg,var(--pink),var(--yellow),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;
+     filter:drop-shadow(0 3px 0 #000)}
+  header p{color:var(--muted);margin:12px 0 0;font-size:14px;line-height:1.5}
+  h2{font-family:"Press Start 2P",monospace;font-size:11px;color:var(--muted);letter-spacing:1px;margin:26px 0 12px;text-transform:uppercase}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .sys{position:relative;border:0;cursor:pointer;text-align:left;color:var(--ink);background:var(--panel);
+       border-radius:16px;padding:14px 14px 12px;min-height:118px;display:flex;flex-direction:column;justify-content:flex-end;
+       box-shadow:inset 0 0 0 1px var(--line),0 4px 0 #000;transition:transform .08s, box-shadow .2s;overflow:hidden;font:inherit}
+  .sys:active{transform:translateY(3px);box-shadow:inset 0 0 0 1px var(--line),0 1px 0 #000}
+  .sys:hover{box-shadow:inset 0 0 0 2px var(--c),0 4px 0 #000}
+  .sys .icon{position:absolute;top:12px;right:12px;width:46px;height:46px;opacity:.95}
+  .sys .bar{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
+  .sys b{font-size:16px;font-weight:800;display:block}
+  .sys small{color:var(--muted);font-size:11.5px;margin-top:3px;display:block}
+  .lib{display:flex;flex-direction:column;gap:8px}
+  .item{display:flex;align-items:center;gap:10px;background:var(--panel);border-radius:12px;padding:10px 12px;box-shadow:inset 0 0 0 1px var(--line)}
+  .item .tag{font-family:"Press Start 2P",monospace;font-size:8px;padding:6px 7px;border-radius:6px;background:var(--c);color:#0d0b1a;white-space:nowrap}
+  .item .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-size:14px}
+  .btn{border:0;border-radius:10px;padding:9px 13px;font:600 13px Inter,system-ui,sans-serif;cursor:pointer;color:#0d0b1a;background:var(--cyan)}
+  .btn.ghost{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+  .btn.pink{background:var(--pink);color:#fff}
+  .empty{color:var(--muted);font-size:13.5px;background:var(--panel);border-radius:12px;padding:14px;box-shadow:inset 0 0 0 1px var(--line);line-height:1.5}
+  .note{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:26px;border-top:1px solid var(--line);padding-top:14px}
+  .note a{color:var(--cyan)}
+  /* Dialog */
+  .scrim{position:fixed;inset:0;background:rgba(5,4,12,.72);display:none;align-items:flex-end;justify-content:center;z-index:50;backdrop-filter:blur(4px)}
+  .scrim.on{display:flex}
+  .sheet{background:var(--panel);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom) + 20px);box-shadow:0 -1px 0 var(--line)}
+  @media(min-width:600px){.scrim{align-items:center}.sheet{border-radius:20px}}
+  .sheet h3{margin:0 0 6px;font-size:18px}
+  .sheet p{margin:0 0 14px;color:var(--muted);font-size:13.5px;line-height:1.5}
+  .pick{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:inset 0 0 0 1px var(--line)}
+  .pick span{flex:1;font-size:13.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pick span.ok{color:#7dffa8}
+  .row{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+  input[type=file]{display:none}
+  /* Game */
+  #stage{position:fixed;inset:0;background:#000;display:none;z-index:40;
+         padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  #stage.on{display:flex;flex-direction:column}
+  #topbar{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0d0b1a;border-bottom:1px solid var(--line)}
+  #topbar .t{flex:1;min-width:0;font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #gamebox{flex:1;position:relative;min-height:0}
+  #game{position:absolute;inset:0}
+  #err{position:absolute;left:12px;right:12px;bottom:12px;color:#ffb3c9;font-size:12px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>RÉTRO CONSOLE</h1>
+    <p>Choisis une console, charge ton jeu (fichier ROM) et joue — au clavier, à la manette ou avec les boutons tactiles.</p>
+  </header>
+
+  <h2>Consoles</h2>
+  <div class="grid" id="systems"></div>
+
+  <h2>Ma ludothèque</h2>
+  <div class="lib" id="lib"></div>
+
+  <div class="note">
+    Les jeux ne sont pas fournis : utilise les ROMs de jeux que tu possèdes, ou des jeux libres « homebrew ».
+    Les fichiers restent dans ton navigateur, rien n'est envoyé en ligne.
+    Clavier par défaut : flèches, <b>X</b>/<b>Z</b>/<b>A</b>/<b>S</b> pour les boutons, <b>Entrée</b> = Start, <b>V</b> = Select.
+    Émulation par <a href="https://emulatorjs.org">EmulatorJS</a> et les cœurs libretro (licence GPL).
+  </div>
+</div>
+
+<!-- Load dialog -->
+<div class="scrim" id="scrim">
+  <div class="sheet">
+    <h3 id="dTitle">Charger un jeu</h3>
+    <p id="dHelp"></p>
+    <div class="pick"><span id="romName">Aucun fichier</span><button class="btn ghost" id="romBtn">Choisir…</button></div>
+    <div class="pick" id="biosRow"><span id="biosName">BIOS : aucun</span><button class="btn ghost" id="biosBtn">BIOS…</button></div>
+    <div class="row">
+      <button class="btn ghost" id="cancel">Annuler</button>
+      <button class="btn pink" id="play" disabled>Jouer ▶</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="romInput">
+<input type="file" id="biosInput" accept=".zip">
+
+<div id="stage">
+  <div id="topbar">
+    <button class="btn ghost" id="quit">✕ Quitter</button>
+    <div class="t" id="gameTitle"></div>
+  </div>
+  <div id="gamebox"><div id="game"></div><div id="err"></div></div>
+</div>
+
+<script>
+const SYSTEMS = [
+  {id:"snes",  name:"Super Nintendo", sub:"SNES · Super Famicom", ext:[".smc",".sfc",".zip"], c:"#a78bfa", icon:"pad"},
+  {id:"nes",   name:"NES",            sub:"Nintendo · Famicom",   ext:[".nes",".zip"], c:"#ff5d5d", icon:"pad"},
+  {id:"arcade",name:"Neo Geo / Arcade",sub:"Neo Geo, CPS1/2… (FBNeo)", ext:[".zip"], c:"#ffd23e", icon:"stick", bios:true},
+  {id:"segaMD",name:"Mega Drive",     sub:"+ Master System, Game Gear", ext:[".md",".gen",".smd",".bin",".sms",".gg",".zip"], c:"#3e8bff", icon:"pad"},
+  {id:"gb",    name:"Game Boy",       sub:"Game Boy · Color",     ext:[".gb",".gbc",".zip"], c:"#8bd450", icon:"hand"},
+  {id:"gba",   name:"Game Boy Advance",sub:"GBA",                 ext:[".gba",".zip"], c:"#ff4fa3", icon:"hand"},
+  {id:"pce",   name:"PC Engine",      sub:"TurboGrafx-16",        ext:[".pce",".zip"], c:"#ff9a3e", icon:"pad"},
+  {id:"atari2600",name:"Atari 2600",  sub:"VCS",                  ext:[".a26",".bin",".zip"], c:"#3ee6ff", icon:"stick"},
+];
+const ICONS = {
+  pad:`<svg viewBox="0 0 64 64"><rect x="4" y="18" width="56" height="28" rx="14" fill="none" stroke="currentColor" stroke-width="3"/><path d="M17 26v12M11 32h12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><circle cx="43" cy="35" r="3.2" fill="currentColor"/><circle cx="50" cy="28" r="3.2" fill="currentColor"/></svg>`,
+  stick:`<svg viewBox="0 0 64 64"><rect x="8" y="40" width="48" height="16" rx="5" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 40V22" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><circle cx="24" cy="16" r="7" fill="currentColor"/><circle cx="42" cy="48" r="3.4" fill="currentColor"/><circle cx="50" cy="48" r="3.4" fill="currentColor"/></svg>`,
+  hand:`<svg viewBox="0 0 64 64"><rect x="16" y="4" width="32" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="3"/><rect x="21" y="10" width="22" height="18" rx="2" fill="currentColor" opacity=".35"/><path d="M26 40v8M22 44h8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="38" cy="46" r="2.6" fill="currentColor"/><circle cx="43" cy="41" r="2.6" fill="currentColor"/></svg>`
+};
+const $ = s => document.querySelector(s);
+
+/* ---------- Storage (IndexedDB, best-effort) ---------- */
+let dbP = null;
+function db(){
+  if (dbP) return dbP;
+  dbP = new Promise((res) => {
+    try {
+      const r = indexedDB.open("retro-console", 1);
+      r.onupgradeneeded = () => { r.result.createObjectStore("games", {keyPath:"id"}); r.result.createObjectStore("bios"); };
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => res(null);
+    } catch(e){ res(null); }
+  });
+  return dbP;
+}
+async function tx(store, mode, fn){
+  const d = await db(); if (!d) return null;
+  return new Promise((res) => {
+    try {
+      const t = d.transaction(store, mode); const st = t.objectStore(store);
+      const r = fn(st); t.oncomplete = () => res(r && r.result); t.onerror = () => res(null);
+    } catch(e){ res(null); }
+  });
+}
+const listGames = () => tx("games","readonly", s => s.getAll());
+const saveGame  = g => tx("games","readwrite", s => s.put(g));
+const delGame   = id => tx("games","readwrite", s => s.delete(id));
+const getBios   = k => tx("bios","readonly", s => s.get(k));
+const saveBios  = (k,v) => tx("bios","readwrite", s => s.put(v,k));
+
+/* ---------- UI ---------- */
+function renderSystems(){
+  $("#systems").innerHTML = SYSTEMS.map(s => `
+    <button class="sys" style="--c:${s.c}" data-id="${s.id}">
+      <span class="bar"></span>
+      <span class="icon" style="color:${s.c}">${ICONS[s.icon]}</span>
+      <b>${s.name}</b><small>${s.sub}</small>
+    </button>`).join("");
+  document.querySelectorAll(".sys").forEach(b => b.onclick = () => openDialog(SYSTEMS.find(s => s.id === b.dataset.id)));
+}
+async function renderLib(){
+  const games = (await listGames()) || [];
+  games.sort((a,b) => (b.last||0) - (a.last||0));
+  if (!games.length){
+    $("#lib").innerHTML = `<div class="empty">Les jeux que tu lances apparaîtront ici pour les relancer en un geste.</div>`;
+    return;
+  }
+  $("#lib").innerHTML = games.map(g => {
+    const s = SYSTEMS.find(x => x.id === g.system) || {name:g.system,c:"#888"};
+    return `<div class="item" style="--c:${s.c}"><span class="tag">${s.name.split(" ")[0].toUpperCase()}</span>
+      <span class="nm">${esc(g.name)}</span>
+      <button class="btn" data-play="${g.id}">▶</button>
+      <button class="btn ghost" data-del="${g.id}" aria-label="Retirer">✕</button></div>`;
+  }).join("");
+  document.querySelectorAll("[data-play]").forEach(b => b.onclick = async () => {
+    const g = games.find(x => x.id === b.dataset.play);
+    const s = SYSTEMS.find(x => x.id === g.system);
+    let bios = null;
+    if (s.bios){ const bb = await getBios("neogeo"); if (bb) bios = new File([bb.data], bb.name); }
+    g.last = Date.now(); saveGame(g);
+    launch(s, new File([g.data], g.name), bios);
+  });
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => { await delGame(b.dataset.del); renderLib(); });
+}
+const esc = t => t.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let cur = null, romFile = null, biosFile = null;
+async function openDialog(sys){
+  cur = sys; romFile = null; biosFile = null;
+  $("#dTitle").textContent = sys.name;
+  $("#dHelp").innerHTML = sys.bios
+    ? `Charge le jeu au format <b>.zip</b> sans le renommer (ex. <i>mslug.zip</i>). Les jeux Neo Geo demandent aussi le BIOS <b>neogeo.zip</b> — il est mémorisé après la première fois.`
+    : `Fichiers acceptés : ${sys.ext.join(", ")}`;
+  $("#romInput").accept = sys.ext.join(",");
+  $("#romName").textContent = "Aucun fichier"; $("#romName").className = "";
+  $("#biosRow").style.display = sys.bios ? "flex" : "none";
+  $("#biosName").textContent = "BIOS neogeo.zip : aucun (facultatif hors Neo Geo)"; $("#biosName").className = "";
+  $("#play").disabled = true;
+  $("#scrim").classList.add("on");
+  if (sys.bios){
+    const bb = await getBios("neogeo");
+    if (bb){ biosFile = new File([bb.data], bb.name); $("#biosName").textContent = "BIOS : " + bb.name + " (mémorisé)"; $("#biosName").className = "ok"; }
+  }
+}
+$("#romBtn").onclick = () => $("#romInput").click();
+$("#biosBtn").onclick = () => $("#biosInput").click();
+$("#romInput").onchange = e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  romFile = f; $("#romName").textContent = f.name; $("#romName").className = "ok"; $("#play").disabled = false;
+};
+$("#biosInput").onchange = e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  biosFile = f; $("#biosName").textContent = "BIOS : " + f.name; $("#biosName").className = "ok";
+  saveBios("neogeo", {name:f.name, data:f});
+};
+$("#cancel").onclick = () => $("#scrim").classList.remove("on");
+$("#scrim").onclick = e => { if (e.target.id === "scrim") $("#scrim").classList.remove("on"); };
+$("#play").onclick = async () => {
+  $("#scrim").classList.remove("on");
+  const id = cur.id + ":" + romFile.name + ":" + romFile.size;
+  saveGame({id, system:cur.id, name:romFile.name, data:romFile, last:Date.now()});
+  launch(cur, romFile, biosFile);
+};
+
+/* ---------- Emulator ---------- */
+let launched = false;
+function launch(sys, rom, bios){
+  if (launched){ location.reload(); return; }
+  launched = true;
+  $("#gameTitle").textContent = rom.name.replace(/\.[^.]+$/, "");
+  $("#stage").classList.add("on");
+  document.body.style.overflow = "hidden";
+
+  window.EJS_player = "#game";
+  window.EJS_core = sys.id;
+  window.EJS_gameUrl = rom;
+  window.EJS_gameName = rom.name.replace(/\.[^.]+$/, "");
+  if (bios) window.EJS_biosUrl = bios;
+  if (sys.id === "arcade") window.EJS_dontExtractBIOS = true;
+  window.EJS_pathtodata = "data/";
+  window.EJS_paths = {};
+  ["snes9x","fceumm","gambatte","mgba","genesis_plus_gx","mednafen_pce","stella2014","fbneo"].forEach(c => {
+    ["-wasm","-legacy-wasm"].forEach(v => { window.EJS_paths[c + v + ".data"] = "data/cores/" + c + v + ".wasm"; });
+  });
+  window.EJS_DEBUG_XX = true;          // load the non-minified sources shipped with this page
+  window.EJS_language = "en-US";
+  window.EJS_disableAutoLang = false;
+  window.EJS_color = sys.c;
+  window.EJS_backgroundColor = "#000";
+  window.EJS_threads = false;
+  window.EJS_startOnLoaded = false;    // a tap on "Start" unlocks sound on iPhone
+  window.EJS_startButtonName = "▶ Démarrer";
+  window.EJS_Buttons = { netplay:false, contextMenu:false, exitEmulation:false };
+
+  const s = document.createElement("script");
+  s.src = "data/loader.js";
+  s.onerror = () => showErr("Impossible de charger l'émulateur.");
+  document.body.appendChild(s);
+}
+function showErr(t){ const e = $("#err"); e.textContent = t; e.style.display = "block"; }
+$("#quit").onclick = () => { try { location.reload(); } catch(e){ $("#stage").classList.remove("on"); } };
+window.addEventListener("error", e => { if (launched && e.message) console.warn(e.message); });
+
+renderSystems();
+renderLib();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # mini-apps
 
-Petites applications web, simples et accessibles à tous. Chaque application tient dans un seul fichier `index.html` et fonctionne directement dans le navigateur, sur ordinateur comme sur téléphone.
+Petites applications web, simples et accessibles à tous. Chaque application tient (sauf Rétro Console) dans un seul fichier `index.html` et fonctionne directement dans le navigateur, sur ordinateur comme sur téléphone.
 
 La page d'accueil ([`index.html`](index.html)) présente toutes les applications, avec un lien vers chacune.
 
@@ -10,6 +10,7 @@ La page d'accueil ([`index.html`](index.html)) présente toutes les applications
 | Mon jardin | [`mon-jardin/`](mon-jardin/) | Éditeur de plan de jardin à l'échelle, façon paysagiste. |
 | Lego Builder | [`lego-builder/`](lego-builder/) | Constructions Lego en 3D à monter pas à pas, pour les 8-10 ans. |
 | Pixel arts | [`pixel-arts/`](pixel-arts/) | Modèles de pixel art à recopier sur papier ou en perles à repasser. |
+| Rétro Console | [`retro-console/`](retro-console/) | Émulateur de consoles rétro (SNES, NES, Neo Geo, Mega Drive, Game Boy…) dans le navigateur. |
 
 ## Mon jardin
 
@@ -40,3 +41,17 @@ Des modèles de pixel art pour les enfants, à recopier sur papier quadrillé ou
 - **Mode perles** : le modèle sur une plaque à picots, avec la liste des perles à préparer par couleur et le total.
 - **Image à garder** : une image du modèle avec sa légende, à enregistrer ou imprimer.
 - **Créer** : transformer une image en pixel art (taille et nombre de couleurs réglables, couleurs de perles courantes) ou dessiner case par case. Les créations s'ajoutent au catalogue dans « Mes modèles », enregistrées dans le navigateur de l'appareil.
+
+## Rétro Console
+
+Une console de jeux rétro dans le navigateur, sur ordinateur comme sur iPhone :
+
+- **8 familles de consoles** : Super Nintendo, NES, Neo Geo / Arcade (FBNeo), Mega Drive (+ Master System, Game Gear), Game Boy / Color, Game Boy Advance, PC Engine, Atari 2600.
+- **Commandes** : boutons tactiles sur téléphone, clavier ou manette sur ordinateur ; sauvegardes et états de jeu dans le menu de l'émulateur.
+- **Ludothèque** : les jeux lancés sont gardés dans le navigateur pour les relancer en un geste. Le BIOS Neo Geo (`neogeo.zip`) est mémorisé après le premier chargement.
+- **Fichiers acceptés** : ROM non compressée ou `.zip` (le `.7z` n'est pas pris en charge).
+
+Aucun jeu n'est fourni : utilisez des jeux libres (homebrew, par exemple sur itch.io, PDRoms ou Homebrew Hub) ou vos propres sauvegardes de cartouches.
+
+Contrairement aux autres applications, celle-ci n'est pas un fichier unique : elle embarque [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS) 4.2.3 et des cœurs libretro dans [`retro-console/data/`](retro-console/data/), sous licence GPL-3.0 (voir [`retro-console/data/LICENSE`](retro-console/data/LICENSE)). Modifications apportées : décompression des archives par [fflate](https://github.com/101arrowz/fflate) au lieu des extracteurs d'origine, cœurs reconditionnés en `.zip` (extension `.wasm`), chargement du cœur sans URL `blob:` pour respecter une politique de sécurité stricte, et désactivation de la vérification de mise à jour.
+
