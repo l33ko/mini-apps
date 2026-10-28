@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini apps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff8ef;--ink:#2b2340;--soft:#6d6585;--line:#eadfce}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2",system-ui,sans-serif;
+  background-image:radial-gradient(#eadfce 1.2px,transparent 1.2px);background-size:22px 22px}
+header{max-width:1000px;margin:0 auto;padding:40px 20px 10px}
+h1{margin:0;font-size:44px;font-weight:800;letter-spacing:-1px;line-height:1}
+h1 span{color:#ff6b5b}
+header p{margin:8px 0 0;color:var(--soft);font-size:18px}
+main{max-width:1000px;margin:0 auto;padding:20px 20px 50px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+a.card{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:#fff;border:2px solid var(--line);border-radius:22px;overflow:hidden;transition:transform .15s,box-shadow .15s}
+a.card:hover{transform:translateY(-4px);box-shadow:0 10px 24px #2b234018}
+.art{height:130px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative}
+.art svg{width:96px;height:96px;image-rendering:pixelated}
+.body{padding:14px 18px 18px;flex:1;display:flex;flex-direction:column}
+.body h2{margin:0;font-size:23px;line-height:1.1}
+.body p{margin:6px 0 12px;color:var(--soft);font-size:15px;line-height:1.35;flex:1}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px;background:#f3e9da;color:var(--soft)}
+.go{margin-top:12px;font-weight:800;font-size:15px}
+footer{text-align:center;color:var(--soft);font-size:13px;padding:0 20px 30px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Mini <span>apps</span></h1>
+  <p>De petites applications, simples et gratuites, sur ordinateur comme sur téléphone.</p>
+</header>
+<main id="apps"></main>
+<footer>Aucun compte, aucune publicité : tout reste dans le navigateur de l'appareil.</footer>
+<script>
+// Petites icônes en pixel art (16 couleurs façon perles)
+const C={K:"#1f1b24",W:"#fbfbf7",R:"#e0352f",O:"#f58a1f",Y:"#fdd835",G:"#2fa84f",g:"#9bd770",B:"#2766c9",b:"#7cc6f2",V:"#8a4fc4",P:"#f47fae",N:"#7a4a2a",n:"#e0b47c",S:"#8d8f98"};
+function pix(a){const r=a.trim().split("\n").map(s=>s.trim());const w=Math.max(...r.map(s=>s.length));let o=`<svg viewBox="0 0 ${w} ${r.length}" shape-rendering="crispEdges">`;
+  r.forEach((s,y)=>[...s].forEach((c,x)=>{if(C[c])o+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${C[c]}"/>`}));return o+"</svg>"}
+const APPS=[
+ {t:"Mon cahier du CP",href:"cahier-du-cp/",bg:"#fde9e6",d:"Lecture, écriture attachée et en bâton, calcul : des exercices pour les enfants de CP.",tags:["6-7 ans","Lecture","Calcul"],
+  i:`
+  ..........KK
+  .........KRRK
+  ........KRRK.
+  .......KYYK..
+  ......KYYK...
+  .....KYYK....
+  ....KYYK.....
+  ...KnnK......
+  ..KnnK.......
+  ..KKK........
+  .KK..........`},
+ {t:"Lego Builder",href:"lego-builder/",bg:"#fff3c9",d:"Des constructions en 3D à monter brique par brique, avec des instructions pas à pas.",tags:["8-10 ans","3D","Construction"],
+  i:`
+  ..KK..KK..KK..
+  .KRRKKRRKKRRK.
+  KKKKKKKKKKKKKK
+  KRRRRRRRRRRRRK
+  KRRRRRRRRRRRRK
+  KRRRRRRRRRRRRK
+  KKKKKKKKKKKKKK`},
+ {t:"Pixel arts",href:"pixel-arts/",bg:"#e6f4ff",d:"Des modèles de pixel art à recopier sur papier quadrillé ou en perles à repasser.",tags:["Enfants","Créatif","Perles"],
+  i:`
+  ..KK...KK..
+  .KRRK.KRRK.
+  KRWRRKRRRRK
+  KRRRRRRRRRK
+  KRRRRRRRRRK
+  .KRRRRRRRK.
+  ..KRRRRRK..
+  ...KRRRK...
+  ....KRK....
+  .....K.....`},
+ {t:"Rétro Console",href:"https://claude.ai/artifact/LQ3tBpUuWgdmQMnTWLNxfB",bg:"#efe6ff",d:"Une console de jeux rétro dans le navigateur, pour rejouer aux classiques.",tags:["Jeux","Rétro"],
+  i:`
+  ...KKKKKKKKKK...
+  ..KSSSSSSSSSSK..
+  .KSSKSSSSSSSSSK.
+  KSSKKKSSSSSRSSSK
+  KSSSKSSSSSRSRSSK
+  KSSSSSSSSSSRSSSK
+  .KSSSSSKKSSSSSK.
+  ..KSSSK..KSSSK..
+  ...KKK....KKK...`},
+ {t:"Mon jardin",href:"mon-jardin/",bg:"#e5f5e0",d:"Un éditeur de plan de jardin à l'échelle, façon paysagiste : arbres, potager, chemins, jardin-forêt.",tags:["Jardin","Plan","Paysagisme"],
+  i:`
+  ....KKKKK....
+  ..KKGGgGGKK..
+  .KGGgGGGGgGK.
+  KGgGGGGgGGGGK
+  KGGGgGGGGGgGK
+  .KGGGGgGGGGK.
+  ..KKKNNNKKK..
+  ....KNNNK....
+  ....KNNNK....
+  ..GGGGGGGGG..`},
+];
+document.getElementById("apps").innerHTML=APPS.map(a=>`
+ <a class="card" href="${a.href}">
+  <div class="art" style="background:${a.bg}">${pix(a.i)}</div>
+  <div class="body"><h2>${a.t}</h2><p>${a.d}</p>
+   <div class="tags">${a.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+   <div class="go">Ouvrir →</div></div>
+ </a>`).join("");
+</script>
+</body>
+</html>
