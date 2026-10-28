@@ -7,6 +7,7 @@ Petites applications web, simples et accessibles à tous. Chaque application tie
 | Mon cahier du CP | [`cahier-du-cp/`](cahier-du-cp/) | Lecture, écriture et calcul pour les enfants de CP. |
 | Mon jardin | [`mon-jardin/`](mon-jardin/) | Éditeur de plan de jardin à l'échelle, façon paysagiste. |
 | Lego Builder | [`lego-builder/`](lego-builder/) | Constructions Lego en 3D à monter pas à pas, pour les 8-10 ans. |
+| Pixel arts | [`pixel-arts/`](pixel-arts/) | Modèles de pixel art à recopier sur papier ou en perles à repasser. |
 
 ## Mon jardin
 
@@ -27,3 +28,13 @@ Concevoir et visualiser son jardin, à l'échelle :
 Un exemple de plan est fourni au premier lancement : une maison avec piscine et un jardin méditerranéen.
 
 Les plans sont enregistrés dans le navigateur de l'appareil utilisé (aucun compte, aucun serveur). Pour les garder en sécurité ou les transférer, utilisez l'export.
+
+## Pixel arts
+
+Des modèles de pixel art pour les enfants, à recopier sur papier quadrillé ou à reproduire en perles à repasser :
+
+- **Catalogue de 30 modèles originaux** (animaux, mer, nature, fruits, objets, fêtes), avec la taille, le nombre de perles et un niveau de difficulté.
+- **Mode papier** : grille avec repères (chiffres et lettres) et un trait plus marqué tous les 5 carreaux ; option « Numéros » + « Grille vide » pour un coloriage magique.
+- **Mode perles** : le modèle sur une plaque à picots, avec la liste des perles à préparer par couleur et le total.
+- **Image à garder** : une image du modèle avec sa légende, à enregistrer ou imprimer.
+- **Créer** : transformer une image en pixel art (taille et nombre de couleurs réglables, couleurs de perles courantes) ou dessiner case par case. Les créations s'ajoutent au catalogue dans « Mes modèles », enregistrées dans le navigateur de l'appareil.

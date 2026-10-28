@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel arts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fff8ef; --ink:#2b2340; --soft:#6d6585; --card:#ffffff; --line:#eadfce;
+  --accent:#ff6b5b; --accent2:#3fb5a3; --peg:#efe6d8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2",system-ui,sans-serif}
+header{padding:18px 18px 6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.5px}
+h1 span{color:var(--accent)}
+.tabs{display:flex;gap:6px;margin-left:auto;background:#f3e9da;padding:4px;border-radius:14px}
+.tabs button{border:0;background:none;font:inherit;font-weight:700;font-size:15px;padding:6px 14px;border-radius:10px;color:var(--soft);cursor:pointer}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px #0002}
+main{padding:8px 18px 40px;max-width:1100px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:20px;padding:3px 12px;font:inherit;font-weight:700;font-size:14px;color:var(--soft);cursor:pointer}
+.chip.on{border-color:var(--ink);color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.tile{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:12px 10px 8px;text-align:center;cursor:pointer;transition:transform .12s}
+.tile:hover{transform:translateY(-3px);border-color:#d8c8b0}
+.tile canvas{width:84px;height:84px;image-rendering:pixelated;display:block;margin:0 auto 6px}
+.tile b{display:block;font-size:16px}
+.tile small{color:var(--soft);font-size:12px}
+.lvl{display:inline-block;margin-left:4px;color:#f4b400;letter-spacing:-1px}
+/* detail */
+.detail-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.back{border:0;background:var(--card);border:2px solid var(--line);border-radius:12px;font:inherit;font-weight:700;padding:4px 12px;cursor:pointer}
+.detail-top h2{margin:0;font-size:26px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.seg{display:flex;background:#f3e9da;border-radius:12px;padding:3px}
+.seg button{border:0;background:none;font:inherit;font-weight:700;padding:5px 12px;border-radius:9px;color:var(--soft);cursor:pointer;font-size:14px}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px #0002}
+label.tog{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;color:var(--soft);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:3px 10px;cursor:pointer}
+.btn{border:0;background:var(--accent);color:#fff;font:inherit;font-weight:800;border-radius:12px;padding:7px 14px;cursor:pointer;font-size:14px}
+.btn.alt{background:var(--accent2)}
+.btn.ghost{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+@media (max-width:760px){.layout{grid-template-columns:1fr}}
+.board{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:12px;overflow:auto}
+.board canvas{display:block;margin:0 auto;max-width:100%;height:auto;touch-action:none}
+.legend{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:12px 14px}
+.legend h3{margin:0 0 6px;font-size:17px}
+.leg{display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:15px}
+.leg:last-child{border:0}
+.sw{width:26px;height:26px;border-radius:7px;border:2px solid #0003;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+.sw.round{border-radius:50%}
+.leg .n{margin-left:auto;font-weight:800}
+.total{margin-top:8px;font-weight:800;font-size:15px}
+.tip{color:var(--soft);font-size:13px;margin-top:8px;line-height:1.35}
+/* create */
+.panel{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px}
+.panel h3{margin:0 0 8px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row label{font-weight:600;font-size:14px;color:var(--soft)}
+input[type=range]{accent-color:var(--accent)}
+.file{display:inline-block}
+.file input{display:none}
+.palette{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.palette button{width:32px;height:32px;border-radius:9px;border:3px solid #0002;cursor:pointer;padding:0}
+.palette button.on{outline:3px solid var(--ink);outline-offset:2px}
+.palette button.eraser{background:repeating-conic-gradient(#ddd 0 25%,#fff 0 50%) 0 0/10px 10px}
+.export{margin-top:12px;text-align:center}
+.export img{max-width:100%;border:2px solid var(--line);border-radius:12px;image-rendering:auto}
+.export p{color:var(--soft);font-size:13px;margin:6px 0 0}
+.empty{color:var(--soft);text-align:center;padding:30px 10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Pixel <span>arts</span></h1>
+  <nav class="tabs">
+    <button data-tab="catalogue" class="on">Catalogue</button>
+    <button data-tab="creer">Créer</button>
+  </nav>
+</header>
+<main>
+  <!-- Catalogue -->
+  <section id="catalogue" class="view on">
+    <div class="filters" id="filters"></div>
+    <div class="grid" id="tiles"></div>
+  </section>
+
+  <!-- Détail -->
+  <section id="detail" class="view">
+    <div class="detail-top">
+      <button class="back" id="back">← Retour</button>
+      <h2 id="dTitle"></h2>
+    </div>
+    <div class="controls">
+      <div class="seg" id="modeSeg">
+        <button data-mode="papier" class="on">✏️ Papier</button>
+        <button data-mode="perles">⚪ Perles</button>
+      </div>
+      <label class="tog"><input type="checkbox" id="optNum"> Numéros</label>
+      <label class="tog"><input type="checkbox" id="optCoord" checked> Repères</label>
+      <label class="tog"><input type="checkbox" id="optBlank"> Grille vide</label>
+      <button class="btn ghost" id="toEdit">Modifier</button>
+      <button class="btn alt" id="exportBtn">Image à garder</button>
+    </div>
+    <div class="layout">
+      <div class="board"><canvas id="board"></canvas>
+        <div class="export" id="exportBox"></div>
+      </div>
+      <aside class="legend" id="legend"></aside>
+    </div>
+  </section>
+
+  <!-- Créer -->
+  <section id="creer" class="view">
+    <div class="panel">
+      <h3>📷 À partir d'une image</h3>
+      <div class="row">
+        <span class="file"><label class="btn" for="imgIn">Choisir une image</label><input type="file" id="imgIn" accept="image/*"></span>
+        <label>Taille <b id="sizeLbl">24</b> cases</label>
+        <input type="range" id="sizeIn" min="12" max="48" step="2" value="24">
+        <label>Couleurs <b id="colLbl">8</b></label>
+        <input type="range" id="colIn" min="2" max="16" value="8">
+        <label class="tog"><input type="checkbox" id="bgIn" checked> Enlever le fond</label>
+      </div>
+      <p class="tip">Choisis un dessin simple sur fond clair : ça marche beaucoup mieux qu'une photo. Les couleurs sont arrondies aux couleurs de perles les plus courantes.</p>
+    </div>
+    <div class="panel">
+      <h3>🖌️ Dessiner</h3>
+      <div class="row">
+        <label>Largeur</label><input type="number" id="wIn" min="4" max="48" value="16" style="width:60px;font:inherit">
+        <label>Hauteur</label><input type="number" id="hIn" min="4" max="48" value="16" style="width:60px;font:inherit">
+        <button class="btn ghost" id="newBtn">Nouvelle feuille</button>
+        <button class="btn ghost" id="undoBtn">↶ Annuler</button>
+      </div>
+      <div class="palette" id="pal"></div>
+      <div class="board"><canvas id="editor"></canvas></div>
+      <div class="row" style="margin-top:10px">
+        <input id="nameIn" placeholder="Nom du modèle" style="font:inherit;padding:6px 10px;border-radius:10px;border:2px solid var(--line)">
+        <button class="btn" id="useBtn">Voir le modèle à recopier →</button>
+      </div>
+      <p class="tip" id="saveTip">Tes créations s'ajoutent au catalogue dans « Mes modèles » (sur cet appareil uniquement).</p>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ---------- Couleurs (proches des perles Hama / Perler) ---------- */
+const PAL = {
+  K:{n:"Noir",      c:"#1f1b24"},
+  W:{n:"Blanc",     c:"#fbfbf7"},
+  S:{n:"Gris",      c:"#8d8f98"},
+  s:{n:"Gris clair",c:"#c9cbd1"},
+  R:{n:"Rouge",     c:"#e0352f"},
+  O:{n:"Orange",    c:"#f58a1f"},
+  Y:{n:"Jaune",     c:"#fdd835"},
+  G:{n:"Vert",      c:"#2fa84f"},
+  g:{n:"Vert clair",c:"#9bd770"},
+  B:{n:"Bleu",      c:"#2766c9"},
+  b:{n:"Bleu ciel", c:"#7cc6f2"},
+  V:{n:"Violet",    c:"#8a4fc4"},
+  P:{n:"Rose",      c:"#f47fae"},
+  p:{n:"Rose pâle", c:"#f9c6d8"},
+  N:{n:"Marron",    c:"#7a4a2a"},
+  n:{n:"Beige",     c:"#e0b47c"},
+};
+const KEYS = Object.keys(PAL);
+
+/* ---------- Catalogue (dessins originaux) ---------- */
+const CAT = [
+ {id:"coeur",t:"Cœur",cat:"Formes",lvl:1,a:`
+..KK...KK..
+.KRRK.KRRK.
+KRWRRKRRRRK
+KRRRRRRRRRK
+KRRRRRRRRRK
+.KRRRRRRRK.
+..KRRRRRK..
+...KRRRK...
+....KRK....
+.....K.....`},
+ {id:"etoile",t:"Étoile",cat:"Formes",lvl:2,a:`
+.......K.......
+......KYK......
+......KYK......
+.....KYYYK.....
+KKKKKKYYYKKKKKK
+.KYYYYYYYYYYYK.
+..KYYKYYYKYYK..
+...KYYYPYYYK...
+....KYYYYYK....
+...KYYYYYYYK...
+...KYYYKYYYK...
+..KYYYK.KYYYK..
+..KYYK...KYYK..
+.KYK.......KYK.
+.KK.........KK.`},
+ {id:"chat",t:"Chat",cat:"Animaux",lvl:2,a:`
+.KK..........KK.
+.KOK........KOK.
+.KOOK......KOOK.
+.KOPOKKKKKKOPOK.
+.KOOOOOOOOOOOOK.
+KOOOOOOOOOOOOOOK
+KOOOKKOOOOKKOOOK
+KOOOKWOOOOKWOOOK
+KOOOOOOOOOOOOOOK
+KPPOOOOPPOOOOPPK
+KOOOOWWWWWWOOOOK
+.KOOOWKWWKWOOOK.
+..KOOOWWWWOOOK..
+...KKOOOOOOKK...
+.....KKKKKK.....`},
+ {id:"chien",t:"Saint-Bernard",cat:"Animaux",lvl:2,a:`
+......KKKKKK......
+....KKNNWWNNKK....
+...KNNNNWWNNNNK...
+..KNNNNNWWNNNNNK..
+.KKKNNNNWWNNNNKKK.
+KNNKNNNNWWNNNNKNNK
+KNNKNWKNWWNWKNKNNK
+KNNKNKKNWWNKKNKNNK
+KNNKNNWWWWWWNNKNNK
+KNNKWWWWWWWWWWKNNK
+KNNKWWWKKKKWWWKNNK
+KNNKWWWWKKWWWWKNNK
+.KKKWWWWKKWWWWKKK.
+...KWWKKWWKKWWK...
+...KWWWKPPKWWWK...
+....KWWKPPKWWK....
+.....KKKKKKKK.....`},
+ {id:"lapin",t:"Lapin",cat:"Animaux",lvl:1,a:`
+....KK....KK....
+...KWWK..KWWK...
+...KWPK..KWPK...
+...KWPK..KWPK...
+...KWPK..KWPK...
+...KWWKKKKWWK...
+..KWWWWWWWWWWK..
+.KWWWWWWWWWWWWK.
+.KWWKWWWWWWKWWK.
+.KWWKWWWWWWKWWK.
+.KPWWWWPPWWWWPK.
+.KWWWWWKKWWWWWK.
+..KWWWWWWWWWWK..
+...KKKKKKKKKK...`},
+ {id:"poisson",t:"Poisson",cat:"Mer",lvl:1,a:`
+.....KKKKKK.....
+...KKOOOOOOKK...
+K.KOOOOOOOOOOK..
+KKOOOYOOOOOKWOK.
+KYKOOOYOOOOKKOOK
+KYYKOOYOOOOOOOOK
+KYKOOOYOOOOOORRK
+KKOOOYOOOOOOOOK.
+K.KOOOOOOOOOOK..
+...KKOOOOOOKK...
+.....KKKKKK.....`},
+ {id:"champignon",t:"Champignon",cat:"Nature",lvl:1,a:`
+.....KKKKKK.....
+...KKRRRRRRKK...
+..KRRWWRRRRRRK..
+.KRRWWWRRRWWRRK.
+.KRRRWRRRRWWRRK.
+KRRRRRRRRRRRRRRK
+KRWWRRRRWWWRRRRK
+KRWWRRRRWWWRRWWK
+.KKKKKKKKKKKKKK.
+....KnnnnnnK....
+....KnnnnnnK....
+....KnnnnnnK....
+....KnnnnnnK....
+.....KKKKKK.....`},
+ {id:"fraise",t:"Fraise",cat:"Miam",lvl:1,a:`
+.......K.......
+.....KKGKK.....
+...KGGGGGGGK...
+..KRKGGRGGKRK..
+.KRRRKRRRKRRRK.
+.KRYRRRRRRRYRK.
+.KRRRRYRRRRRRK.
+..KRRRRRRYRRK..
+..KRYRRRRRRRK..
+...KRRRYRRRK...
+....KRRRRRK....
+.....KRYRK.....
+......KKK......`},
+ {id:"pomme",t:"Pomme",cat:"Miam",lvl:1,a:`
+.......KK.......
+......KNK.KK....
+......KNKKGGK...
+...KKKKNKGGK....
+..KRRRRKRRRRK...
+.KRWWRRRRRRRRK..
+.KRWRRRRRRRRRK..
+.KRRRRRRRRRRRK..
+.KRRRRRRRRRRRK..
+.KRRRRRRRRRRRK..
+..KRRRRRRRRRK...
+..KRRRRRRRRRK...
+...KRRKKKRRK....
+....KK...KK.....`},
+ {id:"papillon",t:"Papillon",cat:"Nature",lvl:2,a:`
+.K............K.
+..K..........K..
+...K...KK...K...
+KKKKK.KKKK.KKKKK
+KPPPPKKKKKKPPPPK
+KPYYPPKKKKPPYYPK
+KPYYPPKKKKPPYYPK
+KPPPPPKKKKPPPPPK
+.KPPPPKKKKPPPPK.
+..KKKKKKKKKKKK..
+.KVVVVKKKKVVVVK.
+KVVbVVKKKKVVbVVK
+KVVVVK.KK.KVVVVK
+.KVVK..KK..KVVK.
+..KK........KK..`},
+ {id:"coccinelle",t:"Coccinelle",cat:"Nature",lvl:1,a:`
+.....K....K.....
+......K..K......
+.....KKKKKK.....
+....KKWKKWKK....
+...KKKKKKKKKK...
+..KRRRRKKRRRRK..
+.KRKKRRKKRRKKRK.
+.KRKKRRKKRRKKRK.
+.KRRRRRKKRRRRRK.
+.KRRKKRKKRKKRRK.
+.KRRKKRKKRKKRRK.
+..KRRRRKKRRRRK..
+...KRRRKKRRRK...
+....KKKKKKKK....`},
+ {id:"fleur",t:"Fleur",cat:"Nature",lvl:2,a:`
+......KKKK......
+.....KPPPPK.....
+..KKKKPPPPKKKK..
+.KPPPPKPPKPPPPK.
+.KPPPKYYYYKPPPK.
+..KPKYYYYYYKPK..
+..KPKYKYYKYKPK..
+.KPPKYYYYYYKPPK.
+.KPPPKYKKYKPPPK.
+..KKPPKYYKPPKK..
+...KPPPKKPPPK...
+....KKKGGKKK....
+......KGGK.KK...
+...KK.KGGKKGGK..
+..KGGKKGGKGGK...
+...KKGGGGGKK....
+.....KKGGK......`},
+ {id:"soleil",t:"Soleil",cat:"Nature",lvl:1,a:`
+.......OO.......
+..O....OO....O..
+...O........O...
+.....KKKKKK.....
+....KYYYYYYK....
+...KYYYYYYYYK...
+OO.KYKYYYYKYK.OO
+OO.KYYYYYYYYK.OO
+...KYPYYYYPYK...
+...KYYKYYKYYK...
+....KYYKKYYK....
+.....KKKKKK.....
+...O........O...
+..O....OO....O..
+.......OO.......`},
+ {id:"arcenciel",t:"Arc-en-ciel",cat:"Nature",lvl:2,a:`
+.....RRRRRR.....
+...RROOOOOORR...
+..ROOYYYYYYOOR..
+.ROYYGGGGGGYYOR.
+.ROYGGBBBBGGYOR.
+ROYGBBVVVVBBGYOR
+ROYGBV....VBGYOR
+ROYGBV....VBGYOR
+sWWsBV....VBsWWs
+WWWWWW....WWWWWW
+.WWWW......WWWW.`},
+ {id:"maison",t:"Maison",cat:"Objets",lvl:2,a:`
+.......KK.......
+......KRRK..KKK.
+.....KRRRRK.KNK.
+....KRRRRRRKKNK.
+...KRRRRRRRRKNK.
+..KRRRRRRRRRRKK.
+.KRRRRRRRRRRRRK.
+KKKKKKKKKKKKKKKK
+.KnnnnnnnnnnnnK.
+.KnKKKKnnKKKKnK.
+.KnKbbKnnKbbKnK.
+.KnKbbKnnKbbKnK.
+.KnKKKKnnKKKKnK.
+.KnnnnKKKKnnnnK.
+.KnnnnKNNKnnnnK.
+.KnnnnKNYKnnnnK.
+.KnnnnKNNKnnnnK.
+GGGGGGGGGGGGGGGG`},
+ {id:"voiture",t:"Voiture",cat:"Objets",lvl:1,a:`
+.....KKKKKK.....
+....KRRRRRRK....
+...KRbbKbbbRK...
+..KRbbbKbbbbRK..
+KKKRRRRRRRRRRKKK
+KYRRRRRRRRRRRRRK
+KRRRRRRRRRRRRRRK
+KRRKKKRRRRKKKRRK
+KKKSSSKKKKKSSSKK
+..KSWSK..KSWSK..
+...KKK....KKK...`},
+ {id:"fusee",t:"Fusée",cat:"Objets",lvl:1,a:`
+.......KK.......
+......KRRK......
+.....KRRRRK.....
+.....KWWWWK.....
+.....KWWWWK.....
+.....KWbbWK.....
+.....KWbbWK.....
+.....KWWWWK.....
+....KKWWWWKK....
+...KRKWWWWKRK...
+..KRRKWWWWKRRK..
+..KRKKRRRRKKRK..
+..KK..KOOK..KK..
+......KYYK......
+.......YY.......`},
+ {id:"glace",t:"Glace",cat:"Miam",lvl:2,a:`
+.......KK.......
+......KRRK......
+.....KKRRKK.....
+....KPPKKPPK....
+...KPWPPPPPPK...
+..KPWPPPPPPPPK..
+..KPPPPPPPPPPK..
+..KPPPPPPPPPPK..
+.KPKPPKPPPKPPPK.
+.KKKKKKKKKKKKKK.
+..KnNnNnNnNnNK..
+...KnNnNnNnNK...
+...KNnNnNnNnK...
+....KnNnNnNK....
+.....KNnNnK.....
+......KnNK......
+.......KK.......`},
+ {id:"dinosaure",t:"Dinosaure",cat:"Animaux",lvl:2,a:`
+.............KKKKK..
+............KGGGGGK.
+...........KGGGGKWGK
+...........KGGGGKKGK
+...........KGGGGGGGK
+...........KGGPGGGGK
+...........KGGGKKKK.
+.....K...K.KGGGGK...
+....KOK.KOKKGGGGK...
+...KOOOKOOOKGGGK....
+..KGGGGGGGGGGGGK....
+..KGGGGGGGGgggGK....
+KKGGGGGGGgggggGK....
+KGGGGGGGGgggggGK....
+.KKKKGGGGGgggGGK....
+....KGGKKKKKGGK.....
+....KGGK...KGGK.....
+....KKKK...KKKK.....`},
+ {id:"hibou",t:"Hibou",cat:"Animaux",lvl:2,a:`
+..KK........KK..
+..KNK......KNK..
+..KNNKKKKKKNNK..
+..KNNNNNNNNNNK..
+.KNWWWNNNNWWWNK.
+.KWWKKWNNWKKWWK.
+.KWWKKWNNWKKWWK.
+.KNWWWNOONWWWNK.
+.KNNNNNOONNNNNK.
+.KNnnnnnnnnnnNK.
+.KNnNnnNnnNnnNK.
+.KNnnnnnnnnnnNK.
+.KNNnNnnNnnNNNK.
+..KNNNNNNNNNNK..
+...KOOKKKKOOK...
+....KK....KK....`},
+ {id:"grenouille",t:"Grenouille",cat:"Animaux",lvl:2,a:`
+..KKKK....KKKK..
+.KWWWWK..KWWWWK.
+.KWKKWKKKKWKKWK.
+.KWKKWGGGGWKKWK.
+KGKWWGGGGGGWWKGK
+KGGGGGGGGGGGGGGK
+KGGPGGGGGGGGPGGK
+KGGGKGGGGGGKGGGK
+.KGGGKKKKKKGGGK.
+..KGGgggggGGGK..
+.KgKGGgggggGGKgK
+KgggKKKKKKKKKggK
+.KKK.........KK.`},
+ {id:"poussin",t:"Poussin",cat:"Animaux",lvl:1,a:`
+......KKKK......
+.....KYYYYK.....
+....KYYYYYYK....
+....KYKYYKYK....
+....KYPOOPYK....
+..KKKYYOOYYKKK..
+.KWWKYYYYYYKWWK.
+.KWWWKYYYYKWWWK.
+.KKWKWKKKKWKWKK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+..KWWWWWWWWWWK..
+...KWWWWWWWWK...
+....KKKKKKKK....`},
+ {id:"pingouin",t:"Pingouin",cat:"Mer",lvl:1,a:`
+.....KKKKKK.....
+....KKKKKKKK....
+...KKWWKKWWKK...
+...KWKWWWWKWK...
+...KWWWOOWWWK...
+..KKWWWWWWWWKK..
+.KKKWWWWWWWWKKK.
+.KK.KWWWWWWK.KK.
+....KWWWWWWK....
+....KWWWWWWK....
+.....KWWWWK.....
+....OOKKKKOO....`},
+ {id:"baleine",t:"Baleine",cat:"Mer",lvl:2,a:`
+......b...b.........
+.......b.b..........
+........b...........
+.....KKKKKKK........
+...KKBBBBBBBKK...KK.
+..KBBBBBBBBBBBK.KBBK
+.KBBBBBBBBBBBBBKBBK.
+.KBKWBBBBBBBBBBBBK..
+KBBKKBBBBBBBBBBBK...
+KBpBBBBBBBBBBBBBK...
+KWWWWWWWWWBBBBBK....
+.KWWWWWWWWWBBBK.....
+..KKWWWWWWWKKK......
+....KKKKKKK.........`},
+ {id:"tortue",t:"Tortue",cat:"Mer",lvl:1,a:`
+....KKKKKK......
+...KGgGGgGK.KKK.
+..KgGGgGGgGKgggK
+.KGGgGGgGGgKgKgK
+.KgGGgGGgGGgKggK
+KKKKKKKKKKKKKgK.
+KgKgK....KgKK...
+.KK.......KK....`},
+ {id:"abeille",t:"Abeille",cat:"Nature",lvl:1,a:`
+....KK..KK......
+...KbbKKbbK.....
+...KbbbKbbbK....
+....KbbKbbK.....
+...KKKKKKKKK....
+..KYYKYYKYYKK...
+.KYYYKYYKYYKYK..
+.KYKYKYYKYYKYYK.
+.KYYYKYYKYYKYYKK
+..KYYKYYKYYKKK..
+...KKKKKKKKK....`},
+ {id:"bonhomme",t:"Bonhomme de neige",cat:"Fêtes",lvl:1,a:`
+.....KKKKK......
+.....KKKKK......
+....KKKKKKK.....
+.....KWWWK......
+....KWKWKWK.....
+....KWWOOOK.....
+.....KWWWK......
+...KRRRRRRK.....
+....KWWWWK......
+...KWWKWWWK.....
+..KWWWWWWWWK....
+..KWWWKWWWWK....
+..KWWWWWWWWK....
+...KWWWWWWK.....
+....KKKKKK......`},
+ {id:"fantome",t:"Petit fantôme",cat:"Fêtes",lvl:1,a:`
+.....KKKKKK.....
+...KKWWWWWWKK...
+..KWWWWWWWWWWK..
+.KWWWWWWWWWWWWK.
+.KWWKKWWWWKKWWK.
+.KWWKKWWWWKKWWK.
+.KWPWWWWWWWWPWK.
+.KWWWWWKKWWWWWK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+.KWWKWWWKWWWKWK.
+.KWK.KWK.KWK.KK.
+..K...K...K.....`},
+ {id:"citrouille",t:"Citrouille",cat:"Fêtes",lvl:2,a:`
+.......KKK......
+......KGGK......
+....KKKKGKKKK...
+..KKOOKOOKOOKK..
+.KOOOOKOOKOOOOK.
+KOOKKOOOOOOKKOOK
+KOOKKOOOOOOKKOOK
+KOOOOOOKKOOOOOOK
+KOOOOOOOOOOOOOOK
+KOOKOKOKKOKOKOOK
+KOOOKKKOOKKKOOOK
+.KOOOOOOOOOOOOK.
+..KKOOOOOOOOKK..
+....KKKKKKKK....`},
+ {id:"sapin",t:"Sapin",cat:"Fêtes",lvl:2,a:`
+.......Y........
+......YYY.......
+.......K........
+......KGK.......
+.....KGGGK......
+....KGRGGGK.....
+.....KGGGK......
+....KGGGGYK.....
+...KGGGGGGGK....
+..KGBGGGGRGGK...
+....KGGGGGK.....
+...KGGGRGGGGK...
+..KGGGGGGGGBGK..
+.KGGYGGGGGGGGGK.
+.KKKKKKNNKKKKKK.
+.......NN.......
+......KKKK......`},
+];
+
+/* ---------- Utilitaires ---------- */
+function parseArt(a){
+  const rows=a.split("\n").filter(r=>r.trim().length);
+  const w=Math.max(...rows.map(r=>r.length));
+  return rows.map(r=>r.padEnd(w,".").split("").map(ch=>PAL[ch]?ch:"."));
+}
+let store={}; try{store=JSON.parse(localStorage.getItem("pixelperles")||"{}")}catch(e){}
+function saveStore(){try{localStorage.setItem("pixelperles",JSON.stringify(store))}catch(e){}}
+function allItems(){
+  const mine=(store.mine||[]).map(m=>({...m,cat:"Mes modèles",lvl:0}));
+  return [...mine,...CAT.map(c=>({...c,grid:parseArt(c.a)}))];
+}
+function hexToRgb(h){h=h.replace("#","");return[0,2,4].map(i=>parseInt(h.substr(i,2),16))}
+function lum(h){const[r,g,b]=hexToRgb(h);return(0.299*r+0.587*g+0.114*b)}
+
+function drawThumb(cv,grid){
+  const h=grid.length,w=grid[0].length,n=Math.max(w,h),s=Math.ceil(84/n)*2;
+  cv.width=n*s;cv.height=n*s;const x=cv.getContext("2d");
+  const ox=Math.floor((n-w)/2)*s,oy=Math.floor((n-h)/2)*s;
+  grid.forEach((r,j)=>r.forEach((k,i)=>{if(k!=="."){x.fillStyle=PAL[k].c;x.fillRect(ox+i*s,oy+j*s,s,s)}}));
+}
+
+/* ---------- Navigation ---------- */
+const $=s=>document.querySelector(s);
+function show(id){document.querySelectorAll(".view").forEach(v=>v.classList.toggle("on",v.id===id));
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===(id==="detail"?"catalogue":id)));
+  window.scrollTo(0,0);}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{show(b.dataset.tab);if(b.dataset.tab==="creer")drawEditor();});
+
+/* ---------- Catalogue ---------- */
+let filter="Tous";
+function renderCatalogue(){
+  const items=allItems();
+  const cats=["Tous",...new Set(items.map(i=>i.cat))];
+  $("#filters").innerHTML="";
+  cats.forEach(c=>{const b=document.createElement("button");b.className="chip"+(c===filter?" on":"");b.textContent=c;b.onclick=()=>{filter=c;renderCatalogue()};$("#filters").appendChild(b)});
+  $("#tiles").innerHTML="";
+  items.filter(i=>filter==="Tous"||i.cat===filter).forEach(it=>{
+    const d=document.createElement("div");d.className="tile";
+    const cv=document.createElement("canvas");drawThumb(cv,it.grid);d.appendChild(cv);
+    const cnt=it.grid.flat().filter(k=>k!==".").length;
+    d.insertAdjacentHTML("beforeend",`<b>${esc(it.t)}</b><small>${it.grid[0].length}×${it.grid.length} · ${cnt} perles${it.lvl?` <span class="lvl">${"★".repeat(it.lvl)}</span>`:""}</small>`);
+    d.onclick=()=>openDetail(it);
+    $("#tiles").appendChild(d);
+  });
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+/* ---------- Détail ---------- */
+let cur=null,mode="papier";
+function openDetail(it){cur=it;$("#dTitle").textContent=it.t;$("#exportBox").innerHTML="";renderBoard();show("detail");}
+$("#back").onclick=()=>show("catalogue");
+$("#modeSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;$("#modeSeg").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));$("#exportBox").innerHTML="";renderBoard()});
+["#optNum","#optCoord","#optBlank"].forEach(s=>$(s).onchange=()=>{$("#exportBox").innerHTML="";renderBoard()});
+
+function colorsUsed(grid){
+  const m={};grid.flat().forEach(k=>{if(k!==".")m[k]=(m[k]||0)+1});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+function renderBoard(target){
+  const grid=cur.grid,h=grid.length,w=grid[0].length;
+  const used=colorsUsed(grid);const numOf={};used.forEach(([k],i)=>numOf[k]=i+1);
+  const coord=$("#optCoord").checked,num=$("#optNum").checked,blank=$("#optBlank").checked;
+  const cs=Math.max(22,Math.min(40,Math.floor(720/Math.max(w,h))));
+  const m=coord?cs:Math.round(cs*0.4);
+  const cv=target||$("#board");const W=w*cs+m*2,H=h*cs+m*2;
+  cv.width=W;cv.height=H;const x=cv.getContext("2d");
+  x.fillStyle="#fff";x.fillRect(0,0,W,H);
+  if(mode==="papier"){
+    for(let j=0;j<h;j++)for(let i=0;i<w;i++){
+      const k=grid[j][i],px=m+i*cs,py=m+j*cs;
+      if(k!=="."&&!blank){x.fillStyle=PAL[k].c;x.fillRect(px,py,cs,cs)}
+      if(k!=="."&&num){x.fillStyle=blank?"#555":(lum(PAL[k].c)<130?"#fff":"#222");x.font=`700 ${Math.round(cs*0.45)}px "Baloo 2",sans-serif`;x.textAlign="center";x.textBaseline="middle";x.fillText(numOf[k],px+cs/2,py+cs/2+1)}
+    }
+    for(let i=0;i<=w;i++){x.strokeStyle=i%5===0?"#8a8099":"#d6cfe0";x.lineWidth=i%5===0?2:1;x.beginPath();x.moveTo(m+i*cs+.5,m);x.lineTo(m+i*cs+.5,m+h*cs);x.stroke()}
+    for(let j=0;j<=h;j++){x.strokeStyle=j%5===0?"#8a8099":"#d6cfe0";x.lineWidth=j%5===0?2:1;x.beginPath();x.moveTo(m,m+j*cs+.5);x.lineTo(m+w*cs,m+j*cs+.5);x.stroke()}
+  }else{
+    x.fillStyle="#f3ece0";roundRect(x,m-cs*0.25,m-cs*0.25,w*cs+cs*0.5,h*cs+cs*0.5,cs*0.4);x.fill();
+    for(let j=0;j<h;j++)for(let i=0;i<w;i++){
+      const k=grid[j][i],cx=m+i*cs+cs/2,cy=m+j*cs+cs/2;
+      if(k==="."||blank){x.fillStyle="#e2d8c8";x.beginPath();x.arc(cx,cy,cs*0.14,0,7);x.fill();
+        if(blank&&k!=="."&&num){} }
+      if(k!=="."&&!blank){
+        x.fillStyle=PAL[k].c;x.beginPath();x.arc(cx,cy,cs*0.46,0,7);x.fill();
+        x.strokeStyle="rgba(0,0,0,.25)";x.lineWidth=1;x.stroke();
+        x.fillStyle="rgba(255,255,255,.95)";x.beginPath();x.arc(cx,cy,cs*0.15,0,7);x.fill();
+        x.strokeStyle="rgba(0,0,0,.15)";x.stroke();
+      }
+      if(k!=="."&&num){x.fillStyle=blank?"#555":(lum(PAL[k].c)<130?"#fff":"#222");x.font=`800 ${Math.round(cs*0.36)}px "Baloo 2",sans-serif`;x.textAlign="center";x.textBaseline="middle";
+        if(!blank){x.fillStyle="#222"}x.fillText(numOf[k],cx,cy+1)}
+    }
+  }
+  if(coord){
+    x.fillStyle="#8a8099";x.font=`700 ${Math.round(cs*0.42)}px "Baloo 2",sans-serif`;x.textAlign="center";x.textBaseline="middle";
+    for(let i=0;i<w;i++){x.fillText(i+1,m+i*cs+cs/2,m/2);x.fillText(i+1,m+i*cs+cs/2,H-m/2)}
+    const L="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for(let j=0;j<h;j++){const lab=j<26?L[j]:"A"+L[j-26];x.fillText(lab,m/2,m+j*cs+cs/2);x.fillText(lab,W-m/2,m+j*cs+cs/2)}
+  }
+  if(!target)renderLegend(used);
+  return cv;
+}
+function roundRect(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
+function renderLegend(used){
+  const per=mode==="perles";const tot=used.reduce((s,u)=>s+u[1],0);
+  let h=`<h3>${per?"Perles à préparer":"Crayons à préparer"}</h3>`;
+  used.forEach(([k,n],i)=>{const c=PAL[k].c;h+=`<div class="leg"><span class="sw${per?" round":""}" style="background:${c};color:${lum(c)<130?"#fff":"#222"}">${i+1}</span>${PAL[k].n}<span class="n">${per?n:""}</span></div>`});
+  if(per)h+=`<div class="total">Total : ${tot} perles</div>`;
+  h+=`<div class="tip">${per
+    ?"Pose les perles rangée par rangée en suivant les lettres. Plaque carrée : 29 × 29 picots. Un adulte repasse avec du papier sulfurisé."
+    :"Astuce : les traits plus foncés tous les 5 carreaux aident à ne pas se perdre. Coche « Grille vide » + « Numéros » pour un coloriage magique."}</div>`;
+  $("#legend").innerHTML=h;
+}
+$("#exportBtn").onclick=()=>{
+  const cv=document.createElement("canvas");renderBoard(cv);
+  // légende sous l'image
+  const used=colorsUsed(cur.grid);const lh=34,cols=Math.max(1,Math.floor(cv.width/200));
+  const rows=Math.ceil(used.length/cols);const out=document.createElement("canvas");
+  out.width=cv.width;out.height=cv.height+60+rows*lh+10;const x=out.getContext("2d");
+  x.fillStyle="#fff";x.fillRect(0,0,out.width,out.height);
+  x.fillStyle="#2b2340";x.font='800 30px "Baloo 2",sans-serif';x.textAlign="left";x.textBaseline="middle";x.fillText(cur.t,16,28);
+  x.drawImage(cv,0,52);
+  used.forEach(([k,n],i)=>{const cx=16+(i%cols)*200,cy=cv.height+70+Math.floor(i/cols)*lh;
+    x.fillStyle=PAL[k].c;x.fillRect(cx,cy-12,24,24);x.strokeStyle="#0004";x.strokeRect(cx+.5,cy-11.5,23,23);
+    x.fillStyle=lum(PAL[k].c)<130?"#fff":"#222";x.font='800 14px "Baloo 2",sans-serif';x.textAlign="center";x.fillText(i+1,cx+12,cy+1);
+    x.fillStyle="#2b2340";x.textAlign="left";x.font='600 16px "Baloo 2",sans-serif';x.fillText(PAL[k].n+(mode==="perles"?" × "+n:""),cx+32,cy+1)});
+  $("#exportBox").innerHTML=`<img alt="${esc(cur.t)}" src="${out.toDataURL("image/png")}"><p>Sur iPhone : appui long sur l'image → « Enregistrer dans Photos », puis imprime-la depuis Photos.</p>`;
+  $("#exportBox").scrollIntoView({behavior:"smooth"});
+};
+$("#toEdit").onclick=()=>{loadEditor(cur.grid,cur.t);show("creer");drawEditor()};
+
+/* ---------- Éditeur ---------- */
+let eg=[],brush="K",hist=[];
+function blankGrid(w,h){return Array.from({length:h},()=>Array(w).fill("."))}
+function loadEditor(g,name){eg=g.map(r=>r.slice());hist=[];$("#wIn").value=eg[0].length;$("#hIn").value=eg.length;$("#nameIn").value=name||""}
+eg=blankGrid(16,16);
+function buildPal(){
+  const p=$("#pal");p.innerHTML="";
+  [...KEYS,"."].forEach(k=>{const b=document.createElement("button");
+    if(k===".")b.className="eraser";else b.style.background=PAL[k].c;
+    b.title=k==="."?"Gomme":PAL[k].n;if(k===brush)b.classList.add("on");
+    b.onclick=()=>{brush=k;buildPal()};p.appendChild(b)});
+}
+const ed=$("#editor");let ecs=24;
+function drawEditor(){
+  const h=eg.length,w=eg[0].length;
+  const avail=Math.min(720,(ed.parentElement.clientWidth||360)-28);
+  ecs=Math.max(10,Math.floor(avail/Math.max(w,h)));
+  ed.width=w*ecs+1;ed.height=h*ecs+1;const x=ed.getContext("2d");
+  x.fillStyle="#fff";x.fillRect(0,0,ed.width,ed.height);
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const k=eg[j][i];if(k!=="."){x.fillStyle=PAL[k].c;x.fillRect(i*ecs,j*ecs,ecs,ecs)}}
+  for(let i=0;i<=w;i++){x.strokeStyle=i%5===0?"#a99fb8":"#e3dcea";x.beginPath();x.moveTo(i*ecs+.5,0);x.lineTo(i*ecs+.5,h*ecs);x.stroke()}
+  for(let j=0;j<=h;j++){x.strokeStyle=j%5===0?"#a99fb8":"#e3dcea";x.beginPath();x.moveTo(0,j*ecs+.5);x.lineTo(w*ecs,j*ecs+.5);x.stroke()}
+}
+let painting=false;
+function cellAt(e){const r=ed.getBoundingClientRect();const sx=ed.width/r.width;
+  return[Math.floor((e.clientX-r.left)*sx/ecs),Math.floor((e.clientY-r.top)*sx/ecs)]}
+function paint(e){const[i,j]=cellAt(e);if(eg[j]&&eg[j][i]!==undefined&&eg[j][i]!==brush){eg[j][i]=brush;drawEditor()}}
+ed.addEventListener("pointerdown",e=>{hist.push(eg.map(r=>r.slice()));if(hist.length>50)hist.shift();painting=true;ed.setPointerCapture(e.pointerId);paint(e)});
+ed.addEventListener("pointermove",e=>{if(painting)paint(e)});
+ed.addEventListener("pointerup",()=>painting=false);
+$("#undoBtn").onclick=()=>{if(hist.length){eg=hist.pop();drawEditor()}};
+$("#newBtn").onclick=()=>{const w=Math.min(48,Math.max(4,+$("#wIn").value||16)),h=Math.min(48,Math.max(4,+$("#hIn").value||16));hist.push(eg);eg=blankGrid(w,h);drawEditor()};
+$("#useBtn").onclick=()=>{
+  // recadrer sur le dessin
+  let x0=1e9,y0=1e9,x1=-1,y1=-1;eg.forEach((r,j)=>r.forEach((k,i)=>{if(k!=="."){x0=Math.min(x0,i);y0=Math.min(y0,j);x1=Math.max(x1,i);y1=Math.max(y1,j)}}));
+  if(x1<0)return;
+  const g=eg.slice(y0,y1+1).map(r=>r.slice(x0,x1+1));
+  const t=$("#nameIn").value.trim()||"Mon dessin";
+  const item={id:"m"+Date.now(),t,grid:g,cat:"Mes modèles",lvl:0};
+  store.mine=[{id:item.id,t,grid:g},...(store.mine||[])].slice(0,40);saveStore();
+  renderCatalogue();openDetail(item);
+};
+
+/* ---------- Image → pixel art ---------- */
+let srcImg=null;
+$("#imgIn").onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{srcImg=im;convert()};im.src=URL.createObjectURL(f)};
+$("#sizeIn").oninput=()=>{$("#sizeLbl").textContent=$("#sizeIn").value;if(srcImg)convert()};
+$("#colIn").oninput=()=>{$("#colLbl").textContent=$("#colIn").value;if(srcImg)convert()};
+$("#bgIn").onchange=()=>{if(srcImg)convert()};
+const PRGB=KEYS.map(k=>[k,hexToRgb(PAL[k].c)]);
+function nearest(r,g,b,keys){let best=null,bd=1e12;for(const[k,c]of PRGB){if(keys&&!keys.has(k))continue;const dr=r-c[0],dg=g-c[1],db=b-c[2];const d=2*dr*dr+4*dg*dg+3*db*db;if(d<bd){bd=d;best=k}}return best}
+function convert(){
+  const n=+$("#sizeIn").value,maxC=+$("#colIn").value;
+  const ar=srcImg.width/srcImg.height;const w=ar>=1?n:Math.max(4,Math.round(n*ar)),h=ar>=1?Math.max(4,Math.round(n/ar)):n;
+  const c=document.createElement("canvas");c.width=w;c.height=h;const x=c.getContext("2d");
+  x.imageSmoothingQuality="high";x.drawImage(srcImg,0,0,w,h);const d=x.getImageData(0,0,w,h).data;
+  // fond = couleur des coins
+  const corners=[[0,0],[w-1,0],[0,h-1],[w-1,h-1]].map(([i,j])=>{const p=(j*w+i)*4;return[d[p],d[p+1],d[p+2],d[p+3]]});
+  const bg=corners[0];
+  const isBg=(r,g,b,a)=>a<100||($("#bgIn").checked&&Math.abs(r-bg[0])+Math.abs(g-bg[1])+Math.abs(b-bg[2])<60);
+  let g=blankGrid(w,h);const count={};
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){const p=(j*w+i)*4;if(isBg(d[p],d[p+1],d[p+2],d[p+3]))continue;const k=nearest(d[p],d[p+1],d[p+2]);g[j][i]=k;count[k]=(count[k]||0)+1}
+  const keep=new Set(Object.entries(count).sort((a,b)=>b[1]-a[1]).slice(0,maxC).map(e=>e[0]));
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){if(g[j][i]!=="."&&!keep.has(g[j][i])){const p=(j*w+i)*4;g[j][i]=nearest(d[p],d[p+1],d[p+2],keep)}}
+  hist.push(eg);eg=g;$("#wIn").value=w;$("#hIn").value=h;if(!$("#nameIn").value)$("#nameIn").value="Mon image";drawEditor();
+  ed.scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+/* ---------- Démarrage ---------- */
+buildPal();renderCatalogue();window.addEventListener("resize",()=>{if($("#creer").classList.contains("on"))drawEditor()});
+</script>
+</body>
+</html>
