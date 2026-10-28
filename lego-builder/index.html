@@ -539,6 +539,7 @@ function flamant(){
   v.fill(6,8,15,16,0,2,'pink');
   // tête
   v.fill(6,7,16,17,0,2,'black'); v.fill(7,10,16,17,0,2,'pink');
+  v.fill(6,10,17,18,0,2,'pink');
   const plates=[0,5], Y=layerY(1,plates);
   return { id:'flamant', name:'Le flamant rose', emoji:'🦩', level:2, view:[0.3,0.35,1.6],
     yBase:1, plates, vox:v, chunk:5,
@@ -556,10 +557,12 @@ function flamant(){
       13:{title:'Le cou recule', text:'Le cou repart vers l’arrière pour former le S.'},
       15:{title:'Le haut du cou', text:'Encore un petit décalage vers l’arrière, juste sous la tête.'},
       16:{title:'La tête', text:'La tête avance au-dessus du cou. La brique noire à l’arrière, ce sont les yeux (on les voit des deux côtés).'},
+      17:{title:'Le haut de la tête', text:'Une brique rose par-dessus pour finir la tête.'},
     },
     post:[
       {title:'Le bec', text:'Retourne le flamant : accroche une brique blanche SOUS le bout de la tête. Le bec du flamant est courbé vers le bas.', parts:[B(9,Y(16)-3,0,1,2,'white')]},
       {title:'Le bout du bec', text:'Une plaque noire sous la brique blanche : c’est le bout noir du bec.', parts:[P(9,Y(16)-4,0,1,2,'black')]},
+      {title:'Le front', text:'Une pente rose sur le devant de la tête : le front descend vers le bec.', parts:[SL(8,Y(18),0,2,2,'pink','+x')]},
       {title:'Les plumes', text:'Une pente noire pour la queue, et deux pentes rose foncé sur le dos pour arrondir les plumes.', parts:[SL(0,Y(8),0,2,2,'black','-x'), SL(2,Y(9),0,2,2,'magenta','-x'), SL(4,Y(9),0,2,2,'magenta','-x')]},
       {title:'Les roseaux', text:'Des briques rondes vertes dans les coins de l’étang.',
         parts:[R(0,1,6,'green',3), R(0,4,6,'green',3), R(1,1,7,'lime',3), R(7,1,0,'green',3), R(7,4,0,'green',3), R(6,1,6,'lime')]},
