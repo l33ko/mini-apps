@@ -186,6 +186,22 @@ i.vn{font-style:italic;color:var(--mute);font-size:.88em}
   .cfgf .row{grid-template-columns:110px 1fr}
   .vars{padding-left:12px}
 }
+.legend{display:none;background:rgba(255,253,246,.95);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12.5px;box-shadow:0 2px 10px rgba(40,50,30,.12);min-width:150px}
+.legend b{display:block;margin-bottom:4px;font-family:Fraunces,Georgia,serif}
+.legend .lg{display:flex;align-items:center;gap:7px;padding:2px 4px;border-radius:6px;cursor:pointer}
+.legend .lg.on{background:var(--acc-soft);font-weight:600}
+.legend .lg i{width:12px;height:12px;border-radius:50%;flex:none}
+.legend .lg span{margin-left:auto;color:var(--mute);padding-left:8px}
+.stbar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:4px 0 6px}
+.inv tr.hl td{background:var(--acc-soft);font-weight:600}
+.fnchips{display:flex;flex-wrap:wrap;gap:4px;padding:4px 4px 6px}
+.fnchips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 8px;font-size:12px;cursor:pointer}
+.fnchips button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin:-4px 0 10px}
+.tag{font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;background:#fff}
+.fnpick{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px}
+.fnpick label{display:flex;align-items:center;gap:4px}
+.stdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0}
 #home{display:none;flex:1;overflow:auto;background:var(--bg);-webkit-overflow-scrolling:touch}
 body.at-home #home{display:block}
 body.at-home > header.top, body.at-home > main{display:none}
@@ -273,6 +289,7 @@ body.at-home #ioModal .exp{display:none}
   <div class="seg" id="viewSeg">
     <button data-v="detail">Détaillée</button>
     <button data-v="simple">Simplifiée</button>
+    <button data-v="strates" title="Couleurs par strate du jardin-forêt">Strates</button>
   </div>
   <label class="growth" title="Taille affichée des végétaux : de la plantation à l'âge adulte">
     <span class="hide-m hide-l">Croissance</span>
@@ -302,7 +319,7 @@ body.at-home #ioModal .exp{display:none}
   <section id="stage">
     <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
     <div class="ov tl" id="toolChip"></div>
-    <div class="ov bl"><div class="scalebar" id="scalebar"></div></div>
+    <div class="ov bl" style="flex-direction:column;align-items:flex-start;gap:8px"><div class="legend" id="legend"></div><div class="scalebar" id="scalebar"></div></div>
     <div class="ov br">
       <div class="zoomgrp">
         <button class="mob" id="mobAdd" title="Ajouter" style="font-weight:600">＋</button>
@@ -347,6 +364,11 @@ body.at-home #ioModal .exp{display:none}
   <div class="dlg" style="max-width:640px">
     <header><h2>Exporter / importer</h2><button class="btn" data-close>Fermer</button></header>
     <div class="body">
+      <div class="io-sec exp">
+        <h3>🔗 Partager ce plan</h3>
+        <p class="note">Un lien à envoyer : la personne qui l’ouvre ajoute le plan à ses propres plans, avec vos espèces et variétés.</p>
+        <button class="btn primary" id="shareBtn">Créer le lien de partage</button>
+      </div>
       <div class="io-sec exp">
         <h3>Image du plan (PNG)</h3>
         <p class="note">Génère une image haute définition dans la vue actuelle. Sur iPhone : appui long sur l'image → « Enregistrer dans Photos ».</p>
@@ -439,6 +461,19 @@ body.at-home #ioModal .exp{display:none}
   </div>
 </div>
 
+<!-- Partage -->
+<div class="modal" id="shareModal">
+  <div class="dlg" style="max-width:560px">
+    <header><h2>Partager « <span id="shareName"></span> »</h2><button class="btn" data-close>Fermer</button></header>
+    <div class="body">
+      <p class="note" style="margin-top:0">Ce lien contient tout le plan : terrain, végétaux, zones, chemins et repères. La personne qui l’ouvre l’ajoute à ses propres plans et récupère vos espèces et variétés dans sa palette. Ses modifications ne changent pas votre plan.</p>
+      <textarea id="shareUrl" readonly style="width:100%;height:84px;font:12px ui-monospace,monospace"></textarea>
+      <div class="acts"><button class="btn primary" id="shareCopy">Copier le lien</button><a class="btn" id="shareMail" href="#" target="_blank" rel="noopener">✉️ Par e-mail</a></div>
+      <p class="note" id="shareInfo"></p>
+    </div>
+  </div>
+</div>
+
 <!-- Renommer -->
 <div class="modal" id="nameModal">
   <div class="dlg" style="max-width:420px">
@@ -484,6 +519,47 @@ const CATS = {
   potager:   {label:'Potager, aromatiques & épices', color:'#9ccc65'},
   fleur:     {label:'Fleurs & vivaces', color:'#c58fbf'}
 };
+// strates du jardin-forêt et fonctions écologiques
+const STRATES = {
+  canopee:  {label:'Canopée', short:'Canopée', color:'#1f4f2a', desc:'grands arbres (12 m et plus)'},
+  arbre:    {label:'Petits arbres', short:'Petits arbres', color:'#4f8f34', desc:'arbres de 4 à 12 m'},
+  arbuste:  {label:'Arbustes', short:'Arbustes', color:'#a5c94a', desc:'buissons, haies, petits fruits'},
+  herbacee: {label:'Herbacées', short:'Herbacées', color:'#e8c547', desc:'vivaces, aromatiques, légumes'},
+  couvre:   {label:'Couvre-sol', short:'Couvre-sol', color:'#e58a3a', desc:'plantes rampantes'},
+  racine:   {label:'Racines & bulbes', short:'Racines', color:'#9c5a33', desc:'tubercules, bulbes'},
+  grimpante:{label:'Grimpantes', short:'Grimpantes', color:'#8e5bb5', desc:'lianes et grimpantes'}
+};
+const FONCTIONS = {
+  azote:        {label:'Fixatrice d’azote', short:'Azote', icon:'🌱'},
+  mellifere:    {label:'Mellifère', short:'Mellifère', icon:'🐝'},
+  accumulatrice:{label:'Accumulatrice', short:'Accumulatrice', icon:'⛏️'},
+  brisevent:    {label:'Brise-vent', short:'Brise-vent', icon:'🌬️'},
+  fourrage:     {label:'Fourragère', short:'Fourrage', icon:'🐔'}
+};
+const FN_DEFAULT = {};
+const fnAdd = (key, names) => names.forEach(n => (FN_DEFAULT[n] = FN_DEFAULT[n] || []).push(key));
+fnAdd('azote', ['Robinier faux-acacia','Albizia (arbre à soie)','Albizia','Caraganier','Argousier','Chalef d’automne','Chalef','Goumi du Japon','Aulne de Corse','Coronille','Indigotier','Glycine','Haricot','Luzerne','Trèfle blanc','Mimosa','Baguenaudier','Genêt d’Espagne']);
+fnAdd('mellifere', ['Tilleul','Tilleul argenté','Robinier faux-acacia','Arbre à miel','Sophora du Japon','Châtaignier','Lavande','Romarin','Thym','Sauge officinale','Sauge arbustive','Origan','Arbousier','Aubépine','Arbre aux papillons','Germandrée','Perovskia','Phlomis','Albizia (arbre à soie)','Albizia','Arbre de Judée','Prunellier','Cornouiller mâle','Ciste','Myrte commun','Laurier-tin','Chalef','Néflier du Japon','Saule blanc','Pommier','Poirier','Cerisier','Prunier','Amandier','Abricotier','Bourrache','Phacélie','Trèfle blanc','Luzerne','Mimosa','Câprier','Lierre']);
+fnAdd('accumulatrice', ['Consoude','Achillée','Bourrache','Ortie','Luzerne']);
+fnAdd('brisevent', ['Cyprès de Provence','Pin d’Alep','Pin sylvestre','Chêne vert','Laurier-tin','Pittosporum','Filaire','Alaterne','Tamaris','Atriplex (arroche marine)','Chalef','Argousier','Laurier-palme','Charmille','Bambou non traçant','Peuplier blanc','Myrte commun','Laurier sauce','Micocoulier','Caraganier','Genévrier cade']);
+fnAdd('fourrage', ['Mûrier blanc','Mûrier noir','Mûrier','Févier d’Amérique','Caroubier','Chêne à glands doux','Sureau noir','Luzerne','Figuier','Trèfle blanc','Ortie']);
+const ROOTS = ['Pomme de terre','Ail / oignon','Asperge'];
+function strateOf(sp){
+  if (!sp) return 'arbuste';
+  if (sp.strate && STRATES[sp.strate]) return sp.strate;
+  const cat = sp.cat;
+  if (cat === 'grimpante') return 'grimpante';
+  if (cat === 'potager' || cat === 'fleur'){ if (ROOTS.includes(sp.name)) return 'racine'; return sp.h <= .3 ? 'couvre' : 'herbacee'; }
+  if (cat === 'arbuste') return sp.h >= 6 ? 'arbre' : (sp.h < .8 ? 'herbacee' : 'arbuste');
+  if (cat === 'exotique' && sp.h <= 2.5) return 'arbuste';
+  if (CATS[cat] && CATS[cat].tree) return sp.h >= 12 ? 'canopee' : (sp.h < 3.5 ? 'arbuste' : 'arbre');
+  return 'arbuste';
+}
+const fnOf = sp => sp ? (Array.isArray(sp.fn) ? sp.fn : (FN_DEFAULT[sp.name] || [])) : [];
+let hl = null, palFn = null;                       // surbrillance sur le plan (« fn:azote », « st:canopee »)
+const hlMatch = (sp, k) => k.startsWith('fn:') ? fnOf(sp).includes(k.slice(3)) : strateOf(sp) === k.slice(3);
+function setHL(k){ hl = hl === k ? null : k; palFn = hl && hl.startsWith('fn:') ? hl.slice(3) : null; render(); renderInventory(); renderPalette(); }
+
 // classement botanique des fruitiers
 const RECAT = {};
 for (const n of ['Prunier','Cerisier','Abricotier','Pêcher','Nectarinier','Hybride à noyau','Griottier','Olivier','Jujubier']) RECAT[n] = 'noyau';
@@ -706,7 +782,16 @@ const DEFAULT_SPECIES = [
   ['fleur','Valériane rouge','',0.6,0.8,'#7a9a7a','#d0406a'],
   // ——— Relevé de l'existant (catalogue v3) ———
   ['forestier','Arbre existant','à identifier',6,8,'#5f8a45',''],
-  ['arbuste','Arbuste existant','à identifier',2,2,'#7a9a5a','']
+  ['arbuste','Arbuste existant','à identifier',2,2,'#7a9a5a',''],
+  // ——— Jardin-forêt : fixatrices, mellifères, couvre-sols (catalogue v5) ———
+  ['potager','Bourrache','',0.5,0.6,'#7a9a6a','#5a7ad8'],
+  ['potager','Ortie','',0.5,1,'#4f8a3a',''],
+  ['potager','Phacélie','',0.4,0.7,'#7a9a6a','#8a7ad8'],
+  ['potager','Luzerne','',0.5,0.8,'#6aa04a','#9a7ad8'],
+  ['potager','Trèfle blanc','',0.3,0.15,'#6aaa4a','#f4f4f4'],
+  ['forestier','Mimosa','Acacia dealbata',6,10,'#8aa86a','#f2d32c'],
+  ['arbuste','Baguenaudier','',3,3,'#7a9a6a','#f2c83c'],
+  ['arbuste','Genêt d’Espagne','',2,2.5,'#6a9a40','#f2d32c']
 ];
 
 const ZONES = {
@@ -835,7 +920,7 @@ function validState(s){ return s && s.garden && Array.isArray(s.species) && Arra
    Stockage : plusieurs plans nommés dans le navigateur
    ============================================================ */
 const normRot = a => { a = ((a % 360) + 360) % 360; return Math.round((a > 180 ? a - 360 : a) * 10) / 10; };
-const IDX_KEY = 'jardin-plans-v1', CATALOG_REV = 4;
+const IDX_KEY = 'jardin-plans-v1', CATALOG_REV = 5;
 const planKey = id => 'jardin-plan-' + id, bgKey = id => 'jardin-plan-bg-' + id;
 const store = (() => {
   let ok = true; try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); } catch(e){ ok = false; }
@@ -898,7 +983,7 @@ function syncPlan(s){
   const byId = new Map(s.species.map(x => [x.cid || x.id, x])), byName = new Map(s.species.map(x => [spKey(x), x]));
   for (const c of catalog.species){
     const t = byId.get(c.id) || byName.get(spKey(c));
-    if (t){ Object.assign(t, {cat:c.cat, name:c.name, variety:c.variety || '', d:c.d, h:c.h, color:c.color, accent:c.accent}); if (t.id !== c.id) t.cid = c.id; }
+    if (t){ Object.assign(t, {cat:c.cat, name:c.name, variety:c.variety || '', d:c.d, h:c.h, color:c.color, accent:c.accent}); if (c.strate) t.strate = c.strate; else delete t.strate; if (Array.isArray(c.fn)) t.fn = c.fn.slice(); else delete t.fn; if (t.id !== c.id) t.cid = c.id; }
     else s.species.push(clone(c));
   }
   const cIds = new Set(catalog.species.map(x => x.id)), cNames = new Set(catalog.species.map(spKey));
@@ -1058,7 +1143,14 @@ function crownPath(r, n, R, amp){
 function plantSVG(p, sp, o){
   const r = plantR(p, sp), c = sp.color, dark = shade(c, -.38), cat = CATS[sp.cat] ? sp.cat : 'arbuste';
   const tree = CATS[cat].tree;
-  let g = `<g transform="translate(${p.x} ${p.y})">`;
+  const dim = o.hl && !hlMatch(sp, o.hl);
+  let g = `<g transform="translate(${p.x} ${p.y})"${dim ? ' opacity=".14"' : ''}>`;
+  if (o.strates){
+    const S = STRATES[strateOf(sp)];
+    g += `<circle r="${r}" fill="${S.color}" fill-opacity="${sp.cat === 'grimpante' ? .45 : .8}" stroke="${shade(S.color, -.35)}" stroke-width="1" vector-effect="non-scaling-stroke"${sp.cat === 'grimpante' ? ' stroke-dasharray="3 2"' : ''}/>`;
+    if (tree) g += `<circle r="${Math.max(r * .07, .06)}" fill="${shade(S.color, -.5)}"/>`;
+    return g + '</g>';
+  }
   if (!o.detail){
     g += `<circle r="${r}" fill="${c}" fill-opacity=".78" stroke="${dark}" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
     if (tree) g += `<circle r="${Math.max(r * .07, .06)}" fill="${dark}"/>`;
@@ -1367,7 +1459,8 @@ function render(){
   const s = view.s, detail = st.prefs.view === 'detail';
   svg.innerHTML = defsSVG() +
     `<g id="world" transform="translate(${view.x} ${view.y}) scale(${s})">` +
-    worldSVG({scale:s, detail, bgHref:bgURL}) + overlaySVG() + `</g>`;
+    worldSVG({scale:s, detail, strates:st.prefs.view === 'strates', hl, bgHref:bgURL}) + overlaySVG() + `</g>`;
+  renderLegend();
   updateScaleBar();
 }
 function applyViewTransform(){ const w = $('#world'); if (w) w.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.s})`); }
@@ -1780,8 +1873,9 @@ function renderPalette(){
   const q = $('#palSearch').value.trim().toLowerCase();
   let h = '';
   if (palTab === 'veg'){
+    h += `<div class="fnchips">${Object.entries(FONCTIONS).map(([k, f]) => `<button class="${palFn === k ? 'on' : ''}" data-fn="${k}" title="${f.label}">${f.icon} ${f.short}</button>`).join('')}</div>`;
     for (const [cat, info] of Object.entries(CATS)){
-      const list = st.species.filter(s => s.cat === cat && (!q || (s.name + ' ' + (s.variety || '')).toLowerCase().includes(q)));
+      const list = st.species.filter(s => s.cat === cat && (!q || (s.name + ' ' + (s.variety || '')).toLowerCase().includes(q)) && (!palFn || fnOf(s).includes(palFn)));
       if (!list.length) continue;
       const groups = speciesGroups(list), folded = !q && foldedCats.has(cat);
       h += `<div class="grp fold" data-cat="${cat}">${folded ? '▸' : '▾'} ${info.label}<span class="n">${groups.length}</span></div>`;
@@ -1790,12 +1884,12 @@ function renderPalette(){
       for (const g of groups){
         if (g.entries.length === 1){ const s = g.entries[0]; h += row(s, '', `<div>${spHTML(s)}</div><small>Ø ${fmt(s.d)} m · h ${fmt(s.h)} m</small>`); continue; }
         const base = g.entries.find(e => !e.variety);
-        if (base) h += row(base, '', `<div><b>${esc(g.name)}</b></div><small>Ø ${fmt(base.d)} m · h ${fmt(base.h)} m · ${g.entries.length - 1} variétés</small>`);
+        if (base) h += row(base, '', `<div><b>${esc(g.name)}</b></div><small>Ø ${fmt(base.d)} m · h ${fmt(base.h)} m · ${g.entries.length - 1} variété${g.entries.length > 2 ? 's' : ''}</small>`);
         else h += `<div class="pgrp"><b>${esc(g.name)}</b><small>${g.entries.length} variétés</small></div>`;
         for (const s of g.entries) if (s.variety) h += row(s, ' pvar', `<div><i class="vn" style="color:inherit;font-size:13.5px">${esc(s.variety)}</i></div><small>Ø ${fmt(s.d)} m · h ${fmt(s.h)} m</small>`);
       }
     }
-    if (!h) h = `<p class="note" style="padding:10px">Aucune espèce ne correspond. <a href="#" data-act="new-sp">Ajouter « ${esc(q)} »</a></p>`;
+    if (!h.includes('pitem')) h += `<p class="note" style="padding:10px">Aucune espèce ne correspond. <a href="#" data-act="new-sp">Ajouter « ${esc(q)} »</a></p>`;
   } else {
     h += `<div class="grp">Zones (glisser pour dessiner)</div>`;
     for (const [k, z] of Object.entries(ZONES)){
@@ -1822,6 +1916,7 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
   palTab = b.dataset.tab; document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b)); renderPalette();
 }));
 $('#palSearch').addEventListener('input', renderPalette);
+$('#palList').addEventListener('click', e => { const fb = e.target.closest('[data-fn]'); if (fb){ setHL('fn:' + fb.dataset.fn); return; } });
 $('#palList').addEventListener('click', e => { const g = e.target.closest('.grp.fold'); if (g){ const c = g.dataset.cat; foldedCats.has(c) ? foldedCats.delete(c) : foldedCats.add(c); renderPalette(); return; } });
 $('#palList').addEventListener('click', e => { const a = e.target.closest('[data-act="new-sp"]'); if (a){ e.preventDefault(); openSpecies(null, {name:$('#palSearch').value.trim()}); } });
 
@@ -1906,6 +2001,7 @@ function renderInspector(){
   } else if (it.type === 'plant'){
     const sp = spById(it.sid), r = plantR(it, sp), li = legalIssue(it);
     h += `<h3>${spHTML(sp)}</h3>`;
+    h += `<div class="tags"><span class="tag" style="background:${STRATES[strateOf(sp)].color};color:#fff">${STRATES[strateOf(sp)].label}</span>${fnOf(sp).map(k => `<span class="tag">${FONCTIONS[k].icon} ${FONCTIONS[k].label}</span>`).join('')}</div>`;
     const groups = speciesGroups(st.species), vars = st.species.filter(x => x.name === sp.name).sort(bySpecies);
     h += `<div class="row"><label>Espèce</label><select data-f="spname">${Object.entries(CATS).map(([c, info]) => { const gs = groups.filter(g => g.cat === c); return gs.length ? `<optgroup label="${esc(info.label)}">${gs.map(g => `<option value="${esc(g.name)}"${g.name === sp.name ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</optgroup>` : ''; }).join('')}</select></div>`;
     h += `<div class="row"><label>Variété</label><div class="pair"><select data-f="sid" style="flex:1;min-width:0">${vars.map(x => `<option value="${x.id}"${x.id === it.sid ? ' selected' : ''}>${x.variety ? esc(x.variety) : '— non précisée —'}</option>`).join('')}</select><button class="btn icon" data-act="addvar" title="Ajouter une variété de ${esc(sp.name)}">＋</button></div></div>`;
@@ -2010,6 +2106,36 @@ $('#selPanel').addEventListener('click', e => {
   if (a.dataset.act === 'close'){ closeSheets(); setSel(null); }
 });
 
+function plantStats(){
+  const plants = st.items.filter(i => i.type === 'plant' && spById(i.sid));
+  const st2 = {}, fn = {};
+  for (const p of plants){ const sp = spById(p.sid); const k = strateOf(sp); st2[k] = (st2[k] || 0) + 1; for (const f of fnOf(sp)) fn[f] = (fn[f] || 0) + 1; }
+  return {n:plants.length, st:st2, fn};
+}
+function renderLegend(){
+  const el = $('#legend'); if (!el) return;
+  const show = st.prefs.view === 'strates' || (hl && hl.startsWith('fn:'));
+  if (!show){ el.style.display = 'none'; return; }
+  const S = plantStats(); let h = '';
+  if (st.prefs.view === 'strates'){
+    h += `<b>Strates</b>`;
+    for (const [k, v] of Object.entries(STRATES)) if (S.st[k]) h += `<div class="lg${hl === 'st:' + k ? ' on' : ''}" data-hl="st:${k}"><i style="background:${v.color}"></i>${v.short}<span>${S.st[k]}</span></div>`;
+  }
+  if (hl && hl.startsWith('fn:')){ const F = FONCTIONS[hl.slice(3)]; h += `<div class="lg on" data-hl="${hl}">${F.icon} ${F.label}<span>${S.fn[hl.slice(3)] || 0}</span> <a href="#" data-hl="${hl}" style="margin-left:6px">✕</a></div>`; }
+  el.innerHTML = h; el.style.display = h ? 'block' : 'none';
+}
+$('#legend').addEventListener('click', e => { const d = e.target.closest('[data-hl]'); if (d){ e.preventDefault(); setHL(d.dataset.hl); } });
+function forestHTML(){
+  const S = plantStats(); if (!S.n) return '';
+  let h = `<h4>Jardin-forêt</h4><div class="stbar">`;
+  for (const [k, v] of Object.entries(STRATES)) if (S.st[k]) h += `<i style="flex:${S.st[k]};background:${v.color}" title="${v.label} : ${S.st[k]}"></i>`;
+  h += `</div><table class="inv">`;
+  for (const [k, v] of Object.entries(STRATES)) if (S.st[k]) h += `<tr class="clk${hl === 'st:' + k ? ' hl' : ''}" data-hl="st:${k}"><td><span class="dot" style="background:${v.color}"></span>${v.label} <small style="color:var(--mute)">${v.desc}</small></td><td>${S.st[k]} · ${Math.round(S.st[k] / S.n * 100)} %</td></tr>`;
+  h += `</table><table class="inv" style="margin-top:8px">`;
+  for (const [k, v] of Object.entries(FONCTIONS)) h += `<tr class="clk${hl === 'fn:' + k ? ' hl' : ''}" data-hl="fn:${k}"><td>${v.icon} ${v.label}</td><td>${S.fn[k] || 0} · ${Math.round((S.fn[k] || 0) / S.n * 100)} %</td></tr>`;
+  h += `</table><p class="note">Touchez une ligne pour la repérer sur le plan. Strates et fonctions se règlent dans ⚙ Palette.</p>`;
+  return h;
+}
 function renderInventory(){
   const plants = st.items.filter(i => i.type === 'plant'), zones = st.items.filter(i => i.type === 'zone'), lines = st.items.filter(i => i.type === 'line');
   let h = `<h4>Inventaire</h4>`;
@@ -2030,9 +2156,11 @@ function renderInventory(){
   }
   const bad = plants.filter(p => legalIssue(p)).length;
   if (st.prefs.legal && bad) h += `<div class="warn">⚠ ${bad} végétal${bad > 1 ? 'aux' : ''} trop près des limites (repéré${bad > 1 ? 's' : ''} en rouge).</div>`;
+  h += forestHTML();
   $('#invPanel').innerHTML = h;
 }
 $('#invPanel').addEventListener('click', e => {
+  const hh = e.target.closest('tr[data-hl]'); if (hh){ setHL(hh.dataset.hl); return; }
   const tr = e.target.closest('tr[data-sid]'); if (!tr) return;
   const list = st.items.filter(i => i.type === 'plant' && i.sid === tr.dataset.sid); if (!list.length) return;
   const cur = list.findIndex(p => p.id === sel); const next = list[(cur + 1) % list.length];
@@ -2290,7 +2418,7 @@ function renderConfig(){
   for (const g of speciesGroups(list)){
     if (q && g.cat !== lastCat){ h += `<div class="cfg-cat">${CATS[g.cat].label}</div>`; lastCat = g.cat; }
     const vars = g.entries.filter(e => e.variety), open = q || cfgOpen.has(g.name);
-    h += `<div class="spc" data-name="${esc(g.name)}"><div class="spc-h" data-a="toggle">${spSw(g.base)}<span class="sp"><b>${esc(g.name)}</b><br><small>Ø ${fmt(g.base.d)} m · h ${fmt(g.base.h)} m · ${vars.length ? vars.length + ' variété' + (vars.length > 1 ? 's' : '') : 'aucune variété'}</small></span>` +
+    h += `<div class="spc" data-name="${esc(g.name)}"><div class="spc-h" data-a="toggle">${spSw(g.base)}<span class="sp"><b>${esc(g.name)}</b> <span title="${fnOf(g.base).map(k => FONCTIONS[k].label).join(', ')}">${fnOf(g.base).map(k => FONCTIONS[k].icon).join('')}</span><br><small><span class="stdot" style="background:${STRATES[strateOf(g.base)].color}"></span>${STRATES[strateOf(g.base)].short} · Ø ${fmt(g.base.d)} m · h ${fmt(g.base.h)} m · ${vars.length ? vars.length + ' variété' + (vars.length > 1 ? 's' : '') : 'aucune variété'}</small></span>` +
          `<button class="ibtn" data-a="addvar" title="Ajouter une variété">＋<span class="hide-m"> variété</span></button><button class="ibtn" data-a="editsp" title="Modifier l’espèce">✎</button><button class="ibtn" data-a="delsp" title="Supprimer l’espèce et ses variétés">🗑</button><span style="color:var(--mute);width:14px">${open ? '▾' : '▸'}</span></div>`;
     if (open){
       h += `<div class="vars">`;
@@ -2310,6 +2438,9 @@ function cfgFormHTML(f){
   const base = f.name ? (catalog.species.find(x => x.name === f.name && !x.variety) || catalog.species.find(x => x.name === f.name)) : null;
   const e = f.id ? catalog.species.find(x => x.id === f.id) : null;
   const v = Object.assign({cat:cfgCat, name:'', variety:'', d:'', h:'', color:CATS[cfgCat].color, accent:''}, base || {}, e || {}, f.preset || {});
+  const stSel = `<div class="row"><label>Strate</label><select name="strate"><option value="">Automatique (${STRATES[strateOf(Object.assign({}, v, {strate:''}))].label})</option>${Object.entries(STRATES).map(([k, x]) => `<option value="${k}"${v.strate === k ? ' selected' : ''}>${x.label}</option>`).join('')}</select></div>`;
+  const curFn = fnOf(v);
+  const fnBox = `<div class="row"><label>Fonctions</label><div class="fnpick">${Object.entries(FONCTIONS).map(([k, x]) => `<label><input type="checkbox" name="fn" value="${k}"${curFn.includes(k) ? ' checked' : ''}> ${x.icon} ${x.label}</label>`).join('')}</div></div>`;
   const num = (n, val, lab) => `<div class="row"><label>${lab}</label><div class="pair"><input name="${n}" type="number" min="0.1" step="0.1" value="${val ?? ''}" required><span style="align-self:center">m</span></div></div>`;
   const colors = (withLeaf) => (withLeaf ? `<div class="row"><label>Couleur du feuillage</label><input name="color" type="color" value="${v.color}"></div>` : '') +
     `<div class="row"><label>Couleur des fruits / fleurs</label><div class="pair"><input name="accent" type="color" value="${v.accent || '#d9412b'}"><label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" name="noAccent"${v.accent ? '' : ' checked'}> aucune</label></div></div>`;
@@ -2325,13 +2456,14 @@ function cfgFormHTML(f){
       <div class="row"><label>Catégorie</label><select name="cat">${Object.entries(CATS).map(([k, c]) => `<option value="${k}"${k === v.cat ? ' selected' : ''}>${c.label}</option>`).join('')}</select></div>
       <div class="row"><label>Espèce</label><input name="name" type="text" required placeholder="ex. Pommier" value="${esc(f.preset && f.preset.name || '')}"></div>
       <div class="row"><label>Première variété</label><input name="variety" type="text" placeholder="facultatif — ex. Belle de Boskoop"></div>
-      ${num('d', '', 'Envergure adulte')}${num('h', '', 'Hauteur adulte')}${colors(true)}`;
+      ${num('d', '', 'Envergure adulte')}${num('h', '', 'Hauteur adulte')}${colors(true)}${stSel}${fnBox}`;
   } else if (f.mode === 'editsp'){
     h += `<h3>Modifier l’espèce ${esc(f.name)}</h3>
       <div class="row"><label>Catégorie</label><select name="cat">${Object.entries(CATS).map(([k, c]) => `<option value="${k}"${k === v.cat ? ' selected' : ''}>${c.label}</option>`).join('')}</select></div>
       <div class="row"><label>Nom de l’espèce</label><input name="name" type="text" required value="${esc(f.name)}"></div>
       ${num('d', v.d, 'Envergure adulte')}${num('h', v.h, 'Hauteur adulte')}
       <div class="row"><label>Couleur du feuillage</label><input name="color" type="color" value="${v.color}"></div>
+      ${stSel}${fnBox}
       <label class="chk"><input type="checkbox" name="all" checked> appliquer l’envergure, la hauteur et le feuillage à toutes les variétés</label>`;
   } else if (f.mode === 'addvar'){
     h += `<h3>Nouvelle variété de ${esc(f.name)}</h3>
@@ -2365,11 +2497,11 @@ function showRepoPalettes(){
   Promise.all(REPO_PALETTES.map(r => fetch(r.file, {cache:'no-store'}).then(x => x.ok && (x.headers.get('content-type') || '').includes('json')).catch(() => false)))
     .then(a => { repoOK = a.some(Boolean) ? a : null; draw(); });
 }
-const CSV_COLS = ['Catégorie', 'Espèce', 'Variété', 'Envergure (m)', 'Hauteur (m)', 'Couleur feuillage', 'Couleur fruits/fleurs'];
+const CSV_COLS = ['Catégorie', 'Espèce', 'Variété', 'Envergure (m)', 'Hauteur (m)', 'Couleur feuillage', 'Couleur fruits/fleurs', 'Strate', 'Fonctions'];
 function paletteCSV(){
   const q = v => { v = String(v ?? ''); return /[,;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   const rows = [CSV_COLS.join(',')];
-  for (const x of catalog.species.slice().sort(bySpecies)) rows.push([CATS[x.cat].label, x.name, x.variety || '', x.d, x.h, x.color, x.accent || ''].map(q).join(','));
+  for (const x of catalog.species.slice().sort(bySpecies)) rows.push([CATS[x.cat].label, x.name, x.variety || '', x.d, x.h, x.color, x.accent || '', STRATES[strateOf(x)].label, fnOf(x).map(k => FONCTIONS[k].label).join(' / ')].map(q).join(','));
   return '﻿' + rows.join('\n');
 }
 function paletteJSON(){ return JSON.stringify({app:'mon-jardin', type:'palette', exported:new Date().toISOString(), species:catalog.species.slice().sort(bySpecies).map(({cid, ...x}) => x)}, null, 1); }
@@ -2407,14 +2539,16 @@ function importPalette(text, fname){
     const rows = parseCSV(text); if (!rows.length) throw 0;
     const head = rows[0].map(simpl), col = (...names) => head.findIndex(h => names.some(n => h.startsWith(n)));
     const ci = col('categorie', 'categ', 'type', 'rubrique'), ni = col('espece', 'nom'), vi = col('variete', 'cultivar');
-    const di = col('envergure', 'diametre'), hi = col('hauteur'), lc = col('couleur feuillage', 'feuillage'), ac = col('couleur fruits', 'fruits');
+    const di = col('envergure', 'diametre'), hi = col('hauteur'), lc = col('couleur feuillage', 'feuillage'), ac = col('couleur fruits', 'fruits'), si = col('strate'), fi = col('fonction');
     if (ni < 0) throw 0;
     for (const r of rows.slice(1)){
       const name = (r[ni] || '').trim(); if (!name) continue;
       const vars = vi >= 0 ? String(r[vi] || '').split(/\s*,\s*(?![^()]*\))/).map(v => v.trim()).filter(Boolean) : [];
       for (const variety of (vars.length ? vars : [''])) list.push({cat:ci >= 0 ? r[ci] : '', name, variety,
         d:di >= 0 ? parseFloat(String(r[di]).replace(',', '.')) : NaN, h:hi >= 0 ? parseFloat(String(r[hi]).replace(',', '.')) : NaN,
-        color:lc >= 0 ? (r[lc] || '').trim() : '', accent:ac >= 0 ? (r[ac] || '').trim() : ''});
+        color:lc >= 0 ? (r[lc] || '').trim() : '', accent:ac >= 0 ? (r[ac] || '').trim() : '',
+        strate:si >= 0 ? (Object.entries(STRATES).find(([k, v]) => simpl(v.label) === simpl(r[si]) || k === simpl(r[si])) || [])[0] : undefined,
+        fn:fi >= 0 && String(r[fi] || '').trim() ? String(r[fi]).split(/\s*[\/|]\s*/).map(t => (Object.entries(FONCTIONS).find(([k, v]) => simpl(v.label) === simpl(t) || simpl(v.short) === simpl(t) || k === simpl(t)) || [])[0]).filter(Boolean) : undefined});
     }
   }
   let added = 0, skipped = 0;
@@ -2429,6 +2563,8 @@ function importPalette(text, fname){
     const x = {id:'u' + uid(), cat, name:same ? same.name : name, variety,
       d:r3(raw.d > 0 ? raw.d : (same ? same.d : (tree ? 4 : 1.5))), h:r3(raw.h > 0 ? raw.h : (same ? same.h : (tree ? 5 : 1.5))),
       color:hex(raw.color) ? raw.color : (same ? same.color : CATS[cat].color), accent:hex(raw.accent) ? raw.accent : (same ? same.accent : '')};
+    if (raw.strate && STRATES[raw.strate]) x.strate = raw.strate; else if (same && same.strate) x.strate = same.strate;
+    if (Array.isArray(raw.fn)) x.fn = raw.fn; else if (same && Array.isArray(same.fn)) x.fn = same.fn.slice();
     catalog.species.push(x); catalog.deleted = catalog.deleted.filter(k => k !== spKey(x)); have.add(key); added++;
   }
   if (curId) pushHistory();
@@ -2485,6 +2621,9 @@ $('#cfgModal').addEventListener('submit', e => {
   const d = parseFloat(val('d').replace(',', '.')), h = parseFloat(val('h').replace(',', '.'));
   if (!(d > 0) || !(h > 0)){ toast('Indiquez l’envergure et la hauteur adultes'); return; }
   const accent = f.noAccent && f.noAccent.checked ? '' : (f.accent ? f.accent.value : '');
+  const pickFn = () => { const a = [...f.querySelectorAll('input[name=fn]:checked')].map(x => x.value); return a; };
+  const applyEco = x => { const sv = f.strate ? f.strate.value : null; if (sv !== null){ if (sv) x.strate = sv; else delete x.strate; }
+    if (f.querySelector('input[name=fn]')){ const a = pickFn(), def = FN_DEFAULT[x.name] || []; if (a.length === def.length && a.every(k => def.includes(k))) delete x.fn; else x.fn = a; } };
   const exists = (name, variety, except) => catalog.species.some(x => x.name.toLowerCase() === name.toLowerCase() && (x.variety || '').toLowerCase() === variety.toLowerCase() && x.id !== except);
   const undelete = x => { catalog.deleted = catalog.deleted.filter(k => k !== x.id && k !== spKey(x)); };
   let msg = '', assignId = null;
@@ -2492,12 +2631,13 @@ $('#cfgModal').addEventListener('submit', e => {
     const name = val('name'), variety = val('variety'); if (!name){ toast('Indiquez le nom de l’espèce'); return; }
     if (exists(name, variety)){ toast('Cette espèce / variété existe déjà'); return; }
     const x = {id:'u' + uid(), cat:f.cat.value, name, variety, d:r3(d), h:r3(h), color:f.color.value, accent};
-    catalog.species.push(x); undelete(x); cfgCat = x.cat; cfgOpen.add(name); msg = `« ${spLabel(x)} » ajouté à la palette`;
+    applyEco(x); catalog.species.push(x); undelete(x); cfgCat = x.cat; cfgOpen.add(name); msg = `« ${spLabel(x)} » ajouté à la palette`;
   } else if (mode === 'addvar'){
     const variety = val('variety'); if (!variety){ toast('Indiquez le nom de la variété'); return; }
     if (exists(cfgForm.name, variety)){ toast('Cette variété existe déjà'); return; }
     const base = catalog.species.find(x => x.name === cfgForm.name && !x.variety) || catalog.species.find(x => x.name === cfgForm.name);
     const x = {id:'u' + uid(), cat:base.cat, name:base.name, variety, d:r3(d), h:r3(h), color:base.color, accent};
+    if (base.strate) x.strate = base.strate; if (Array.isArray(base.fn)) x.fn = base.fn.slice();
     catalog.species.push(x); undelete(x); assignId = cfgForm.assign ? x.id : null; msg = `Variété « ${variety} » ajoutée`;
   } else if (mode === 'editsp'){
     const name = val('name'); if (!name){ toast('Indiquez le nom de l’espèce'); return; }
@@ -2506,6 +2646,7 @@ $('#cfgModal').addEventListener('submit', e => {
       const isBase = !x.variety;
       x.name = name; x.cat = f.cat.value;
       if (f.all.checked || isBase){ x.d = r3(d); x.h = r3(h); x.color = f.color.value; }
+      applyEco(x);
     }
     cfgOpen.add(name); cfgCat = f.cat.value; msg = 'Espèce mise à jour';
   } else if (mode === 'editvar'){
@@ -2566,7 +2707,7 @@ $('#pngBtn').onclick = () => {
   const title = `<text x="${vx + 14 / pxm}" y="${vy + 22 / pxm}" font-size="${17 / pxm}" font-weight="700" fill="#25321e">${esc(st.name || 'Mon jardin')} — ${dims}${noContour() ? '' : ` · ${fmt(gArea(), 0)} m²`}</text>`;
   const s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="${vx} ${vy} ${w + 2 * m} ${h + 2 * m + T}" font-family="Helvetica, Arial, sans-serif">` +
             defsSVG() + `<rect x="${vx}" y="${vy}" width="${w + 2 * m}" height="${h + 2 * m + T}" fill="#fbf9f2"/>` + title +
-            worldSVG({scale:pxm, detail, bgHref:bgSrc}) + `</svg>`;
+            worldSVG({scale:pxm, detail, strates:st.prefs.view === 'strates', hl, bgHref:bgSrc}) + `</svg>`;
   const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
   const img = new Image();
   img.onload = () => {
@@ -2610,6 +2751,7 @@ function goHome(){
   renderHome();
 }
 function route(){
+  if (/^#p=/.test(location.hash)){ receiveShare(); return; }
   const m = location.hash.match(/^#plan-([a-z0-9]+)$/);
   if (m && readPlan(m[1])){ if (curId !== m[1]) openPlan(m[1]); }
   else if (curId !== null || !document.body.classList.contains('at-home')) goHome();
@@ -2637,7 +2779,7 @@ function renderHome(){
     const s = readPlan(e.id); if (!s) continue;
     h += `<div class="pcard" data-id="${e.id}"><div class="thumb">${thumbSVG(s)}</div>` +
          `<div class="meta"><b title="${esc(e.name)}">${esc(e.name)}</b><small>${e.area ? fmt(e.area, 0) + ' m² · ' : ''}${e.plants || 0} végéta${(e.plants || 0) > 1 ? 'ux' : 'l'}</small><small>Modifié ${fmtDate(e.updated)}</small></div>` +
-         `<div class="cacts"><button data-act="rename" title="Renommer">✎</button><button data-act="dup" title="Dupliquer">⧉</button><button data-act="export" title="Exporter (sauvegarde .json)">⇩</button><button data-act="del" title="Supprimer">🗑</button></div></div>`;
+         `<div class="cacts"><button data-act="rename" title="Renommer">✎</button><button data-act="share" title="Partager par un lien">🔗</button><button data-act="dup" title="Dupliquer">⧉</button><button data-act="export" title="Exporter (sauvegarde .json)">⇩</button><button data-act="del" title="Supprimer">🗑</button></div></div>`;
   }
   $('#homeGrid').innerHTML = h;
 }
@@ -2665,6 +2807,7 @@ $('#homeGrid').addEventListener('click', e => {
     try { persistPlan(uid(), s, store.get(bgKey(id))); toast('Plan dupliqué'); } catch(err){ toast('Mémoire du navigateur pleine'); }
     renderHome(); return;
   }
+  if (act === 'share'){ const s2 = readPlan(id); if (s2) openShare(s2); return; }
   if (act === 'export'){
     const s = readPlan(id); if (!s) return;
     const j = JSON.stringify(Object.assign({app:'mon-jardin'}, s, {bgSrc:s.bg ? store.get(bgKey(id)) : null}));
@@ -2689,12 +2832,74 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) saveN
 /* ============================================================
    Démarrage
    ============================================================ */
+/* ============================================================
+   Partage d'un plan par lien (le plan voyage, compressé, dans l'adresse)
+   ============================================================ */
+const SHARE_BASE = 'https://l33ko.github.io/mini-apps/mon-jardin/';
+const b64u = bytes => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const unb64u = t => { t = t.replace(/-/g, '+').replace(/_/g, '/'); const b = atob(t + '==='.slice((t.length + 3) % 4)); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
+async function pipe(bytes, stream){ return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
+function sharePayload(s){
+  const used = new Set(s.items.filter(i => i.type === 'plant').map(i => i.sid));
+  return {v:1, name:s.name, garden:s.garden, prefs:{view:s.prefs.view, growth:s.prefs.growth, legal:s.prefs.legal},
+          species:s.species.filter(x => used.has(x.id)).map(({cid, ...x}) => x), items:s.items};
+}
+async function shareLink(s){
+  const bytes = new TextEncoder().encode(JSON.stringify(sharePayload(s)));
+  let code;
+  if (typeof CompressionStream === 'function'){ try { code = 'z' + b64u(await pipe(bytes, new CompressionStream('deflate-raw'))); } catch(e){} }
+  if (!code) code = 'j' + b64u(bytes);
+  const base = /github\.io$/.test(location.hostname) ? location.origin + location.pathname : SHARE_BASE;
+  return base + '#p=' + code;
+}
+async function readShare(code){
+  const bytes = unb64u(code.slice(1));
+  const raw = code[0] === 'z' ? await pipe(bytes, new DecompressionStream('deflate-raw')) : bytes;
+  const o = JSON.parse(new TextDecoder().decode(raw)); if (!validState(o)) throw 0; return o;
+}
+async function openShare(s){
+  $('#shareName').textContent = s.name || 'plan'; $('#shareUrl').value = 'Création du lien…'; $('#shareInfo').textContent = ''; openModal('shareModal');
+  try {
+    const url = await shareLink(s);
+    $('#shareUrl').value = url;
+    $('#shareMail').href = 'mailto:?subject=' + encodeURIComponent('Plan de jardin : ' + (s.name || '')) + '&body=' + encodeURIComponent('Voici mon plan « ' + (s.name || '') + ' », à ouvrir dans Mon jardin :\n\n' + url);
+    const kb = Math.max(1, Math.round(url.length / 1024));
+    $('#shareInfo').textContent = `Lien de ${kb} Ko${s.bg ? ' · la photo de fond n’est pas incluse (trop lourde) : envoyez-la à part si besoin' : ''}.${/github\.io$/.test(location.hostname) ? '' : ' Il ouvre la version publique de l’app sur GitHub.'}`;
+  } catch(e){ $('#shareUrl').value = ''; toast('Impossible de créer le lien'); }
+}
+$('#shareBtn').onclick = () => { closeModals(); openShare(st); };
+$('#shareCopy').onclick = async () => {
+  const t = $('#shareUrl'); try { await navigator.clipboard.writeText(t.value); toast('Lien copié'); }
+  catch(e){ t.focus(); t.select(); try { document.execCommand('copy'); toast('Lien copié'); } catch(_){ toast('Sélectionnez le lien et copiez-le'); } }
+};
+// ouverture d'un lien partagé : le plan rejoint « Mes plans »
+let receiving = false;
+async function receiveShare(){
+  const m = location.hash.match(/^#p=([zj][A-Za-z0-9_-]+)$/); if (!m || receiving) return false;
+  receiving = true;
+  try {
+    const o = await readShare(m[1]);
+    const fp = 'sh' + (hash(m[1]) >>> 0).toString(36);
+    const ex = readIndex().find(e => e.share === fp);
+    if (ex && readPlan(ex.id)){ history.replaceState(null, '', '#plan-' + ex.id); openPlan(ex.id); toast('Ce plan partagé est déjà dans vos plans'); return true; }
+    const id = uid();
+    const s = {v:2, name:o.name || 'Plan partagé', garden:o.garden, species:o.species, items:o.items,
+               prefs:Object.assign({view:'detail', growth:1, snap:true, legal:true}, o.prefs || {}), bg:null, catalogRev:CATALOG_REV, shared:true};
+    persistPlan(id, s, null);
+    const idx = readIndex(); const e = idx.find(x => x.id === id); if (e){ e.share = fp; writeIndex(idx); }
+    history.replaceState(null, '', '#plan-' + id); openPlan(id);
+    toast(`Plan partagé « ${s.name} » ajouté à vos plans`);
+    return true;
+  } catch(e){ toast('Ce lien de partage est incomplet ou abîmé'); history.replaceState(null, '', '#accueil'); return false; }
+  finally { receiving = false; }
+}
+
 bootStorage();
 initCatalog();
 if (!store.ok) setTimeout(() => toast('Ce navigateur n’autorise pas l’enregistrement : exportez vos plans avant de fermer'), 800);
 document.body.classList.add('at-home');
-route();
-if (!location.hash.startsWith('#plan-')) renderHome();
+if (/^#p=/.test(location.hash)) receiveShare().then(ok => { if (!ok){ route(); renderHome(); } });
+else { route(); if (!location.hash.startsWith('#plan-')) renderHome(); }
 let lastW = 0;
 new ResizeObserver(() => { const r = stage.getBoundingClientRect(); if (!lastW) { lastW = r.width; return; } if (Math.abs(r.width - lastW) > 1){ lastW = r.width; render(); } }).observe(stage);
 </script>
