@@ -78,7 +78,7 @@ Le bouton « Parents » du menu ouvre la configuration, protégée par un petit 
 ## Utiliser l'application
 
 1. Ouvrir `index.html` dans un navigateur, ou publier le dépôt avec GitHub Pages (Settings > Pages, branche `main`, dossier `/ (root)`).
-2. Avec GitHub Pages, l'application est alors disponible à l'adresse `https://l33ko.github.io/mini-apps/cahier-du-cp/`.
+2. Avec GitHub Pages, l'application est alors disponible à l'adresse `https://l33ko.github.io/synapps/cahier-du-cp/`.
 
 ## Notes techniques
 
