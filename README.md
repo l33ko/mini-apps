@@ -1,4 +1,4 @@
-# mini-apps
+# SynApps
 
 Petites applications web, simples et accessibles à tous. Chaque application tient (sauf Rétro Console) dans un seul fichier `index.html` et fonctionne directement dans le navigateur, sur ordinateur comme sur téléphone.
 
