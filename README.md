@@ -19,6 +19,7 @@ Concevoir et visualiser son jardin, à l'échelle :
 - **Aménagements** : maison, terrasse, piscine, potager, poulailler, serre, bassin, ruche, chemins, clôtures, haies, irrigation, repères et étiquettes.
 - **Deux vues** : détaillée (avec les noms des végétaux) et simplifiée ; curseur de croissance (de la plantation à l'âge adulte) ; contrôle des distances de plantation par rapport aux limites (art. 671 du Code civil).
 - **Export** du plan en image PNG et en sauvegarde `.json`, importable sur un autre appareil.
+- **Import / export de la palette** en tableur (`.csv`) ou en fichier `.json`. Des palettes prêtes à charger se trouvent dans [`mon-jardin/palettes/`](mon-jardin/palettes/), dont la liste complète du jardin-forêt Sylvaniers.
 
 Un exemple de plan est fourni au premier lancement : une maison avec piscine et un jardin méditerranéen.
 

@@ -327,6 +327,7 @@ body.at-home #ioModal .exp{display:none}
   <div class="dlg cfg">
     <header>
       <div style="flex:1;min-width:0"><h2>Palette végétale</h2><small style="color:var(--mute)">Commune à tous vos plans · espèces et variétés</small></div>
+      <button class="btn" data-cfg="io" title="Importer ou exporter une palette (CSV, JSON)">⇅ <span class="hide-m">Importer / exporter</span></button>
       <button class="btn primary" data-cfg="newsp">＋ <span class="hide-m">Nouvelle espèce</span></button>
       <button class="btn" data-close>Fermer</button>
     </header>
@@ -2312,6 +2313,11 @@ function cfgFormHTML(f){
   const num = (n, val, lab) => `<div class="row"><label>${lab}</label><div class="pair"><input name="${n}" type="number" min="0.1" step="0.1" value="${val ?? ''}" required><span style="align-self:center">m</span></div></div>`;
   const colors = (withLeaf) => (withLeaf ? `<div class="row"><label>Couleur du feuillage</label><input name="color" type="color" value="${v.color}"></div>` : '') +
     `<div class="row"><label>Couleur des fruits / fleurs</label><div class="pair"><input name="accent" type="color" value="${v.accent || '#d9412b'}"><label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" name="noAccent"${v.accent ? '' : ' checked'}> aucune</label></div></div>`;
+  if (f.mode === 'io') return `<div class="cfgf"><h3>Importer / exporter une palette</h3>
+    <p class="note" style="margin-top:0"><b>Exporter</b> : toute la palette (${catalog.species.length} espèces et variétés), pour la sauvegarder, la modifier dans un tableur ou l’ouvrir sur un autre appareil.</p>
+    <div class="acts" style="margin-top:4px"><button class="btn" type="button" data-cfg="exp-csv">⇩ Tableur (.csv)</button><button class="btn" type="button" data-cfg="exp-json">⇩ Fichier palette (.json)</button></div>
+    <p class="note" style="margin-top:14px"><b>Importer</b> un fichier .csv (colonnes Catégorie ; Espèce ; Variété ; Envergure ; Hauteur…) ou .json : les espèces et variétés absentes sont ajoutées, rien n’est supprimé ni remplacé.</p>
+    <div class="acts" style="margin-top:4px"><input type="file" id="palFile" accept=".csv,.json,.txt,text/csv,application/json"><button class="btn" type="button" data-cfg="cancel">Fermer</button></div></div>`;
   let h = `<form class="cfgf" id="cfgF" data-mode="${f.mode}" autocomplete="off">`;
   if (f.mode === 'newsp'){
     h += `<h3>Nouvelle espèce</h3>
@@ -2346,11 +2352,89 @@ function catCommit(msg){
   renderConfig(); if (msg) toast(msg);
 }
 $('#cfgSearch').addEventListener('input', renderConfig);
+/* Import / export de la palette (CSV pour les tableurs, JSON pour l'app) */
+const CSV_COLS = ['Catégorie', 'Espèce', 'Variété', 'Envergure (m)', 'Hauteur (m)', 'Couleur feuillage', 'Couleur fruits/fleurs'];
+function paletteCSV(){
+  const q = v => { v = String(v ?? ''); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const rows = [CSV_COLS.join(';')];
+  for (const x of catalog.species.slice().sort(bySpecies)) rows.push([CATS[x.cat].label, x.name, x.variety || '', String(x.d).replace('.', ','), String(x.h).replace('.', ','), x.color, x.accent || ''].map(q).join(';'));
+  return '﻿' + rows.join('\r\n');
+}
+function paletteJSON(){ return JSON.stringify({app:'mon-jardin', type:'palette', exported:new Date().toISOString(), species:catalog.species.slice().sort(bySpecies).map(({cid, ...x}) => x)}, null, 1); }
+function parseCSV(text){
+  text = text.replace(/^﻿/, '');
+  const first = text.split(/\r?\n/)[0], sep = (first.match(/;/g) || []).length >= (first.match(/,/g) || []).length ? ';' : (first.includes('\t') ? '\t' : ',');
+  const rows = []; let row = [], cur = '', inQ = false;
+  for (let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if (inQ){ if (ch === '"'){ if (text[i + 1] === '"'){ cur += '"'; i++; } else inQ = false; } else cur += ch; }
+    else if (ch === '"') inQ = true;
+    else if (ch === sep){ row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r'){ if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cur); rows.push(row); row = []; cur = ''; }
+    else cur += ch;
+  }
+  if (cur || row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim()));
+}
+const simpl = v => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+function catFrom(v, name){
+  const k = simpl(v);
+  for (const [key, c] of Object.entries(CATS)) if (k === key || k === simpl(c.label)) return key;
+  if (/noyau/.test(k)) return 'noyau'; if (/pepin/.test(k)) return 'pepin'; if (/coque/.test(k)) return 'coque'; if (/agrume/.test(k)) return 'agrume';
+  if (/fruit/.test(k)) return 'fruitier'; if (/haie|arbuste|buisson/.test(k)) return 'arbuste'; if (/grimp/.test(k)) return 'grimpante';
+  if (/ombrage|forest|canopee|ornement/.test(k)) return 'forestier'; if (/tropi|palmier|serre/.test(k)) return 'exotique';
+  if (/potager|aromat|epice/.test(k)) return 'potager'; if (/fleur|vivace/.test(k)) return 'fleur';
+  return recat({name, cat:''}).cat || 'fruitier';
+}
+function importPalette(text, fname){
+  let list = [];
+  const t = text.trim();
+  if (t.startsWith('{') || t.startsWith('[')){
+    const o = JSON.parse(t); list = Array.isArray(o) ? o : (o.species || []);
+  } else {
+    const rows = parseCSV(text); if (!rows.length) throw 0;
+    const head = rows[0].map(simpl), col = (...names) => head.findIndex(h => names.some(n => h.startsWith(n)));
+    const ci = col('categorie', 'categ', 'type', 'rubrique'), ni = col('espece', 'nom'), vi = col('variete', 'cultivar');
+    const di = col('envergure', 'diametre'), hi = col('hauteur'), lc = col('couleur feuillage', 'feuillage'), ac = col('couleur fruits', 'fruits');
+    if (ni < 0) throw 0;
+    for (const r of rows.slice(1)){
+      const name = (r[ni] || '').trim(); if (!name) continue;
+      const vars = vi >= 0 ? String(r[vi] || '').split(/\s*,\s*(?![^()]*\))/).map(v => v.trim()).filter(Boolean) : [];
+      for (const variety of (vars.length ? vars : [''])) list.push({cat:ci >= 0 ? r[ci] : '', name, variety,
+        d:di >= 0 ? parseFloat(String(r[di]).replace(',', '.')) : NaN, h:hi >= 0 ? parseFloat(String(r[hi]).replace(',', '.')) : NaN,
+        color:lc >= 0 ? (r[lc] || '').trim() : '', accent:ac >= 0 ? (r[ac] || '').trim() : ''});
+    }
+  }
+  let added = 0, skipped = 0;
+  const have = new Set(catalog.species.map(x => simpl(x.name) + '|' + simpl(x.variety)));
+  for (const raw of list){
+    const name = String(raw.name || '').trim(); if (!name) continue;
+    const variety = String(raw.variety || '').trim(), key = simpl(name) + '|' + simpl(variety);
+    if (have.has(key)){ skipped++; continue; }
+    const same = catalog.species.find(x => simpl(x.name) === simpl(name));
+    const cat = CATS[raw.cat] ? raw.cat : (raw.cat ? catFrom(raw.cat, name) : (same ? same.cat : catFrom('', name)));
+    const tree = CATS[cat].tree, hex = v => /^#[0-9a-f]{6}$/i.test(v || '');
+    const x = {id:'u' + uid(), cat, name:same ? same.name : name, variety,
+      d:r3(raw.d > 0 ? raw.d : (same ? same.d : (tree ? 4 : 1.5))), h:r3(raw.h > 0 ? raw.h : (same ? same.h : (tree ? 5 : 1.5))),
+      color:hex(raw.color) ? raw.color : (same ? same.color : CATS[cat].color), accent:hex(raw.accent) ? raw.accent : (same ? same.accent : '')};
+    catalog.species.push(x); catalog.deleted = catalog.deleted.filter(k => k !== spKey(x)); have.add(key); added++;
+  }
+  if (curId) pushHistory();
+  cfgForm = null; catCommit(`${added} espèce${added > 1 ? 's' : ''} / variété${added > 1 ? 's' : ''} ajoutée${added > 1 ? 's' : ''}${skipped ? ` · ${skipped} déjà présente${skipped > 1 ? 's' : ''}` : ''}`);
+}
+$('#cfgModal').addEventListener('change', e => {
+  if (e.target.id !== 'palFile') return;
+  const f = e.target.files[0]; if (!f) return;
+  f.text().then(t => { try { importPalette(t, f.name); } catch(err){ toast('Fichier non reconnu : il faut au moins une colonne « Espèce »'); } });
+});
 $('#cfgModal').addEventListener('click', e => {
   const c = e.target.closest('[data-cfg]');
   if (c){ e.preventDefault();
     if (c.dataset.cfg === 'newsp'){ cfgForm = {mode:'newsp', preset:{name:$('#cfgSearch').value.trim()}}; $('#cfgSearch').value = ''; renderConfig(); setTimeout(() => $('#cfgF [name=name]').focus(), 30); $('#cfgForm').scrollIntoView({block:'nearest'}); }
     if (c.dataset.cfg === 'cancel'){ cfgForm = null; renderConfig(); }
+    if (c.dataset.cfg === 'io'){ cfgForm = cfgForm && cfgForm.mode === 'io' ? null : {mode:'io'}; renderConfig(); $('.cfg-main').scrollTop = 0; }
+    if (c.dataset.cfg === 'exp-csv'){ const t = paletteCSV(); tryDownload('palette-vegetale.csv', URL.createObjectURL(new Blob([t], {type:'text/csv'})), t); }
+    if (c.dataset.cfg === 'exp-json'){ const t = paletteJSON(); tryDownload('palette-vegetale.json', URL.createObjectURL(new Blob([t], {type:'application/json'})), t); }
     return; }
   const nb = e.target.closest('#cfgNav [data-cat]');
   if (nb){ cfgCat = nb.dataset.cat; $('#cfgSearch').value = ''; renderConfig(); $('.cfg-main').scrollTop = 0; return; }
