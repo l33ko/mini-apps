@@ -53,8 +53,8 @@ Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de mul
 
 ## Confort et audio
 
-- **Consignes orales** : chaque exercice annonce sa consigne à voix haute, pour les enfants qui ne lisent pas encore, par exemple « Trouve le mot qui correspond à l'image » ou « Complète la suite ». Le mot à trouver n'est jamais dit dans la consigne.
-- **Bouton 🔊 Écouter** : selon l'exercice, il redit le mot à trouver (Lecture, Écriture, Mots à compléter) ou la consigne (Compléments, Intrus, Doubles et moitiés). Il n'y en a pas dans Additions, Soustractions, Phrases, Compter et Suites.
+- **Consignes orales** : chaque exercice annonce sa consigne à voix haute, pour les enfants qui ne lisent pas encore, par exemple « Trouve le mot qui correspond à l'image » ou « Complète la suite ». En Lecture et en Écriture, le mot à trouver n'est pas dit dans la consigne ; dans Mots à compléter, le mot est prononcé.
+- **Bouton 🔊 Écouter** : selon l'exercice, il redit le mot à trouver (Lecture, Écriture, Mots à compléter) ou la consigne (Compléments, Intrus, Doubles et moitiés), et relit l'énoncé dans Problèmes. Il n'y en a pas dans Additions, Soustractions, Phrases, Compter et Suites.
 - **Retours** : une bonne réponse est signalée par un son seul, sans message. « Essaie encore » est dit et écrit en cas d'erreur. Un petit son accompagne aussi chaque bouton.
 - **Voix** : l'application choisit la meilleure voix française de l'appareil. La qualité dépend de l'appareil : pour une voix plus naturelle, installer une voix « améliorée » ou « premium » dans les réglages du système, puis la choisir dans la configuration.
 - **Mode clair ou sombre** : un bouton du menu change les couleurs. Le mode clair, pastel et coloré, est le mode par défaut.
