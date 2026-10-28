@@ -68,6 +68,7 @@ aside{background:var(--panel);overflow:auto;min-height:0;-webkit-overflow-scroll
 
 #stage{position:relative;overflow:hidden;background:#e7e2d3;touch-action:none}
 #svg{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+#stage.tool-detect #svg{cursor:pointer}
 #stage.tool-plant #svg,#stage.tool-zone #svg,#stage.tool-line #svg,#stage.tool-contour #svg,#stage.tool-calib #svg{cursor:crosshair}
 .choices{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .choice{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;display:flex;flex-direction:column;gap:8px}
@@ -371,6 +372,36 @@ body.at-home #ioModal .exp{display:none}
   </div>
 </div>
 
+<!-- Relevé de l'existant -->
+<div class="modal" id="exModal">
+  <div class="dlg" style="max-width:640px">
+    <header><h2>Repérer ce qui existe déjà</h2><button class="btn" data-close>Plus tard</button></header>
+    <div class="body">
+      <p class="note" style="margin-top:0">Placez sur la photo la maison, la piscine et la végétation déjà présentes : votre projet partira de l'existant, à l'échelle.</p>
+      <div class="io-sec">
+        <h3>🔍 Détection automatique</h3>
+        <p class="note">Repère les couronnes d'arbres et d'arbustes (zones vertes et sombres) et les piscines (zones bleues). Vous vérifiez le résultat, écartez les erreurs d'un toucher, puis l'ajoutez au plan.</p>
+        <button class="btn primary" data-ex="auto">Détecter les arbres et la piscine</button>
+      </div>
+      <div class="io-sec">
+        <h3>✏️ Tracer à la main</h3>
+        <p class="note">Glissez sur la photo pour dessiner une zone ; faites-la ensuite pivoter avec la poignée ronde bleue pour l'aligner.</p>
+        <div class="acts">
+          <button class="btn" data-ex="zone:maison">🏠 Maison</button>
+          <button class="btn" data-ex="zone:piscine">🏊 Piscine</button>
+          <button class="btn" data-ex="zone:terrasse">▭ Terrasse</button>
+          <button class="btn" data-ex="zone:abri">🛖 Abri</button>
+          <button class="btn" data-ex="zone:parking">🚗 Stationnement</button>
+          <button class="btn" data-ex="plant:Arbre existant">🌳 Arbre existant</button>
+          <button class="btn" data-ex="plant:Arbuste existant">🌿 Arbuste existant</button>
+          <button class="btn" data-ex="line:haie">〰️ Haie</button>
+          <button class="btn" data-ex="line:allee">🪨 Allée</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Renommer -->
 <div class="modal" id="nameModal">
   <div class="dlg" style="max-width:420px">
@@ -625,7 +656,10 @@ const DEFAULT_SPECIES = [
   ['fleur','Germandrée','',1,1,'#9aaa9a','#a08ad8'],
   ['fleur','Perovskia','',1,1.2,'#a8b0a8','#8a8ae0'],
   ['fleur','Achillée','',0.5,0.6,'#8a9a6a','#f2d84c'],
-  ['fleur','Valériane rouge','',0.6,0.8,'#7a9a7a','#d0406a']
+  ['fleur','Valériane rouge','',0.6,0.8,'#7a9a7a','#d0406a'],
+  // ——— Relevé de l'existant (catalogue v3) ———
+  ['forestier','Arbre existant','à identifier',6,8,'#5f8a45',''],
+  ['arbuste','Arbuste existant','à identifier',2,2,'#7a9a5a','']
 ];
 
 const ZONES = {
@@ -753,7 +787,8 @@ function validState(s){ return s && s.garden && Array.isArray(s.species) && Arra
 /* ============================================================
    Stockage : plusieurs plans nommés dans le navigateur
    ============================================================ */
-const IDX_KEY = 'jardin-plans-v1', CATALOG_REV = 2;
+const normRot = a => { a = ((a % 360) + 360) % 360; return Math.round((a > 180 ? a - 360 : a) * 10) / 10; };
+const IDX_KEY = 'jardin-plans-v1', CATALOG_REV = 3;
 const planKey = id => 'jardin-plan-' + id, bgKey = id => 'jardin-plan-bg-' + id;
 const store = (() => {
   let ok = true; try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); } catch(e){ ok = false; }
@@ -830,6 +865,7 @@ function saveNow(){
 }
 
 /* Fond de plan (photo aérienne / plan scanné) — l'image est gardée à part de l'historique */
+let existFlow = false, detect = null;
 let bgSrc = null, bgURL = null, photoFlow = false, editContour = false, gSelV = null;
 function refreshBgURL(){ if (bgURL && bgURL.startsWith('blob:')) URL.revokeObjectURL(bgURL); bgURL = null; try { if (bgSrc) bgURL = URL.createObjectURL(dataURLtoBlob(bgSrc)); } catch(e){ bgURL = bgSrc; } }
 function saveBg(){ if (!curId) return; try { if (bgSrc) store.set(bgKey(curId), bgSrc); else store.del(bgKey(curId)); } catch(e){ toast('Image trop lourde pour l’enregistrement automatique : exportez la sauvegarde'); } }
@@ -1185,6 +1221,10 @@ function overlaySVG(){
     } else if (it.type === 'zone'){
       out += `<g transform="translate(${it.cx} ${it.cy}) rotate(${it.rot || 0})"><rect x="${-it.w/2}" y="${-it.h/2}" width="${it.w}" height="${it.h}" ${selStroke}/></g>`;
       for (const c of zoneCorners(it)) out += handle(c[0], c[1]);
+      const rh = rotHandle(it), top = rot(0, -it.h / 2, it.rot || 0);
+      out += `<line x1="${it.cx + top[0]}" y1="${it.cy + top[1]}" x2="${rh[0]}" y2="${rh[1]}" stroke="#1f6fd1" stroke-width="1.4" vector-effect="non-scaling-stroke"/>`;
+      out += `<circle cx="${rh[0]}" cy="${rh[1]}" r="${6.5 / s}" fill="#1f6fd1" stroke="#fff" stroke-width="1.5" vector-effect="non-scaling-stroke"/>` +
+             `<path d="M${rh[0] - 3 / s} ${rh[1] + 1 / s}a${3 / s} ${3 / s} 0 1 1 ${3 / s} ${2.2 / s}" fill="none" stroke="#fff" stroke-width="1.2" vector-effect="non-scaling-stroke"/>`;
     } else if (it.type === 'line'){
       out += `<polyline points="${it.points.map(p => p.join(' ')).join(' ')}" ${selStroke}/>`;
       for (const p of it.points) out += handle(p[0], p[1], true);
@@ -1199,6 +1239,16 @@ function overlaySVG(){
       out += `<path d="M${(a[0] + b[0]) / 2 - 2.5 / s} ${(a[1] + b[1]) / 2}h${5 / s}M${(a[0] + b[0]) / 2} ${(a[1] + b[1]) / 2 - 2.5 / s}v${5 / s}" stroke="#e07b1a" stroke-width="1.2" vector-effect="non-scaling-stroke"/>`;
     }
     P.forEach((p, i) => { out += `<rect x="${p[0] - 6 / s}" y="${p[1] - 6 / s}" width="${12 / s}" height="${12 / s}" fill="${i === gSelV ? '#e07b1a' : '#fff'}" stroke="#e07b1a" stroke-width="2" vector-effect="non-scaling-stroke"/>`; });
+  }
+  // candidats de la détection automatique
+  if (tool.mode === 'detect' && detect){
+    for (const p of detect.pools){
+      out += `<g transform="translate(${p.cx} ${p.cy}) rotate(${p.rot})" opacity="${p.off ? .35 : 1}"><rect x="${-p.w / 2}" y="${-p.h / 2}" width="${p.w}" height="${p.h}" fill="rgba(79,179,227,.35)" stroke="${p.off ? '#888' : '#0a7fc0'}" stroke-width="2" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"/></g>`;
+    }
+    for (const t of detect.trees){
+      out += `<circle cx="${t.x}" cy="${t.y}" r="${t.r}" fill="${t.off ? 'rgba(120,120,120,.12)' : 'rgba(255,170,40,.18)'}" stroke="${t.off ? '#999' : '#e07b1a'}" stroke-width="1.8" stroke-dasharray="${t.off ? '2 3' : '5 3'}" vector-effect="non-scaling-stroke"/>`;
+      if (!t.off) out += `<circle cx="${t.x}" cy="${t.y}" r="${2.2 / s}" fill="#e07b1a"/>`;
+    }
   }
   // tracés en cours (linéaire, contour, mise à l'échelle)
   if (draft){
@@ -1245,6 +1295,7 @@ function updateScaleBar(){
 function zoneCorners(z){
   return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([a, b]) => { const [x, y] = rot(a * z.w / 2, b * z.h / 2, z.rot || 0); return [z.cx + x, z.cy + y]; });
 }
+function rotHandle(z){ const [x, y] = rot(0, -z.h / 2 - 26 / view.s, z.rot || 0); return [z.cx + x, z.cy + y]; }
 function inZone(z, x, y){ const [lx, ly] = rot(x - z.cx, y - z.cy, -(z.rot || 0)); return Math.abs(lx) <= z.w / 2 && Math.abs(ly) <= z.h / 2; }
 function hitTest(x, y){
   const tol = 6 / view.s;
@@ -1278,7 +1329,7 @@ function handleHit(sx, sy){
     for (let i = 0; i < P.length; i++){ const a = P[i], b = P[(i + 1) % P.length]; if (near((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)) return {kind:'gm', i}; }
   }
   const it = sel && itemById(sel); if (!it) return null;
-  if (it.type === 'zone'){ const cs = zoneCorners(it); for (let i = 0; i < 4; i++) if (near(...cs[i])) return {kind:'corner', i}; }
+  if (it.type === 'zone'){ if (near(...rotHandle(it))) return {kind:'rot'}; const cs = zoneCorners(it); for (let i = 0; i < 4; i++) if (near(...cs[i])) return {kind:'corner', i}; }
   if (it.type === 'line'){ for (let i = it.points.length - 1; i >= 0; i--) if (near(...it.points[i])) return {kind:'vertex', i}; }
   if (it.type === 'plant'){ const r = plantR(it); if (near(it.x + r * Math.SQRT1_2, it.y + r * Math.SQRT1_2)) return {kind:'radius'}; }
   return null;
@@ -1323,6 +1374,7 @@ svg.addEventListener('pointerdown', e => {
 
   if (tool.mode === 'plant'){ addPlant(tool.sid, wx, wy); return; }
   if (tool.mode === 'note'){ addNote(tool.kind, wx, wy); return; }
+  if (tool.mode === 'detect'){ toggleDetected(wx, wy); op = {type:'pan', sx, sy, vx:view.x, vy:view.y}; return; }
   if (tool.mode === 'zone'){ const x = snapv(wx), y = snapv(wy); op = {type:'zoneDraw', x0:x, y0:y, x1:x, y1:y, sx, sy}; render(); return; }
   if (tool.mode === 'line' || tool.mode === 'contour' || tool.mode === 'calib'){ lineClick(wx, wy, sx, sy, e.shiftKey); return; }
 
@@ -1381,7 +1433,12 @@ svg.addEventListener('pointermove', e => {
     }
   } else if (op.type === 'handle'){
     const o = op.orig;
-    if (op.h.kind === 'corner'){
+    if (op.h.kind === 'rot'){
+      let a = Math.atan2(wy - it.cy, wx - it.cx) * 180 / Math.PI + 90;
+      a = normRot(a);
+      const near90 = Math.round(a / 90) * 90;
+      it.rot = Math.abs(a - near90) < 3 ? near90 : Math.round(a * 2) / 2;
+    } else if (op.h.kind === 'corner'){
       const cs = zoneCorners(o), F = cs[(op.h.i + 2) % 4];
       let P = [wx, wy]; if (!(o.rot % 90) && snapOn()) P = [snapv(wx), snapv(wy)];
       const [lx, ly] = rot(P[0] - F[0], P[1] - F[1], -(o.rot || 0));
@@ -1470,6 +1527,7 @@ function finishContour(){
   const bb = bboxOf(pts); st.garden.w = r3(bb.w); st.garden.h = r3(bb.h);
   draft = null; hover = null; photoFlow = false; setTool({mode:'select'}); afterChange(true);
   toast(`Contour enregistré : ${fmt(gArea(), 0)} m²`);
+  if (existFlow && bgShown()){ existFlow = false; setTimeout(openExist, 500); }
 }
 function deleteVertex(){
   const P = gPoly(); if (gSelV == null) return;
@@ -1542,6 +1600,7 @@ function addZoneAt(kind, wx, wy){
 function setSel(id){ sel = id; render(); renderInspector(); if (id && isMobile()) openSheet('inspector'); }
 function setTool(t){
   tool = t; draft = null; hover = null; editContour = false; gSelV = null;
+  if (t.mode !== 'detect') detect = null;
   if (t.mode !== 'calib') photoFlow = photoFlow && t.mode === 'contour';
   stage.className = 'tool-' + t.mode;
   renderToolChip(); renderPalette();
@@ -1562,6 +1621,12 @@ function renderToolChip(){
     const n = draft ? draft.points.length : 0;
     h = `<div class="chip"><b>Mise à l'échelle</b> <span style="color:var(--mute)">— ${n ? 'touchez le 2e point' : 'touchez les deux extrémités d’une distance connue (longueur de la maison, d’une clôture…)'}</span>` +
         `${photoFlow ? '<button class="btn" data-act="calib-skip">Passer</button>' : ''}<button class="btn" data-act="tool-off">✕</button></div>`;
+  } else if (tool.mode === 'detect' && detect){
+    const nt = detect.trees.filter(t => !t.off).length, np = detect.pools.filter(t => !t.off).length;
+    h = `<div class="chip" style="flex-wrap:wrap;border-radius:16px"><b>Détection</b> <span>${nt} arbre${nt > 1 ? 's' : ''}/arbuste${nt > 1 ? 's' : ''} · ${np} piscine${np > 1 ? 's' : ''}</span>` +
+        `<label style="display:flex;align-items:center;gap:6px;color:var(--mute)">Sensibilité <input type="range" min="1" max="5" step="1" value="${detect.level}" data-act="det-level" style="width:90px;accent-color:var(--acc)"></label>` +
+        `<span class="hide-m" style="color:var(--mute)">touchez un élément pour l’écarter</span>` +
+        `<button class="btn primary" data-act="det-ok">Ajouter au plan</button><button class="btn" data-act="tool-off">Annuler</button></div>`;
   } else if (editContour){
     h = `<div class="chip"><b>Contour</b> <span style="color:var(--mute)">— glissez les angles ; tirez un ⊕ pour ajouter un angle${gSelV != null ? '' : ' ; touchez un angle pour le sélectionner'}</span>` +
         `${gSelV != null ? '<button class="btn danger" data-act="gv-del">Supprimer cet angle</button>' : ''}<button class="btn primary" data-act="contour-done">Terminé</button></div>`;
@@ -1570,6 +1635,8 @@ function renderToolChip(){
 }
 $('#toolChip').addEventListener('click', e => {
   const a = e.target.closest('[data-act]'); if (!a) return;
+  if (a.dataset.act === 'det-level') return;
+  if (a.dataset.act === 'det-ok'){ applyDetected(); return; }
   if (a.dataset.act === 'tool-off') setTool({mode:'select'}), render();
   if (a.dataset.act === 'line-done') finishDraft();
   if (a.dataset.act === 'calib-skip'){ setTool({mode:'contour'}); photoFlow = false; render(); }
@@ -1590,6 +1657,7 @@ document.addEventListener('keydown', e => {
   if (e.key === ' '){ spaceDown = true; return; }
   if (e.key === 'Escape'){ if (draft) { draft = null; hover = null; } setTool({mode:'select'}); if (sel) setSel(null); else render(); closeModals(); return; }
   if (e.key === 'Enter' && draft){ finishDraft(); return; }
+  if ((e.key === 'r' || e.key === 'R') && !mod && sel){ const it = itemById(sel); if (it && it.type === 'zone'){ pushHistory(); it.rot = normRot((it.rot || 0) + (e.shiftKey ? -15 : 15)); afterChange(); } return; }
   if ((e.key === 'Delete' || e.key === 'Backspace') && editContour && gSelV != null){ e.preventDefault(); deleteVertex(); return; }
   if ((e.key === 'Delete' || e.key === 'Backspace') && sel){ e.preventDefault(); deleteSel(); return; }
   if (sel && e.key.startsWith('Arrow')){
@@ -1735,7 +1803,7 @@ function renderInspector(){
       h += `<div class="row"><label>Rotation</label><div class="pair"><input type="number" step="0.5" data-g="rot" value="${b.rot || 0}"><span style="align-self:center">°</span></div></div>`;
       h += `<p class="note">Échelle : image de ${fmt(b.iw * b.mpp)} × ${fmt(b.ih * b.mpp)} m (1 m = ${fmt(1 / b.mpp, 1)} px).</p>`;
       h += `<label class="chk"><input type="checkbox" data-g="unlocked"${b.locked === false ? ' checked' : ''}> Déplacer le fond en le faisant glisser</label>`;
-      h += `<div class="acts"><button class="btn" data-act="bg-calib">📏 Mettre à l'échelle</button><button class="btn" data-act="bg-import">Remplacer</button><button class="btn danger" data-act="bg-remove">Retirer</button></div>`;
+      h += `<div class="acts"><button class="btn primary" data-act="exist">🔍 Repérer l'existant</button><button class="btn" data-act="bg-calib">📏 Mettre à l'échelle</button><button class="btn" data-act="bg-import">Remplacer</button><button class="btn danger" data-act="bg-remove">Retirer</button></div>`;
     }
     h += `<h4>Aide</h4><p class="note">Choisissez un végétal ou un aménagement à gauche, puis cliquez sur le plan (ou faites-le glisser directement).</p>`;
     h += `<div class="kbd hide-m"><kbd>Suppr</kbd> effacer · <kbd>Ctrl</kbd>+<kbd>D</kbd> dupliquer · flèches : déplacer (<kbd>Maj</kbd> = 1 m) · <kbd>Maj</kbd> en traçant : angles à 45° · <kbd>Entrée</kbd> ou double-clic : terminer un tracé · molette / pincement : zoom · glisser le fond : se déplacer</div>`;
@@ -1763,7 +1831,9 @@ function renderInspector(){
     h += `<div class="row"><label>Type</label><select data-f="kind">${Object.entries(ZONES).map(([kk, z]) => `<option value="${kk}"${kk === it.kind ? ' selected' : ''}>${z.label}</option>`).join('')}</select></div>`;
     h += `<div class="row"><label>Nom</label><input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(k.label)}"></div>`;
     h += `<div class="row"><label>Dimensions</label><div class="pair"><input type="number" step="0.1" min="0.2" data-f="w" value="${it.w}"><input type="number" step="0.1" min="0.2" data-f="h" value="${it.h}"></div></div>`;
-    h += `<div class="row"><label>Rotation</label><div class="pair"><input type="number" step="5" data-f="rot" value="${it.rot || 0}"><span style="align-self:center">°</span></div></div>`;
+    h += `<div class="row"><label>Orientation</label><div class="pair"><input type="number" step="1" data-f="rot" value="${it.rot || 0}"><span style="align-self:center">°</span></div></div>`;
+    h += `<div class="acts" style="margin-top:0"><button class="btn" data-rot="-15">↺ 15°</button><button class="btn" data-rot="15">↻ 15°</button><button class="btn" data-rot="90">↻ 90°</button><button class="btn" data-rot="0">Droit</button></div>`;
+    h += `<p class="note">Ou faites glisser la poignée ronde bleue au-dessus de la forme (touche <kbd>R</kbd> : +15°).</p>`;
     h += `<p class="note">Surface : <b>${fmt(it.w * it.h, 1)} m²</b> · périmètre ${fmt(2 * (it.w + it.h))} m</p>`;
     h += `<div class="row"><label>Notes</label><input type="text" data-f="note" value="${esc(it.note || '')}"></div>`;
   } else if (it.type === 'line'){
@@ -1818,6 +1888,9 @@ $('#selPanel').addEventListener('change', e => {
   editing = false; renderInspector();
 });
 $('#selPanel').addEventListener('click', e => {
+  const rb = e.target.closest('[data-rot]');
+  if (rb){ const it = itemById(sel); if (!it || it.type !== 'zone') return; pushHistory(); const v = +rb.dataset.rot;
+    it.rot = v === 0 ? 0 : normRot((it.rot || 0) + v); afterChange(); return; }
   const sh = e.target.closest('[data-shape]');
   if (sh){
     if (sh.dataset.shape === 'free' && !isFree()) startEditContour();
@@ -1834,6 +1907,7 @@ $('#selPanel').addEventListener('click', e => {
   if (a.dataset.act === 'contour-done'){ editContour = false; gSelV = null; render(); renderToolChip(); renderInspector(); }
   if (a.dataset.act === 'draw-contour'){ setTool({mode:'contour'}); render(); if (isMobile()) closeSheets(); toast('Touchez chaque angle du terrain'); }
   if (a.dataset.act === 'bg-import'){ $('#bgFile').dataset.flow = 'add'; $('#bgFile').click(); }
+  if (a.dataset.act === 'exist'){ openExist(); return; }
   if (a.dataset.act === 'bg-calib'){ st.bg.visible = true; photoFlow = false; setTool({mode:'calib'}); render(); if (isMobile()) closeSheets(); }
   if (a.dataset.act === 'bg-remove') confirmBox('Retirer l’image de fond ?', () => { pushHistory(); st.bg = null; if (noContour()) delete st.garden.hidden; afterChange(true); });
   if (a.dataset.act === 'del') deleteSel();
@@ -1936,11 +2010,137 @@ function loadBgFile(file, isNew){
                   : {x:r3((bb.x0 + bb.x1) / 2 - c.width * mpp / 2), y:r3((bb.y0 + bb.y1) / 2 - c.height * mpp / 2), mpp, iw:c.width, ih:c.height, rot:0, opacity:.85, visible:true, locked:true};
     closeModals(); afterChange(true);
     fit(isNew ? bgBBox() : undefined);
-    photoFlow = isNew; setTool({mode:'calib'}); photoFlow = isNew; renderToolChip(); render();
+    photoFlow = isNew; existFlow = isNew; setTool({mode:'calib'}); photoFlow = isNew; renderToolChip(); render();
     if (isMobile()) closeSheets();
   };
   img.onerror = () => { URL.revokeObjectURL(url); toast('Cette image n’a pas pu être lue (essayez un JPEG ou un PNG)'); };
   img.src = url;
+}
+
+/* ============================================================
+   Relevé de l'existant sur la photo aérienne
+   ============================================================ */
+function openExist(){
+  if (!bgSrc || !st.bg){ toast('Importez d’abord une photo aérienne'); return; }
+  st.bg.visible = true; if ((st.bg.opacity ?? 1) < .7) st.bg.opacity = .9;
+  closeSheets(); openModal('exModal');
+}
+$('#exModal').addEventListener('click', e => {
+  const b = e.target.closest('[data-ex]'); if (!b) return;
+  const v = b.dataset.ex; closeModals(); setSel(null);
+  if (v === 'auto'){ runDetection(3); return; }
+  const [kind, id] = v.split(':');
+  if (kind === 'zone') setTool({mode:'zone', kind:id});
+  else if (kind === 'line') setTool({mode:'line', kind:id});
+  else if (kind === 'plant'){ const sp = st.species.find(x => x.name === id); if (sp) setTool({mode:'plant', sid:sp.id}); }
+  render(); if (isMobile()) closeSheets();
+});
+function loadBgImage(){
+  return new Promise((ok, ko) => { const im = new Image(); im.onload = () => ok(im); im.onerror = ko; im.src = bgURL || bgSrc; });
+}
+async function runDetection(level){
+  let im; try { im = await loadBgImage(); } catch(e){ toast('Photo illisible'); return; }
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const ctx = c.getContext('2d', {willReadFrequently:true}); ctx.drawImage(im, 0, 0);
+  let data; try { data = ctx.getImageData(0, 0, c.width, c.height).data; } catch(e){ toast('Impossible d’analyser cette image'); return; }
+  const res = detectOnImage(data, c.width, c.height, level);
+  detect = Object.assign(res, {level, img:{data, w:c.width, h:c.height}});
+  tool = {mode:'detect'}; stage.className = 'tool-detect'; draft = null; editContour = false;
+  renderToolChip(); render();
+  if (!res.trees.length && !res.pools.length) toast('Rien de détecté : essayez une sensibilité plus forte, ou placez les éléments à la main');
+}
+// analyse : végétation (indice de vert, couronnes sombres) et eau (bleu-cyan) sur une grille au sol
+function detectOnImage(data, iw, ih, level){
+  const b = st.bg, wImg = b.iw * b.mpp, hImg = b.ih * b.mpp, bcx = b.x + wImg / 2, bcy = b.y + hImg / 2;
+  const kx = iw / b.iw, ky = ih / b.ih;
+  const P = noContour() ? null : gPoly();
+  const bb = P ? bboxOf(P) : bgBBox();
+  const cell = Math.max(.2, Math.sqrt(bb.w * bb.h / 160000), b.mpp * .9);
+  const nx = Math.ceil(bb.w / cell), ny = Math.ceil(bb.h / cell), N = nx * ny;
+  const veg = new Uint8Array(N), water = new Uint8Array(N), inside = new Uint8Array(N);
+  const exgT = [28, 20, 13, 8, 4][level - 1], lumT = [105, 118, 132, 148, 165][level - 1];
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){
+    const wx = bb.x0 + (i + .5) * cell, wy = bb.y0 + (j + .5) * cell, k = j * nx + i;
+    if (P && !inPoly(P, wx, wy)) continue;
+    const [lx, ly] = rot(wx - bcx, wy - bcy, -(b.rot || 0));
+    const px = Math.floor((lx + wImg / 2) / b.mpp * kx), py = Math.floor((ly + hImg / 2) / b.mpp * ky);
+    if (px < 0 || py < 0 || px >= iw || py >= ih) continue;
+    inside[k] = 1;
+    const o = (py * iw + px) * 4, r = data[o], g = data[o + 1], bl = data[o + 2], lum = (r + g + bl) / 3;
+    if (2 * g - r - bl > exgT && lum < lumT && g > bl - 5) veg[k] = 1;
+    if (bl - r > 45 && g - r > 15 && bl > 110) water[k] = 1;
+  }
+  // nettoyage (filtre majoritaire 3 × 3)
+  const smooth = m => { const o = new Uint8Array(N); for (let j = 1; j < ny - 1; j++) for (let i = 1; i < nx - 1; i++){ let n = 0; for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) n += m[(j + dj) * nx + i + di]; o[j * nx + i] = n >= 5 ? 1 : 0; } return o; };
+  const V = smooth(veg), W = smooth(water);
+  // transformée de distance (chanfrein 3-4) sur la végétation
+  const D = new Float32Array(N); const INF = 1e9;
+  for (let k = 0; k < N; k++) D[k] = V[k] ? INF : 0;
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){ const k = j * nx + i; if (!D[k]) continue; let v = D[k];
+    if (i > 0) v = Math.min(v, D[k - 1] + 3); if (j > 0){ v = Math.min(v, D[k - nx] + 3); if (i > 0) v = Math.min(v, D[k - nx - 1] + 4); if (i < nx - 1) v = Math.min(v, D[k - nx + 1] + 4); } D[k] = v; }
+  for (let j = ny - 1; j >= 0; j--) for (let i = nx - 1; i >= 0; i--){ const k = j * nx + i; if (!D[k]) continue; let v = D[k];
+    if (i < nx - 1) v = Math.min(v, D[k + 1] + 3); if (j < ny - 1){ v = Math.min(v, D[k + nx] + 3); if (i < nx - 1) v = Math.min(v, D[k + nx + 1] + 4); if (i > 0) v = Math.min(v, D[k + nx - 1] + 4); } D[k] = v; }
+  // couronnes : maxima locaux, du plus grand au plus petit
+  const cand = [];
+  const minR = .55;
+  for (let j = 1; j < ny - 1; j++) for (let i = 1; i < nx - 1; i++){
+    const k = j * nx + i, d = D[k]; if (!d) continue;
+    const r = d / 3 * cell; if (r < minR) continue;
+    let mx = true; for (let dj = -1; dj <= 1 && mx; dj++) for (let di = -1; di <= 1; di++) if (D[(j + dj) * nx + i + di] > d){ mx = false; break; }
+    if (mx) cand.push({x:bb.x0 + (i + .5) * cell, y:bb.y0 + (j + .5) * cell, r:r + cell * .5});
+  }
+  cand.sort((a, b2) => b2.r - a.r);
+  const trees = [];
+  for (const c2 of cand){
+    if (trees.some(t => Math.hypot(t.x - c2.x, t.y - c2.y) < Math.max(t.r * .85, c2.r))) continue;
+    trees.push({x:r3(c2.x), y:r3(c2.y), r:r3(Math.min(c2.r, 12))});
+    if (trees.length >= 500) break;
+  }
+  // piscines : zones bleues connexes, rectangle orienté (axes principaux)
+  const pools = [], seen = new Uint8Array(N);
+  for (let k0 = 0; k0 < N; k0++){
+    if (!W[k0] || seen[k0]) continue;
+    const q = [k0], pts = []; seen[k0] = 1;
+    while (q.length){ const k = q.pop(); const i = k % nx, j = (k - i) / nx; pts.push([bb.x0 + (i + .5) * cell, bb.y0 + (j + .5) * cell]);
+      for (const kk of [k - 1, k + 1, k - nx, k + nx]) if (kk >= 0 && kk < N && W[kk] && !seen[kk] && Math.abs((kk % nx) - i) <= 1){ seen[kk] = 1; q.push(kk); } }
+    const area = pts.length * cell * cell; if (area < 5 || area > 400) continue;
+    let mx = 0, my = 0; for (const [x, y] of pts){ mx += x; my += y; } mx /= pts.length; my /= pts.length;
+    let sxx = 0, syy = 0, sxy = 0; for (const [x, y] of pts){ sxx += (x - mx) ** 2; syy += (y - my) ** 2; sxy += (x - mx) * (y - my); }
+    const ang = .5 * Math.atan2(2 * sxy, sxx - syy);
+    let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+    for (const [x, y] of pts){ const [u, v] = rot(x - mx, y - my, -ang * 180 / Math.PI); u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v); }
+    const w = u1 - u0 + cell, h = v1 - v0 + cell, [ox, oy] = rot((u0 + u1) / 2, (v0 + v1) / 2, ang * 180 / Math.PI);
+    if (area / (w * h) < .55) continue;                // forme trop irrégulière pour une piscine
+    pools.push({cx:r3(mx + ox), cy:r3(my + oy), w:r3(w), h:r3(h), rot:r3(ang * 180 / Math.PI)});
+  }
+  // pas d'arbres dans l'eau
+  return {trees:trees.filter(t => !pools.some(p => inZone({cx:p.cx, cy:p.cy, w:p.w, h:p.h, rot:p.rot}, t.x, t.y))), pools};
+}
+function toggleDetected(wx, wy){
+  if (!detect) return;
+  for (const p of detect.pools) if (inZone(p, wx, wy)){ p.off = !p.off; render(); renderToolChip(); return; }
+  let best = null, bd = Infinity;
+  for (const t of detect.trees){ const d = Math.hypot(t.x - wx, t.y - wy); if (d <= Math.max(t.r, 8 / view.s) && t.r < bd){ best = t; bd = t.r; } }
+  if (best){ best.off = !best.off; render(); renderToolChip(); }
+}
+$('#toolChip').addEventListener('change', e => {
+  if (e.target.dataset.act !== 'det-level' || !detect) return;
+  const lv = +e.target.value, im = detect.img;
+  detect = Object.assign(detectOnImage(im.data, im.w, im.h, lv), {level:lv, img:im}); renderToolChip(); render();
+});
+function applyDetected(){
+  if (!detect) return;
+  const trees = detect.trees.filter(t => !t.off), pools = detect.pools.filter(t => !t.off);
+  if (!trees.length && !pools.length){ setTool({mode:'select'}); render(); return; }
+  pushHistory();
+  const tree = st.species.find(x => x.name === 'Arbre existant'), shrub = st.species.find(x => x.name === 'Arbuste existant');
+  for (const p of pools) st.items.push({id:uid(), type:'zone', kind:'piscine', cx:p.cx, cy:p.cy, w:p.w, h:p.h, rot:p.rot, label:''});
+  for (const t of trees){
+    const sp = t.r < 1.1 && shrub ? shrub : tree; if (!sp) continue;
+    st.items.push({id:uid(), type:'plant', sid:sp.id, x:t.x, y:t.y, d:r3(Math.round(t.r * 2 / st.prefs.growth * 10) / 10), note:'détecté sur la photo'});
+  }
+  setTool({mode:'select'}); afterChange(true);
+  toast(`${trees.length} végétaux et ${pools.length} piscine${pools.length > 1 ? 's' : ''} ajoutés — touchez-en un pour préciser l’espèce`);
 }
 
 /* Feuilles mobiles */
