@@ -2,6 +2,8 @@
 
 Petites applications web, simples et accessibles à tous. Chaque application tient dans un seul fichier `index.html` et fonctionne directement dans le navigateur, sur ordinateur comme sur téléphone.
 
+La page d'accueil ([`index.html`](index.html)) présente toutes les applications, avec un lien vers chacune.
+
 | Application | Dossier | Description |
 |---|---|---|
 | Mon cahier du CP | [`cahier-du-cp/`](cahier-du-cp/) | Lecture, écriture et calcul pour les enfants de CP. |
