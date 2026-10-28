@@ -9,13 +9,13 @@ L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à to
 **Lecture et écriture**
 - **Lecture** : retrouver le mot qui correspond à une image, ou écouter un mot et le retrouver.
 - **Écriture** : reconnaître un mot en écriture attachée (cursive) ou en écriture bâton.
-- **Mots à compléter** : retrouver la ou les lettres manquantes d'un mot.
+- **Mots à compléter** : retrouver la ou les lettres manquantes d'un mot, avec des sons comme ou, on, ch ou oi aux niveaux avancés.
 - **Phrases** : remettre des étiquettes dans l'ordre pour construire une phrase, avec la majuscule au début et le point à la fin. Chaque étiquette touchée est lue à voix haute.
 
 **Mathématiques**
 - **Additions** et **soustractions** : de 0 à 5 jusqu'à 99, avec le passage de la dizaine aux niveaux avancés.
 - **Compléments** : 7 + ? = 10, puis jusqu'à 20 et 100.
-- **Problèmes** : petites histoires de la vie courante (donner des pommes, la monnaie rendue par la marchande, des boîtes qui contiennent le même nombre d'objets), lues à voix haute sur demande.
+- **Problèmes** : petites histoires de la vie courante (donner des pommes, la monnaie rendue par la marchande, des boîtes qui contiennent le même nombre d'objets), lues lentement, phrase par phrase, avec des pauses. Aux niveaux avancés, certaines demandent deux étapes et d'autres un partage équitable.
 - **Compter** : dénombrer des objets à l'écran.
 - **Doubles et moitiés** : doubles, moitiés, groupes égaux, puis les tables de 2, 3, 4, 5 et 10 aux derniers niveaux seulement.
 - **Maths mélangées** : un défi qui combine additions, soustractions, compléments et doubles.
@@ -23,7 +23,7 @@ L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à to
 **Jeux**
 - **Memory** : associer chaque image à son mot.
 - **Suites** : trouver ce qui vient ensuite dans une suite d'images ou de nombres.
-- **Morpion** : jouer contre l'ordinateur.
+- **Morpion** : jouer contre l'ordinateur, qui devient plus fort avec le niveau. À partir du niveau 4, le premier joueur est tiré au hasard.
 - **Intrus** : trouver l'élément qui n'est pas comme les autres.
 
 ## Lien avec le programme de CP
@@ -35,8 +35,8 @@ L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à to
 | Encoder et orthographier des mots | Lettres manquantes dans un mot | Partiel |
 | Phrase : majuscule, ponctuation, ordre des mots | Reconstruction de phrases avec étiquettes | Couvert en partie |
 | Nombres jusqu'à 100 | Additions et soustractions jusqu'à 99, compter par dizaines et unités | Couvert en partie |
-| Problèmes additifs en une ou deux étapes | Problèmes en une étape | Partiel |
-| Problèmes multiplicatifs en une étape (nombres jusqu'à 30, sans les signes × et :) | Problèmes de boîtes à contenu égal, mais certains dépassent 30 | À ajuster |
+| Problèmes additifs en une ou deux étapes | Problèmes en une étape, puis en deux étapes aux derniers niveaux | Couvert en partie |
+| Problèmes multiplicatifs en une étape (nombres jusqu'à 30, sans les signes × et :) | Problèmes de boîtes à contenu égal, boîtes et partages, avec des nombres jusqu'à 30 | Couvert en partie |
 | Compléments à 10, doubles, moitiés | Activités « Compléments » et « Doubles et moitiés » | Couvert |
 | Tables de multiplication | Tables de 2, 3, 4, 5 et 10 aux derniers niveaux | Au-delà du programme de CP |
 
@@ -50,9 +50,14 @@ Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de mul
 - Une série compte 10 questions. Les étoiles (1 à 3) dépendent des bonnes réponses du premier coup.
 - Le niveau s'adapte aux résultats : il monte avec 9 bonnes réponses ou plus, et baisse avec 4 ou moins.
 - À partir du niveau 4 en maths, l'enfant tape la réponse sur un clavier de chiffres au lieu de choisir parmi des propositions.
-- **Mode clair ou sombre** : un bouton du menu change les couleurs (clair, pastel et coloré par défaut).
-- **Consignes audio** : chaque énoncé est lu à voix haute automatiquement, et un bouton 🔊 Écouter permet de le réécouter. « Essaie encore » est aussi dit en cas d’erreur ; une bonne réponse est signalée par un son, sans message. La configuration permet de couper la lecture automatique.
-- Un son distingue les bonnes et les mauvaises réponses, et un petit son accompagne chaque bouton.
+
+## Confort et audio
+
+- **Consignes orales** : chaque exercice annonce sa consigne à voix haute, pour les enfants qui ne lisent pas encore, par exemple « Trouve le mot qui correspond à l'image » ou « Complète la suite ». Le mot à trouver n'est jamais dit dans la consigne.
+- **Bouton 🔊 Écouter** : selon l'exercice, il redit le mot à trouver (Lecture, Écriture, Mots à compléter) ou la consigne (Compléments, Intrus, Doubles et moitiés). Il n'y en a pas dans Additions, Soustractions, Phrases, Compter et Suites.
+- **Retours** : une bonne réponse est signalée par un son seul, sans message. « Essaie encore » est dit et écrit en cas d'erreur. Un petit son accompagne aussi chaque bouton.
+- **Voix** : l'application choisit la meilleure voix française de l'appareil. La qualité dépend de l'appareil : pour une voix plus naturelle, installer une voix « améliorée » ou « premium » dans les réglages du système, puis la choisir dans la configuration.
+- **Mode clair ou sombre** : un bouton du menu change les couleurs. Le mode clair, pastel et coloré, est le mode par défaut.
 
 ## Joueurs et sauvegarde
 
