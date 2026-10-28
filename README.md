@@ -6,6 +6,7 @@ Petites applications web, simples et accessibles à tous. Chaque application tie
 |---|---|---|
 | Mon cahier du CP | [`cahier-du-cp/`](cahier-du-cp/) | Lecture, écriture et calcul pour les enfants de CP. |
 | Mon jardin | [`mon-jardin/`](mon-jardin/) | Éditeur de plan de jardin à l'échelle, façon paysagiste. |
+| Lego Builder | [`lego-builder/`](lego-builder/) | Constructions Lego en 3D à monter pas à pas, pour les 8-10 ans. |
 
 ## Mon jardin
 
