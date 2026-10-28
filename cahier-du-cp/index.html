@@ -75,6 +75,7 @@ h1{font-size:2rem;margin:.2em 0 0;line-height:1.2}
 .lvb:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sh)}
 .lvb.t1{background:var(--c3)}.lvb.t2{background:var(--c4)}.lvb.t3{background:var(--c6)}
 .lvb.on{outline:4px solid var(--good);outline-offset:2px}
+:root[data-theme="light"] .lvb.on{outline:5px solid #e8336d;outline-offset:3px;box-shadow:0 0 0 2px #fff,0 8px 16px rgba(232,51,109,.6);transform:scale(1.07)}
 :root[data-theme="light"] .stars{background:#2b2d6e;color:#fff}
 .tm{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;font-weight:700;background:var(--c4);border:3px solid var(--sh);border-radius:99px;padding:4px 14px;box-shadow:0 3px 0 var(--sh)}
 .tm.low{background:var(--c6);border-color:var(--bad);color:var(--bad)}
@@ -319,7 +320,7 @@ function newP(){const n=document.getElementById('nm').value.trim().slice(0,16);i
 }catch(e){}})();
 /* choix du niveau */
 function lvl(id){PLAY={};const m=MENU.find(x=>x.id===id),c=lvS(id);if(NAR())say(m.t);
- app.innerHTML=hdr(0,'⭐ '+stars)+`<h1>${m.t}</h1><button class="card" style="background:var(--c3);width:100%;margin-top:10px" onclick="setL('${id}',${c})"><span class="e">▶️</span>Jouer au niveau ${c}<small>Le niveau monte quand tu réussis !</small></button><p class="sub" style="margin-top:22px">Ou choisis un autre niveau :</p><div class="lvgrid">`+[...Array(10)].map((_,i)=>`<button class="lvb t${i<3?1:i<7?2:3} ${i+1===c?'on':''}" onclick="setL('${id}',${i+1})">${i+1}</button>`).join('')+`</div><p class="sub">Tu peux reprendre un niveau plus facile quand tu veux.</p>`}
+ app.innerHTML=hdr(0,'⭐ '+stars)+`<h1>${m.t}</h1><button class="card" style="background:var(--c3);width:100%;margin-top:10px" onclick="setL('${id}',${c})"><span class="e">▶️</span>Jouer au niveau ${c}<small>Le niveau monte quand tu réussis !</small></button><p class="sub" style="margin-top:22px">Ou choisis un autre niveau :</p><div class="lvgrid">`+[...Array(10)].map((_,i)=>`<button class="lvb t${i<3?1:i<7?2:3} ${i+1===c?'on':''}" onclick="setL('${id}',${i+1})">${i+1}</button>`).join('')+`</div><p class="sub" style="margin-top:18px">Tu peux reprendre un niveau plus facile quand tu veux.</p>`}
 function setL(id,n){PLAY[id]=n;start(id)}
 /* problèmes */
 const HEROES=['Léa','Tom','Lola','Théo','Zoé','Nina'],NAMES=['Maman','Papa','Mamie','Papi','Lucie','Max'],ITEMS=[['pommes','🍎'],['billes','🔵'],['bonbons','🍬'],['crayons','✏️'],['fleurs','🌸'],['gâteaux','🍰'],['ballons','🎈']],BUY=[['une pomme','🍎'],['un gâteau','🍰'],['une glace','🍦'],['un livre','📖'],['un ballon','🎈']];
@@ -353,7 +354,7 @@ function genSui(){const L=lv('sui');
  return {nb:true,nr:'Complète la suite.',q:`<div class="word" style="font-size:2.2rem;line-height:1.5">${sh.join(' ')} <span class="kv">❓</span></div><p>Que vient ensuite ?</p>`,opts:shuffle(pool).map(x=>({h:x,ok:x===ans}))}}
 /* morpion */
 const WL=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]],win=(b,s)=>WL.some(l=>l.every(i=>b[i]===s));
-function startMor(){Q={id:'mor',n:0,score:0,N:10,b:Array(9).fill(''),over:false,busy:false};drawMor();if(NAR())say('À toi de jouer ! Tu es le chat.')}
+function startMor(){Q={id:'mor',n:0,score:0,N:10,b:Array(9).fill(''),over:false,busy:false};const first=lv('mor')>=4&&Math.random()<.5;if(first){Q.busy=true;drawMor('🐶 commence…');setTimeout(comp,900)}else{drawMor();if(NAR())say('À toi de jouer ! Tu es le chat.')}}
 function drawMor(msg){app.innerHTML=hdr(Q.b.filter(x=>x).length/9,'Morpion')+`<div class="q" style="background:var(--c6);min-height:0"><p>${msg||'À toi : tu es 🐱 !'}</p></div><div class="mem">`+Q.b.map((v,i)=>`<button class="mc" onclick="mor(${i})" ${v||Q.over?'disabled':''}>${v}</button>`).join('')+`</div>`}
 function mor(i){if(Q.over||Q.busy||Q.b[i])return;Q.b[i]='🐱';if(win(Q.b,'🐱'))return fin('win');if(Q.b.every(x=>x))return fin('draw');Q.busy=true;drawMor('Au tour de 🐶…');setTimeout(comp,700)}
 function comp(){const b=Q.b,L=lv('mor'),sure=Math.random()<[.3,.4,.5,.6,.7,.8,.85,.9,.95,1][L-1],f=s=>{for(const l of WL){const e=l.filter(i=>!b[i]);if(e.length===1&&l.filter(i=>b[i]===s).length===2)return e[0]}return -1};
