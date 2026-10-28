@@ -142,6 +142,50 @@ aside{background:var(--panel);overflow:auto;min-height:0;-webkit-overflow-scroll
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 14px;border-radius:999px;font-size:13px;z-index:70;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 
+.dlg.cfg{max-width:1040px;height:92vh}
+.cfg-body{flex:1;display:grid;grid-template-columns:250px 1fr;min-height:0}
+.cfg-nav{border-right:1px solid var(--line);overflow:auto;padding:8px}
+.cfg-nav button{display:flex;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:9px;cursor:pointer;gap:8px;align-items:center;font-size:13.5px}
+.cfg-nav button:hover{background:var(--acc-soft)}
+.cfg-nav button.on{background:var(--acc);color:#fff}
+.cfg-nav button .n{margin-left:auto;font-size:12px;opacity:.75}
+.cfg-nav .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.cfg-main{overflow:auto;padding:0 16px 24px;min-width:0}
+.cfg-search{position:sticky;top:0;background:var(--panel);padding:12px 0 8px;z-index:2}
+.cfg-search input{width:100%}
+.cfg-cat{font-family:Fraunces,Georgia,serif;font-size:18px;font-weight:600;margin:14px 0 8px}
+.spc{border:1px solid var(--line);border-radius:12px;background:#fff;margin:8px 0;overflow:hidden}
+.spc-h{display:flex;align-items:center;gap:10px;padding:9px 10px;cursor:pointer}
+.spc-h:hover{background:#fbfaf4}
+.spc-h b{font-size:15px}
+.spc-h small{color:var(--mute);font-size:12px}
+.spc-h .sp{flex:1}
+.spc .sw{flex:none;width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.18);display:grid;place-items:center}
+.ibtn{border:0;background:none;cursor:pointer;padding:5px 8px;border-radius:8px;color:var(--mute);font-size:13px;white-space:nowrap}
+.ibtn:hover{background:var(--acc-soft);color:var(--ink)}
+.vars{border-top:1px solid #f0ebde;padding:4px 10px 8px 42px}
+.var{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed #efe9da;font-size:13.5px}
+.var:last-child{border-bottom:0}
+.var i{flex:1}
+.var i.none{color:var(--mute);font-style:normal;font-size:12.5px}
+.var small{color:var(--mute);font-size:12px;white-space:nowrap}
+.var .ac{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.cfgf{border:2px solid var(--acc);border-radius:14px;background:#fff;padding:12px 14px;margin:6px 0 12px}
+.cfgf h3{margin:0 0 8px;font-size:15.5px;font-family:Fraunces,Georgia,serif;font-weight:600}
+.cfgf .row{grid-template-columns:150px 1fr}
+.pvar{padding-left:24px}
+.pvar .sw{width:16px;height:16px}
+.pgrp{display:flex;align-items:baseline;gap:6px;padding:7px 6px 2px;font-size:13.5px}
+.pgrp small{color:var(--mute);font-size:11.5px}
+i.vn{font-style:italic;color:var(--mute);font-size:.88em}
+.pitem.on i.vn{color:#e8f0e2}
+@media (max-width: 860px){
+  .cfg-body{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .cfg-nav{border-right:0;border-bottom:1px solid var(--line);display:flex;gap:4px;overflow-x:auto;padding:6px}
+  .cfg-nav button{width:auto;white-space:nowrap;flex:none}
+  .cfgf .row{grid-template-columns:110px 1fr}
+  .vars{padding-left:12px}
+}
 #home{display:none;flex:1;overflow:auto;background:var(--bg);-webkit-overflow-scrolling:touch}
 body.at-home #home{display:block}
 body.at-home > header.top, body.at-home > main{display:none}
@@ -205,7 +249,8 @@ body.at-home #ioModal .exp{display:none}
       Mon jardin
     </div>
     <div class="spacer"></div>
-    <button class="btn" id="homeImport">⇪ Importer un plan</button>
+    <button class="btn" id="homeConfig">⚙ <span class="hide-m">Palette végétale</span></button>
+    <button class="btn" id="homeImport">⇪ <span class="hide-m">Importer un plan</span></button>
   </div>
   <div class="home-body">
     <h1>Mes plans de jardin</h1>
@@ -237,7 +282,7 @@ body.at-home #ioModal .exp{display:none}
   <div class="spacer"></div>
   <button class="btn icon" id="undoBtn" title="Annuler (Ctrl+Z)">↶</button>
   <button class="btn icon" id="redoBtn" title="Rétablir (Ctrl+Maj+Z)">↷</button>
-  <button class="btn" id="speciesBtn">🌿 <span class="hide-m hide-l">Espèces</span></button>
+  <button class="btn" id="speciesBtn" title="Palette végétale (tous les plans)">⚙ <span class="hide-m hide-l">Palette</span></button>
   <button class="btn" id="ioBtn">⇩ <span class="hide-m hide-l">Fichier</span></button>
 </header>
 
@@ -277,29 +322,20 @@ body.at-home #ioModal .exp{display:none}
   </aside>
 </main>
 
-<!-- Espèces -->
-<div class="modal" id="spModal">
-  <div class="dlg">
-    <header><h2>Espèces et variétés</h2><button class="btn" data-close>Fermer</button></header>
-    <div class="body">
-      <div class="sp-wrap">
-        <div class="sp-list"><table class="sp-table" id="spTable"></table></div>
-        <form class="sp-form" id="spForm" autocomplete="off">
-          <h3 id="spFormTitle">Nouvelle espèce</h3>
-          <input type="hidden" name="id">
-          <div class="row"><label>Catégorie</label><select name="cat"></select></div>
-          <div class="row"><label>Espèce</label><input name="name" type="text" required placeholder="ex. Pommier"></div>
-          <div class="row"><label>Variété</label><input name="variety" type="text" placeholder="ex. Belle de Boskoop"></div>
-          <div class="row"><label>Envergure adulte</label><div class="pair"><input name="d" type="number" min="0.1" max="60" step="0.1" required> <span style="align-self:center">m</span></div></div>
-          <div class="row"><label>Hauteur adulte</label><div class="pair"><input name="h" type="number" min="0.1" max="80" step="0.1" required> <span style="align-self:center">m</span></div></div>
-          <div class="row"><label>Feuillage</label><input name="color" type="color"></div>
-          <div class="row"><label>Fruits / fleurs</label><div class="pair"><input name="accent" type="color"> <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" name="noAccent"> aucun</label></div></div>
-          <p class="note">L'envergure (diamètre de la couronne à l'âge adulte) fixe la taille dessinée sur le plan, à l'échelle.</p>
-          <div class="acts">
-            <button class="btn primary" type="submit" id="spSave">Ajouter</button>
-            <button class="btn" type="button" id="spReset">Vider</button>
-          </div>
-        </form>
+<!-- Palette végétale (configuration) -->
+<div class="modal" id="cfgModal">
+  <div class="dlg cfg">
+    <header>
+      <div style="flex:1;min-width:0"><h2>Palette végétale</h2><small style="color:var(--mute)">Commune à tous vos plans · espèces et variétés</small></div>
+      <button class="btn primary" data-cfg="newsp">＋ <span class="hide-m">Nouvelle espèce</span></button>
+      <button class="btn" data-close>Fermer</button>
+    </header>
+    <div class="cfg-body">
+      <nav class="cfg-nav" id="cfgNav"></nav>
+      <div class="cfg-main">
+        <div class="cfg-search"><input id="cfgSearch" type="text" placeholder="Rechercher une espèce ou une variété…" autocomplete="off"></div>
+        <div id="cfgForm"></div>
+        <div id="cfgList"></div>
       </div>
     </div>
   </div>
@@ -333,7 +369,7 @@ body.at-home #ioModal .exp{display:none}
 </div>
 
 <!-- Confirmation -->
-<div class="modal" id="cfModal">
+<div class="modal" id="cfModal" style="z-index:60">
   <div class="dlg" style="max-width:420px">
     <div class="body"><p id="cfMsg" style="margin:4px 0 14px"></p>
       <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfNo">Annuler</button><button class="btn primary" id="cfYes">Confirmer</button></div>
@@ -435,9 +471,11 @@ body.at-home #ioModal .exp{display:none}
    Données de référence
    ============================================================ */
 const CATS = {
-  fruitier:  {label:'Arbres fruitiers', color:'#6fa84a', tree:true},
+  noyau:     {label:'Arbres fruitiers à noyau', color:'#72a84c', tree:true},
+  pepin:     {label:'Arbres fruitiers à pépins', color:'#6fa84a', tree:true},
+  coque:     {label:'Arbres fruitiers à coque', color:'#7a8f45', tree:true},
   agrume:    {label:'Agrumes', color:'#2f6a35', tree:true},
-  coque:     {label:'Fruits à coque', color:'#7a8f45', tree:true},
+  fruitier:  {label:'Autres fruitiers', color:'#6fa84a', tree:true},
   forestier: {label:'Arbres d’ombrage, forestiers & d’ornement', color:'#3f7a3c', tree:true},
   arbuste:   {label:'Arbustes, haies & brise-vent', color:'#7bb36a'},
   grimpante: {label:'Plantes grimpantes', color:'#8bbf5a'},
@@ -445,6 +483,14 @@ const CATS = {
   potager:   {label:'Potager, aromatiques & épices', color:'#9ccc65'},
   fleur:     {label:'Fleurs & vivaces', color:'#c58fbf'}
 };
+// classement botanique des fruitiers
+const RECAT = {};
+for (const n of ['Prunier','Cerisier','Abricotier','Pêcher','Nectarinier','Hybride à noyau','Griottier','Olivier','Jujubier']) RECAT[n] = 'noyau';
+for (const n of ['Pommier','Poirier','Nashi','Cognassier','Néflier','Néflier commun','Néflier du Japon','Azérolier','Cormier']) RECAT[n] = 'pepin';
+for (const n of ['Amandier','Noyer','Noisetier','Pacanier','Châtaignier','Chêne à glands doux','Pin pignon (parasol)','Pistachier vrai','Pistachier','Anacardier']) RECAT[n] = 'coque';
+function recat(sp){ const c = RECAT[sp.name]; if (c && ['fruitier', 'coque', 'arbuste'].includes(sp.cat)) sp.cat = c; else if (!CATS[sp.cat]) sp.cat = 'fruitier'; return sp; }
+const catOrder = c => Object.keys(CATS).indexOf(c);
+const bySpecies = (a, b) => catOrder(a.cat) - catOrder(b.cat) || a.name.localeCompare(b.name, 'fr') || (a.variety || '').localeCompare(b.variety || '', 'fr');
 // [catégorie, espèce, variété, envergure adulte (m), hauteur adulte (m), feuillage, fruits/fleurs]
 const DEFAULT_SPECIES = [
   ['fruitier','Pommier','Reine des reinettes',6,6,'#6fa84a','#d9412b'],
@@ -740,7 +786,7 @@ function samplePoly(pts, step){
    État
    ============================================================ */
 function defaultSpecies(){
-  return DEFAULT_SPECIES.map((s, i) => ({id:'s' + i, cat:s[0], name:s[1], variety:s[2], d:s[3], h:s[4], color:s[5], accent:s[6]}));
+  return DEFAULT_SPECIES.map((s, i) => recat({id:'s' + i, cat:s[0], name:s[1], variety:s[2], d:s[3], h:s[4], color:s[5], accent:s[6]}));
 }
 function demoItems(sp){
   // Exemple : maison avec piscine et jardin méditerranéen sec (32 × 24 m)
@@ -788,7 +834,7 @@ function validState(s){ return s && s.garden && Array.isArray(s.species) && Arra
    Stockage : plusieurs plans nommés dans le navigateur
    ============================================================ */
 const normRot = a => { a = ((a % 360) + 360) % 360; return Math.round((a > 180 ? a - 360 : a) * 10) / 10; };
-const IDX_KEY = 'jardin-plans-v1', CATALOG_REV = 3;
+const IDX_KEY = 'jardin-plans-v1', CATALOG_REV = 4;
 const planKey = id => 'jardin-plan-' + id, bgKey = id => 'jardin-plan-bg-' + id;
 const store = (() => {
   let ok = true; try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); } catch(e){ ok = false; }
@@ -821,6 +867,48 @@ function mergeSpecies(s, list){
   let n = 0;
   for (const sp of list){ if (ids.has(sp.id) || names.has(sp.name + '|' + sp.variety)) continue; s.species.push(clone(sp)); n++; }
   return n;
+}
+/* Palette végétale commune à tous les plans */
+const CAT_KEY = 'jardin-catalog-v1';
+let catalog = {rev:0, species:[], deleted:[]};
+const spKey = x => x.name + '|' + (x.variety || '');
+function writeCatalog(){ try { store.set(CAT_KEY, JSON.stringify(catalog)); } catch(e){ toast('Mémoire du navigateur pleine'); } }
+function mergeInto(list, add){
+  const ids = new Set(list.map(x => x.id)), names = new Set(list.map(spKey)), del = new Set(catalog.deleted || []);
+  for (const x of add){
+    if (ids.has(x.id) || names.has(spKey(x)) || del.has(x.id) || del.has(spKey(x))) continue;
+    const c = recat(clone(x)); delete c.cid; list.push(c); ids.add(c.id); names.add(spKey(c));
+  }
+}
+function initCatalog(){
+  let c = null; try { c = JSON.parse(store.get(CAT_KEY)); } catch(e){}
+  if (c && Array.isArray(c.species)){ catalog = c; catalog.deleted = catalog.deleted || []; }
+  else {
+    catalog = {rev:CATALOG_REV, species:[], deleted:[]};
+    mergeInto(catalog.species, defaultSpecies());
+    for (const e of readIndex()){ const p = readPlan(e.id); if (p) mergeInto(catalog.species, p.species); }
+  }
+  if ((catalog.rev || 0) < CATALOG_REV){ catalog.species.forEach(recat); mergeInto(catalog.species, defaultSpecies()); catalog.rev = CATALOG_REV; }
+  if (window.JARDIN_PRESET) mergeInto(catalog.species, window.JARDIN_PRESET.species);
+  writeCatalog();
+}
+// aligne les espèces d'un plan sur la palette commune
+function syncPlan(s){
+  const byId = new Map(s.species.map(x => [x.cid || x.id, x])), byName = new Map(s.species.map(x => [spKey(x), x]));
+  for (const c of catalog.species){
+    const t = byId.get(c.id) || byName.get(spKey(c));
+    if (t){ Object.assign(t, {cat:c.cat, name:c.name, variety:c.variety || '', d:c.d, h:c.h, color:c.color, accent:c.accent}); if (t.id !== c.id) t.cid = c.id; }
+    else s.species.push(clone(c));
+  }
+  const cIds = new Set(catalog.species.map(x => x.id)), cNames = new Set(catalog.species.map(spKey));
+  const del = new Set(catalog.deleted || []), used = new Set(s.items.map(i => i.sid));
+  let added = false;
+  s.species = s.species.filter(x => {
+    if (cIds.has(x.cid || x.id) || cNames.has(spKey(x))) return true;
+    if (del.has(x.cid || x.id) || del.has(x.id) || del.has(spKey(x))) return used.has(x.id);
+    const c = recat(clone(x)); delete c.cid; catalog.species.push(c); added = true; return true;     // espèce venue d'un plan importé
+  });
+  if (added) writeCatalog();
 }
 function presetState(P){
   return {v:2, name:P.name, preset:P.key, presetRev:P.rev, garden:P.garden, species:P.species, items:P.items,
@@ -985,7 +1073,7 @@ function plantSVG(p, sp, o){
       g += `<path d="M0 0Q${r3(cx)} ${r3(cy)} ${r3(x2)} ${r3(y2)}Q${r3(Math.cos(a - .2) * r * .5)} ${r3(Math.sin(a - .2) * r * .5)} 0 0Z" fill="${i % 2 ? c : shade(c, .15)}" stroke="${dark2}" stroke-width=".6" vector-effect="non-scaling-stroke"/>`;
     }
     g += `<circle r="${Math.max(.08, r * .08)}" fill="#7a5a3a"/>`;
-  } else if (cat === 'fruitier' || cat === 'agrume' || cat === 'coque' || cat === 'exotique' || cat === 'forestier' || cat === 'arbuste'){
+  } else if (cat !== 'grimpante' && cat !== 'potager' && cat !== 'fleur'){
     const n = clamp(Math.round(7 + r * (cat === 'forestier' ? 1.6 : 1.2)), 7, 22);
     g += `<circle cx="${r * .13}" cy="${r * .15}" r="${r * .98}" fill="rgba(40,50,25,.16)"/>`;
     g += `<path d="${crownPath(r, n, R, cat === 'arbuste' ? .16 : .13)}" fill="url(#gr-${sp.id})" stroke="${dark}" stroke-width="1" vector-effect="non-scaling-stroke"/>`;
@@ -1167,7 +1255,7 @@ function worldSVG(o){
     for (const p of bySize){
       const sp = spById(p.sid), r = plantR(p, sp);
       if (r * s < 4) continue;
-      const name = p.label || sp.name, showVar = sp.variety && r * s >= 9;
+      const name = p.label || sp.name, showVar = sp.variety && r * s >= 6;
       const bw = Math.max(name.length * 6.6, showVar ? sp.variety.length * 5.8 : 0) / s, bh = (showVar ? 25 : 13) / s;
       const y0 = p.y + r + 11 / s;
       const bx = p.x - bw / 2, by = y0 - 10 / s;
@@ -1692,16 +1780,18 @@ function renderPalette(){
   let h = '';
   if (palTab === 'veg'){
     for (const [cat, info] of Object.entries(CATS)){
-      const list = st.species.filter(s => s.cat === cat && (!q || (s.name + ' ' + s.variety).toLowerCase().includes(q)))
-        .sort((a, b) => a.name.localeCompare(b.name, 'fr') || a.variety.localeCompare(b.variety, 'fr'));
+      const list = st.species.filter(s => s.cat === cat && (!q || (s.name + ' ' + (s.variety || '')).toLowerCase().includes(q)));
       if (!list.length) continue;
-      const folded = !q && foldedCats.has(cat);
-      h += `<div class="grp fold" data-cat="${cat}">${folded ? '▸' : '▾'} ${info.label}<span class="n">${list.length}</span></div>`;
+      const groups = speciesGroups(list), folded = !q && foldedCats.has(cat);
+      h += `<div class="grp fold" data-cat="${cat}">${folded ? '▸' : '▾'} ${info.label}<span class="n">${groups.length}</span></div>`;
       if (folded) continue;
-      for (const s of list){
-        const on = tool.mode === 'plant' && tool.sid === s.id;
-        h += `<div class="pitem${on ? ' on' : ''}" data-kind="plant" data-id="${s.id}"><span class="sw" style="background:radial-gradient(circle at 35% 35%, ${shade(s.color,.3)}, ${s.color})">${s.accent ? `<i style="width:7px;height:7px;border-radius:50%;background:${s.accent};display:block"></i>` : ''}</span>` +
-             `<span class="nm"><div>${esc(s.name)}${s.variety ? ` <small>${esc(s.variety)}</small>` : ''}</div><small>Ø ${fmt(s.d)} m · h ${fmt(s.h)} m</small></span></div>`;
+      const row = (s, cls, inner) => `<div class="pitem${cls}${tool.mode === 'plant' && tool.sid === s.id ? ' on' : ''}" data-kind="plant" data-id="${s.id}">${spSw(s)}<span class="nm">${inner}</span></div>`;
+      for (const g of groups){
+        if (g.entries.length === 1){ const s = g.entries[0]; h += row(s, '', `<div>${spHTML(s)}</div><small>Ø ${fmt(s.d)} m · h ${fmt(s.h)} m</small>`); continue; }
+        const base = g.entries.find(e => !e.variety);
+        if (base) h += row(base, '', `<div><b>${esc(g.name)}</b></div><small>Ø ${fmt(base.d)} m · h ${fmt(base.h)} m · ${g.entries.length - 1} variétés</small>`);
+        else h += `<div class="pgrp"><b>${esc(g.name)}</b><small>${g.entries.length} variétés</small></div>`;
+        for (const s of g.entries) if (s.variety) h += row(s, ' pvar', `<div><i class="vn" style="color:inherit;font-size:13.5px">${esc(s.variety)}</i></div><small>Ø ${fmt(s.d)} m · h ${fmt(s.h)} m</small>`);
       }
     }
     if (!h) h = `<p class="note" style="padding:10px">Aucune espèce ne correspond. <a href="#" data-act="new-sp">Ajouter « ${esc(q)} »</a></p>`;
@@ -1814,8 +1904,10 @@ function renderInspector(){
     h += `<p class="note">3 caractères maximum : pastille ronde (ex. « 12 », « a/b »). Au-delà : étiquette ; Entrée pour aller à la ligne.</p>`;
   } else if (it.type === 'plant'){
     const sp = spById(it.sid), r = plantR(it, sp), li = legalIssue(it);
-    h += `<h3>${esc(spLabel(sp))}</h3>`;
-    h += `<div class="row"><label>Espèce</label><select data-f="sid">${Object.entries(CATS).map(([c, info]) => `<optgroup label="${esc(info.label)}">${st.species.filter(s => s.cat === c).sort((a, b) => a.name.localeCompare(b.name, 'fr')).map(s => `<option value="${s.id}"${s.id === it.sid ? ' selected' : ''}>${esc(spLabel(s))}</option>`).join('')}</optgroup>`).join('')}</select></div>`;
+    h += `<h3>${spHTML(sp)}</h3>`;
+    const groups = speciesGroups(st.species), vars = st.species.filter(x => x.name === sp.name).sort(bySpecies);
+    h += `<div class="row"><label>Espèce</label><select data-f="spname">${Object.entries(CATS).map(([c, info]) => { const gs = groups.filter(g => g.cat === c); return gs.length ? `<optgroup label="${esc(info.label)}">${gs.map(g => `<option value="${esc(g.name)}"${g.name === sp.name ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</optgroup>` : ''; }).join('')}</select></div>`;
+    h += `<div class="row"><label>Variété</label><div class="pair"><select data-f="sid" style="flex:1;min-width:0">${vars.map(x => `<option value="${x.id}"${x.id === it.sid ? ' selected' : ''}>${x.variety ? esc(x.variety) : '— non précisée —'}</option>`).join('')}</select><button class="btn icon" data-act="addvar" title="Ajouter une variété de ${esc(sp.name)}">＋</button></div></div>`;
     h += `<div class="row"><label>Nom affiché</label><input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(sp.name)}"></div>`;
     h += `<div class="row"><label>Envergure adulte</label><div class="pair"><input type="number" step="0.1" min="0.1" data-f="d" value="${it.d ?? ''}" placeholder="${fmt(sp.d)}"><span style="align-self:center">m</span></div></div>`;
     h += `<div class="row"><label>Position</label><div class="pair"><input type="number" step="0.1" data-f="x" value="${it.x}"><input type="number" step="0.1" data-f="y" value="${it.y}"></div></div>`;
@@ -1875,6 +1967,7 @@ $('#selPanel').addEventListener('input', e => {
     it.kind = v; if (it.type === 'line'){ const k = LINES[v]; if (k.w) it.width = it.width && LINES[v].editW ? it.width : k.w; else delete it.width; }
     editing = false; afterChange(); return;
   } else if (f === 'sid'){ it.sid = v; editing = false; afterChange(); return; }
+  else if (f === 'spname'){ const c = st.species.filter(x => x.name === v).sort(bySpecies)[0]; if (c) it.sid = c.id; editing = false; afterChange(); return; }
   else it[f] = v;
   save(); render(); renderInventory();
 });
@@ -1910,6 +2003,7 @@ $('#selPanel').addEventListener('click', e => {
   if (a.dataset.act === 'exist'){ openExist(); return; }
   if (a.dataset.act === 'bg-calib'){ st.bg.visible = true; photoFlow = false; setTool({mode:'calib'}); render(); if (isMobile()) closeSheets(); }
   if (a.dataset.act === 'bg-remove') confirmBox('Retirer l’image de fond ?', () => { pushHistory(); st.bg = null; if (noContour()) delete st.garden.hidden; afterChange(true); });
+  if (a.dataset.act === 'addvar'){ const it = itemById(sel), sp = it && spById(it.sid); if (sp) openConfig({mode:'addvar', name:sp.name, assign:true}); return; }
   if (a.dataset.act === 'del') deleteSel();
   if (a.dataset.act === 'dup') duplicateSel();
   if (a.dataset.act === 'close'){ closeSheets(); setSel(null); }
@@ -1921,8 +2015,8 @@ function renderInventory(){
   if (!st.items.length){ $('#invPanel').innerHTML = h + '<p class="note">Le plan est vide.</p>'; return; }
   if (plants.length){
     const count = {}; for (const p of plants) count[p.sid] = (count[p.sid] || 0) + 1;
-    const rows = Object.entries(count).map(([sid, n]) => [spById(sid), n]).filter(x => x[0]).sort((a, b) => Object.keys(CATS).indexOf(a[0].cat) - Object.keys(CATS).indexOf(b[0].cat) || a[0].name.localeCompare(b[0].name, 'fr'));
-    h += `<table class="inv">` + rows.map(([sp, n]) => `<tr class="clk" data-sid="${sp.id}"><td><span class="dot" style="background:${sp.color}"></span>${esc(spLabel(sp))}</td><td>× ${n}</td></tr>`).join('') + `</table>`;
+    const rows = Object.entries(count).map(([sid, n]) => [spById(sid), n]).filter(x => x[0]).sort((a, b) => bySpecies(a[0], b[0]));
+    h += `<table class="inv">` + rows.map(([sp, n]) => `<tr class="clk" data-sid="${sp.id}"><td><span class="dot" style="background:${sp.color}"></span>${spHTML(sp)}</td><td>× ${n}</td></tr>`).join('') + `</table>`;
     h += `<p class="note">${plants.length} végéta${plants.length > 1 ? 'ux' : 'l'} · ${rows.length} espèce${rows.length > 1 ? 's' : ''} / variété${rows.length > 1 ? 's' : ''}</p>`;
   }
   if (zones.length){
@@ -2162,61 +2256,174 @@ function confirmBox(msg, yes){ $('#cfMsg').textContent = msg; cfYes = yes; openM
 $('#cfNo').onclick = () => $('#cfModal').classList.remove('open');
 $('#cfYes').onclick = () => { $('#cfModal').classList.remove('open'); if (cfYes) cfYes(); cfYes = null; };
 
-const spForm = $('#spForm');
-spForm.cat.innerHTML = Object.entries(CATS).map(([k, c]) => `<option value="${k}">${c.label}</option>`).join('');
-function renderSpTable(){
-  let h = '<thead><tr><th>Espèce / variété</th><th>Ø</th><th>Haut.</th><th>Plan</th><th></th></tr></thead><tbody>';
-  for (const [cat, info] of Object.entries(CATS)){
-    const list = st.species.filter(s => s.cat === cat).sort((a, b) => a.name.localeCompare(b.name, 'fr') || a.variety.localeCompare(b.variety, 'fr'));
-    if (!list.length) continue;
-    h += `<tr><td colspan="5" class="grp" style="padding-top:12px">${info.label}</td></tr>`;
-    for (const s of list){
-      const n = st.items.filter(i => i.sid === s.id).length;
-      h += `<tr><td><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:${s.color}"></span>${esc(s.name)}${s.variety ? ` <i style="color:var(--mute)">${esc(s.variety)}</i>` : ''}</td><td class="n">${fmt(s.d)} m</td><td class="n">${fmt(s.h)} m</td><td class="n">${n || ''}</td>` +
-           `<td class="ctl"><button data-a="edit" data-id="${s.id}" title="Modifier">✎</button><button data-a="var" data-id="${s.id}" title="Ajouter une variété">＋ variété</button><button data-a="del" data-id="${s.id}" title="Supprimer">🗑</button></td></tr>`;
-    }
+/* ============================================================
+   Palette végétale commune : espèces et variétés
+   ============================================================ */
+let cfgCat = 'noyau', cfgForm = null, cfgOpen = new Set();
+const spSw = sp => `<span class="sw" style="background:radial-gradient(circle at 35% 35%, ${shade(sp.color, .3)}, ${sp.color})">${sp.accent ? `<i style="width:7px;height:7px;border-radius:50%;background:${sp.accent};display:block"></i>` : ''}</span>`;
+const spHTML = sp => sp ? `<b>${esc(sp.name)}</b>${sp.variety ? ` <i class="vn">${esc(sp.variety)}</i>` : ''}` : '?';
+function speciesGroups(list){            // regroupe les entrées par espèce
+  const m = new Map();
+  for (const x of list.slice().sort(bySpecies)){ if (!m.has(x.name)) m.set(x.name, []); m.get(x.name).push(x); }
+  return [...m.entries()].map(([name, v]) => ({name, cat:v[0].cat, entries:v, base:v.find(e => !e.variety) || v[0]}));
+}
+function openConfig(form){
+  cfgForm = form || null;
+  if (form && form.name){ const e = catalog.species.find(x => x.name === form.name); if (e){ cfgCat = e.cat; cfgOpen.add(e.name); } }
+  if (form && form.cat) cfgCat = form.cat;
+  $('#cfgSearch').value = ''; renderConfig(); openModal('cfgModal');
+  if (form) setTimeout(() => { const i = $('#cfgForm input[type=text]'); if (i){ i.focus(); i.select(); } $('#cfgForm').scrollIntoView({block:'nearest'}); }, 60);
+}
+function renderConfig(){
+  const q = $('#cfgSearch').value.trim().toLowerCase();
+  let nav = '';
+  for (const [k, c] of Object.entries(CATS)){
+    const n = new Set(catalog.species.filter(x => x.cat === k).map(x => x.name)).size;
+    nav += `<button data-cat="${k}" class="${!q && k === cfgCat ? 'on' : ''}"><span class="dot" style="background:${c.color}"></span>${c.label}<span class="n">${n}</span></button>`;
   }
-  $('#spTable').innerHTML = h + '</tbody>';
+  $('#cfgNav').innerHTML = nav;
+  $('#cfgForm').innerHTML = cfgForm ? cfgFormHTML(cfgForm) : '';
+  const list = catalog.species.filter(x => q ? (x.name + ' ' + (x.variety || '')).toLowerCase().includes(q) : x.cat === cfgCat);
+  let h = '';
+  let lastCat = null;
+  for (const g of speciesGroups(list)){
+    if (q && g.cat !== lastCat){ h += `<div class="cfg-cat">${CATS[g.cat].label}</div>`; lastCat = g.cat; }
+    const vars = g.entries.filter(e => e.variety), open = q || cfgOpen.has(g.name);
+    h += `<div class="spc" data-name="${esc(g.name)}"><div class="spc-h" data-a="toggle">${spSw(g.base)}<span class="sp"><b>${esc(g.name)}</b><br><small>Ø ${fmt(g.base.d)} m · h ${fmt(g.base.h)} m · ${vars.length ? vars.length + ' variété' + (vars.length > 1 ? 's' : '') : 'aucune variété'}</small></span>` +
+         `<button class="ibtn" data-a="addvar" title="Ajouter une variété">＋<span class="hide-m"> variété</span></button><button class="ibtn" data-a="editsp" title="Modifier l’espèce">✎</button><button class="ibtn" data-a="delsp" title="Supprimer l’espèce et ses variétés">🗑</button><span style="color:var(--mute);width:14px">${open ? '▾' : '▸'}</span></div>`;
+    if (open){
+      h += `<div class="vars">`;
+      for (const e of g.entries){
+        h += `<div class="var" data-id="${e.id}">${e.variety ? `<i>${esc(e.variety)}</i>` : `<i class="none">espèce sans variété précisée</i>`}<small>Ø ${fmt(e.d)} m · h ${fmt(e.h)} m</small>${e.accent ? `<span class="ac" style="background:${e.accent}"></span>` : ''}` +
+             `<button class="ibtn" data-a="editvar" title="Modifier">✎</button><button class="ibtn" data-a="delvar" title="Supprimer">🗑</button></div>`;
+      }
+      h += `</div>`;
+    }
+    h += `</div>`;
+  }
+  if (!h) h = `<p class="note" style="margin-top:14px">${q ? 'Aucune espèce ne correspond.' : 'Aucune espèce dans cette catégorie.'} <a href="#" data-cfg="newsp">Ajouter une espèce${q ? ` « ${esc($('#cfgSearch').value.trim())} »` : ''}</a></p>`;
+  if (!q) h = `<div class="cfg-cat">${CATS[cfgCat].label}</div>` + h;
+  $('#cfgList').innerHTML = h;
 }
-function fillSpForm(s, title, btn){
-  spForm.id.value = s.id || ''; spForm.cat.value = s.cat || 'fruitier'; spForm.name.value = s.name || ''; spForm.variety.value = s.variety || '';
-  spForm.d.value = s.d ?? ''; spForm.h.value = s.h ?? ''; spForm.color.value = s.color || CATS[s.cat || 'fruitier'].color;
-  spForm.accent.value = s.accent || '#d9412b'; spForm.noAccent.checked = !s.accent && !!s.id;
-  $('#spFormTitle').textContent = title; $('#spSave').textContent = btn;
+function cfgFormHTML(f){
+  const base = f.name ? (catalog.species.find(x => x.name === f.name && !x.variety) || catalog.species.find(x => x.name === f.name)) : null;
+  const e = f.id ? catalog.species.find(x => x.id === f.id) : null;
+  const v = Object.assign({cat:cfgCat, name:'', variety:'', d:'', h:'', color:CATS[cfgCat].color, accent:''}, base || {}, e || {}, f.preset || {});
+  const num = (n, val, lab) => `<div class="row"><label>${lab}</label><div class="pair"><input name="${n}" type="number" min="0.1" step="0.1" value="${val ?? ''}" required><span style="align-self:center">m</span></div></div>`;
+  const colors = (withLeaf) => (withLeaf ? `<div class="row"><label>Couleur du feuillage</label><input name="color" type="color" value="${v.color}"></div>` : '') +
+    `<div class="row"><label>Couleur des fruits / fleurs</label><div class="pair"><input name="accent" type="color" value="${v.accent || '#d9412b'}"><label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" name="noAccent"${v.accent ? '' : ' checked'}> aucune</label></div></div>`;
+  let h = `<form class="cfgf" id="cfgF" data-mode="${f.mode}" autocomplete="off">`;
+  if (f.mode === 'newsp'){
+    h += `<h3>Nouvelle espèce</h3>
+      <div class="row"><label>Catégorie</label><select name="cat">${Object.entries(CATS).map(([k, c]) => `<option value="${k}"${k === v.cat ? ' selected' : ''}>${c.label}</option>`).join('')}</select></div>
+      <div class="row"><label>Espèce</label><input name="name" type="text" required placeholder="ex. Pommier" value="${esc(f.preset && f.preset.name || '')}"></div>
+      <div class="row"><label>Première variété</label><input name="variety" type="text" placeholder="facultatif — ex. Belle de Boskoop"></div>
+      ${num('d', '', 'Envergure adulte')}${num('h', '', 'Hauteur adulte')}${colors(true)}`;
+  } else if (f.mode === 'editsp'){
+    h += `<h3>Modifier l’espèce ${esc(f.name)}</h3>
+      <div class="row"><label>Catégorie</label><select name="cat">${Object.entries(CATS).map(([k, c]) => `<option value="${k}"${k === v.cat ? ' selected' : ''}>${c.label}</option>`).join('')}</select></div>
+      <div class="row"><label>Nom de l’espèce</label><input name="name" type="text" required value="${esc(f.name)}"></div>
+      ${num('d', v.d, 'Envergure adulte')}${num('h', v.h, 'Hauteur adulte')}
+      <div class="row"><label>Couleur du feuillage</label><input name="color" type="color" value="${v.color}"></div>
+      <label class="chk"><input type="checkbox" name="all" checked> appliquer l’envergure, la hauteur et le feuillage à toutes les variétés</label>`;
+  } else if (f.mode === 'addvar'){
+    h += `<h3>Nouvelle variété de ${esc(f.name)}</h3>
+      <div class="row"><label>Variété</label><input name="variety" type="text" required placeholder="ex. Reinette du Vigan"></div>
+      ${num('d', v.d, 'Envergure adulte')}${num('h', v.h, 'Hauteur adulte')}${colors(false)}`;
+  } else if (f.mode === 'editvar'){
+    h += `<h3>Modifier la variété</h3>
+      <div class="row"><label>Espèce</label><b style="align-self:center">${esc(v.name)}</b></div>
+      <div class="row"><label>Variété</label><input name="variety" type="text" value="${esc(v.variety || '')}" placeholder="vide = espèce sans variété précisée"></div>
+      ${num('d', v.d, 'Envergure adulte')}${num('h', v.h, 'Hauteur adulte')}${colors(false)}`;
+  }
+  h += `<p class="note">L’envergure (diamètre de la couronne adulte) fixe la taille dessinée sur le plan, à l’échelle.</p>
+    <div class="acts"><button class="btn primary" type="submit">${f.mode.startsWith('edit') ? 'Enregistrer' : 'Ajouter'}</button><button class="btn" type="button" data-cfg="cancel">Annuler</button></div></form>`;
+  return h;
 }
-function openSpecies(editId, preset){
-  renderSpTable();
-  if (editId){ const s = spById(editId); fillSpForm(s, 'Modifier', 'Enregistrer'); }
-  else fillSpForm(Object.assign({cat:palTab === 'veg' ? 'fruitier' : 'arbuste', d:'', h:''}, preset || {}), 'Nouvelle espèce', 'Ajouter');
-  openModal('spModal');
-  setTimeout(() => spForm.name.focus(), 50);
+function catCommit(msg){
+  writeCatalog();
+  if (curId){ syncPlan(st); save(); renderPalette(); render(); renderInspector(); }
+  renderConfig(); if (msg) toast(msg);
 }
-$('#speciesBtn').onclick = () => openSpecies(); $('#speciesBtn2').onclick = () => openSpecies();
-$('#spReset').onclick = () => fillSpForm({cat:spForm.cat.value}, 'Nouvelle espèce', 'Ajouter');
-spForm.cat.addEventListener('change', () => { if (!spForm.id.value) spForm.color.value = CATS[spForm.cat.value].color; });
-$('#spTable').addEventListener('click', e => {
-  const b = e.target.closest('button[data-a]'); if (!b) return; const s = spById(b.dataset.id);
-  if (b.dataset.a === 'edit') fillSpForm(s, 'Modifier', 'Enregistrer');
-  if (b.dataset.a === 'var'){ fillSpForm(Object.assign({}, s, {id:'', variety:''}), 'Nouvelle variété de ' + s.name, 'Ajouter'); spForm.variety.focus(); }
-  if (b.dataset.a === 'del'){
-    const n = st.items.filter(i => i.sid === s.id).length;
-    confirmBox(`Supprimer « ${spLabel(s)} »${n ? ` et ses ${n} plantation${n > 1 ? 's' : ''} sur le plan` : ''} ?`, () => {
-      pushHistory(); st.species = st.species.filter(x => x.id !== s.id); st.items = st.items.filter(i => i.sid !== s.id);
-      if (tool.sid === s.id) setTool({mode:'select'}); if (sel && !itemById(sel)) sel = null;
-      afterChange(true); renderSpTable(); openModal('spModal');
+$('#cfgSearch').addEventListener('input', renderConfig);
+$('#cfgModal').addEventListener('click', e => {
+  const c = e.target.closest('[data-cfg]');
+  if (c){ e.preventDefault();
+    if (c.dataset.cfg === 'newsp'){ cfgForm = {mode:'newsp', preset:{name:$('#cfgSearch').value.trim()}}; $('#cfgSearch').value = ''; renderConfig(); setTimeout(() => $('#cfgF [name=name]').focus(), 30); $('#cfgForm').scrollIntoView({block:'nearest'}); }
+    if (c.dataset.cfg === 'cancel'){ cfgForm = null; renderConfig(); }
+    return; }
+  const nb = e.target.closest('#cfgNav [data-cat]');
+  if (nb){ cfgCat = nb.dataset.cat; $('#cfgSearch').value = ''; renderConfig(); $('.cfg-main').scrollTop = 0; return; }
+  const a = e.target.closest('[data-a]'); if (!a || !a.closest('#cfgList')) return;
+  const card = a.closest('.spc'), name = card && card.dataset.name, row = a.closest('.var'), id = row && row.dataset.id;
+  const act = a.dataset.a;
+  if (act === 'toggle'){ cfgOpen.has(name) ? cfgOpen.delete(name) : cfgOpen.add(name); renderConfig(); return; }
+  if (act === 'addvar'){ cfgOpen.add(name); cfgForm = {mode:'addvar', name}; renderConfig(); setTimeout(() => $('#cfgF [name=variety]').focus(), 30); $('.cfg-main').scrollTop = 0; return; }
+  if (act === 'editsp'){ cfgForm = {mode:'editsp', name}; renderConfig(); $('.cfg-main').scrollTop = 0; return; }
+  if (act === 'editvar'){ cfgForm = {mode:'editvar', id}; renderConfig(); $('.cfg-main').scrollTop = 0; return; }
+  if (act === 'delsp' || act === 'delvar'){
+    const targets = act === 'delsp' ? catalog.species.filter(x => x.name === name) : catalog.species.filter(x => x.id === id);
+    const label = act === 'delsp' ? `l’espèce « ${name} » et ses ${targets.length} entrée${targets.length > 1 ? 's' : ''}` : `« ${spLabel(targets[0])} »`;
+    const ids = new Set(targets.map(t => t.id)), keys = new Set(targets.map(spKey));
+    const usedHere = curId ? st.items.filter(i => { const sp = spById(i.sid); return sp && (ids.has(sp.cid || sp.id) || keys.has(spKey(sp))); }).length : 0;
+    confirmBox(`Supprimer ${label} de la palette de tous vos plans ?${usedHere ? ` Les ${usedHere} plantation${usedHere > 1 ? 's' : ''} de ce plan seront retirées.` : ' Les plans qui l’utilisent déjà la conservent.'}`, () => {
+      if (curId && usedHere) pushHistory();
+      catalog.species = catalog.species.filter(x => !ids.has(x.id));
+      for (const t of targets){ catalog.deleted.push(t.id, spKey(t)); }
+      if (curId){
+        const gone = new Set(st.species.filter(sp => ids.has(sp.cid || sp.id) || keys.has(spKey(sp))).map(sp => sp.id));
+        st.items = st.items.filter(i => !gone.has(i.sid)); st.species = st.species.filter(sp => !gone.has(sp.id));
+        if (tool.sid && gone.has(tool.sid)) setTool({mode:'select'}); if (sel && !itemById(sel)) sel = null;
+      }
+      catCommit('Supprimé de la palette'); openModal('cfgModal');
     });
   }
 });
-spForm.addEventListener('submit', e => {
-  e.preventDefault();
-  const d = parseFloat(String(spForm.d.value).replace(',', '.')), h = parseFloat(String(spForm.h.value).replace(',', '.'));
-  if (!spForm.name.value.trim() || !(d > 0) || !(h > 0)){ toast('Renseignez le nom, l’envergure et la hauteur'); return; }
-  const data = {cat:spForm.cat.value, name:spForm.name.value.trim(), variety:spForm.variety.value.trim(), d:r3(d), h:r3(h), color:spForm.color.value, accent:spForm.noAccent.checked ? '' : spForm.accent.value};
-  pushHistory();
-  if (spForm.id.value){ Object.assign(spById(spForm.id.value), data); toast('Espèce mise à jour'); }
-  else { const s = Object.assign({id:'u' + uid()}, data); st.species.push(s); toast(`« ${spLabel(s)} » ajouté à la palette`); }
-  afterChange(true); renderSpTable(); fillSpForm({cat:data.cat}, 'Nouvelle espèce', 'Ajouter');
+$('#cfgModal').addEventListener('change', e => {
+  if (e.target.name === 'cat' && e.target.form && e.target.form.dataset.mode === 'newsp') e.target.form.color.value = CATS[e.target.value].color;
 });
+$('#cfgModal').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target, mode = f.dataset.mode, val = n => f[n] ? String(f[n].value).trim() : '';
+  const d = parseFloat(val('d').replace(',', '.')), h = parseFloat(val('h').replace(',', '.'));
+  if (!(d > 0) || !(h > 0)){ toast('Indiquez l’envergure et la hauteur adultes'); return; }
+  const accent = f.noAccent && f.noAccent.checked ? '' : (f.accent ? f.accent.value : '');
+  const exists = (name, variety, except) => catalog.species.some(x => x.name.toLowerCase() === name.toLowerCase() && (x.variety || '').toLowerCase() === variety.toLowerCase() && x.id !== except);
+  const undelete = x => { catalog.deleted = catalog.deleted.filter(k => k !== x.id && k !== spKey(x)); };
+  let msg = '', assignId = null;
+  if (mode === 'newsp'){
+    const name = val('name'), variety = val('variety'); if (!name){ toast('Indiquez le nom de l’espèce'); return; }
+    if (exists(name, variety)){ toast('Cette espèce / variété existe déjà'); return; }
+    const x = {id:'u' + uid(), cat:f.cat.value, name, variety, d:r3(d), h:r3(h), color:f.color.value, accent};
+    catalog.species.push(x); undelete(x); cfgCat = x.cat; cfgOpen.add(name); msg = `« ${spLabel(x)} » ajouté à la palette`;
+  } else if (mode === 'addvar'){
+    const variety = val('variety'); if (!variety){ toast('Indiquez le nom de la variété'); return; }
+    if (exists(cfgForm.name, variety)){ toast('Cette variété existe déjà'); return; }
+    const base = catalog.species.find(x => x.name === cfgForm.name && !x.variety) || catalog.species.find(x => x.name === cfgForm.name);
+    const x = {id:'u' + uid(), cat:base.cat, name:base.name, variety, d:r3(d), h:r3(h), color:base.color, accent};
+    catalog.species.push(x); undelete(x); assignId = cfgForm.assign ? x.id : null; msg = `Variété « ${variety} » ajoutée`;
+  } else if (mode === 'editsp'){
+    const name = val('name'); if (!name){ toast('Indiquez le nom de l’espèce'); return; }
+    if (name !== cfgForm.name && catalog.species.some(x => x.name === name)){ toast('Une espèce porte déjà ce nom'); return; }
+    for (const x of catalog.species.filter(x => x.name === cfgForm.name)){
+      const isBase = !x.variety;
+      x.name = name; x.cat = f.cat.value;
+      if (f.all.checked || isBase){ x.d = r3(d); x.h = r3(h); x.color = f.color.value; }
+    }
+    cfgOpen.add(name); cfgCat = f.cat.value; msg = 'Espèce mise à jour';
+  } else if (mode === 'editvar'){
+    const x = catalog.species.find(x => x.id === cfgForm.id); if (!x) return;
+    const variety = val('variety'); if (exists(x.name, variety, x.id)){ toast('Cette variété existe déjà'); return; }
+    Object.assign(x, {variety, d:r3(d), h:r3(h), accent}); msg = 'Variété mise à jour';
+  }
+  cfgForm = null;
+  if (curId) pushHistory();
+  catCommit(msg);
+  if (assignId && curId){ const it = itemById(sel); const sp = st.species.find(s2 => (s2.cid || s2.id) === assignId); if (it && it.type === 'plant' && sp){ it.sid = sp.id; afterChange(); } }
+});
+$('#speciesBtn').onclick = () => openConfig(); $('#speciesBtn2').onclick = () => openConfig({mode:'newsp'});
+$('#homeConfig').onclick = () => openConfig();
+function openSpecies(_, preset){ openConfig({mode:'newsp', preset}); }
 
 /* Export / import */
 const slug = n => (String(n || 'mon-jardin').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'mon-jardin');
@@ -2288,7 +2495,7 @@ function openPlan(id){
   curId = id; st = s;
   st.prefs = Object.assign({view:'detail', growth:1, snap:true, legal:true}, st.prefs || {}); st.bg = st.bg || null;
   st.name = st.name || 'Sans nom';
-  if ((st.catalogRev || 0) < CATALOG_REV){ mergeSpecies(st, defaultSpecies()); st.catalogRev = CATALOG_REV; save(); }
+  syncPlan(st); st.catalogRev = CATALOG_REV; save();
   bgSrc = store.get(bgKey(id)); refreshBgURL();
   undoStack.length = 0; redoStack.length = 0; sel = null; draft = null; op = null; hover = null; editing = false;
   $('#homeGrid').innerHTML = '';                 // évite les doublons d'identifiants SVG
@@ -2386,6 +2593,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) saveN
    Démarrage
    ============================================================ */
 bootStorage();
+initCatalog();
 if (!store.ok) setTimeout(() => toast('Ce navigateur n’autorise pas l’enregistrement : exportez vos plans avant de fermer'), 800);
 document.body.classList.add('at-home');
 route();
