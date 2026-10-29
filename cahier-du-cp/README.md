@@ -63,7 +63,8 @@ Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de mul
 
 - Chaque enfant a son profil, créé avec un simple prénom. Les étoiles et les niveaux sont gardés sur l'appareil, dans le navigateur.
 - Pour passer d'un appareil à un autre, un **code de sauvegarde** (commençant par `CP1-`) se copie depuis la configuration et se colle sur le nouvel appareil.
-- Aucune donnée n'est envoyée sur un serveur. Seul le prénom saisi est conservé, sur l'appareil.
+- Sans compte, aucune donnée n'est envoyée sur un serveur : le prénom, les étoiles et les niveaux restent sur l'appareil.
+- **Retrouver ses données avec un e-mail** (optionnel) : dans la configuration, ou sur l'écran « Qui joue ? », l'adulte saisit son e-mail et reçoit un code à 6 chiffres. Une fois connecté, les joueurs, étoiles et niveaux se synchronisent automatiquement entre tous les appareils connectés au même e-mail. Seuls le prénom des joueurs, les étoiles, les niveaux et les réglages sont enregistrés, chaque compte ne pouvant lire que ses propres données.
 
 ## Configuration (espace parents)
 
@@ -74,6 +75,15 @@ Le bouton « Parents » du menu ouvre la configuration, protégée par un petit 
 - **Modules proposés** : désactiver Maths mélangées, Problèmes, Doubles et moitiés ou Compléments.
 - **Sauvegarde** : le code `CP1-` pour passer d'un appareil à un autre.
 - Ce contrôle n'est pas une protection absolue : vider les données du navigateur ou changer de navigateur remet le compteur à zéro.
+
+## Activer la synchronisation (Supabase)
+
+La synchronisation est facultative. Sans réglage, l'application fonctionne comme avant, avec le code de sauvegarde.
+
+1. Dans un projet [Supabase](https://supabase.com), ouvrir **SQL Editor** et exécuter le fichier [`supabase.sql`](supabase.sql) : il crée la table `cp_saves` et ses règles d'accès (chaque compte ne voit que sa ligne).
+2. **Authentication > Emails > Templates** : dans les modèles « Magic Link » et « Confirm signup », afficher le code avec `{{ .Token }}` (par exemple « Ton code : {{ .Token }} »).
+3. Copier l'**URL du projet** et la **clé publique** (anon ou publishable) depuis **Project Settings > API**, puis les renseigner dans la constante `SB` en haut de la partie « compte et synchronisation » du fichier `index.html`. Cette clé est conçue pour être publique : la sécurité repose sur les règles d'accès de la table.
+4. Le service d'e-mails par défaut de Supabase est limité à quelques messages par heure : pour un usage régulier, brancher un SMTP personnalisé (**Authentication > SMTP Settings**).
 
 ## Utiliser l'application
 

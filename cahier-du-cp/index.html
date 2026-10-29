@@ -308,8 +308,8 @@ function flip(i){if(Q.lock)return;const c=Q.cards[i];if(c.up||c.ok)return;c.up=t
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const near=ans=>{const s=new Set([ans]);while(s.size<4){const d=ans+pick([-3,-2,-1,1,2,3]);if(d>=0)s.add(d)}return shuffle([...s]).map(x=>({h:x,ok:x===ans}))};
 /* joueurs et sauvegarde */
-function persist(){if(!P)return;D.profiles[P]={stars,lv:LV};D.last=P;try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}if(DBREF)DBREF.set({profiles:D.profiles,last:D.last,set:D.set,ver:2}).catch(()=>{})}
-function who(){app.innerHTML=`<h1>Qui joue ?</h1><div class="grid">`+Object.keys(D.profiles).map(n=>`<button class="card" style="background:var(--c2)" data-n="${esc(n)}" onclick="pickP(this.dataset.n)"><span class="e">🧒</span>${esc(n)}<small>⭐ ${D.profiles[n].stars||0}</small></button>`).join('')+`</div><p class="sub" style="margin-top:18px">Nouveau joueur :</p><div class="top"><input id="nm" class="inp" maxlength="16" placeholder="Ton prénom" autocomplete="off"><button class="again" onclick="newP()">OK</button></div><p class="sub" style="margin-top:22px"><button class="chip" onclick="backup()">💾 Retrouver mes données</button></p>`}
+function persist(){if(!P)return;D.profiles[P]={stars,lv:LV};D.last=P;try{localStorage.setItem('cp-data',JSON.stringify(D))}catch(e){}if(DBREF)DBREF.set({profiles:D.profiles,last:D.last,set:D.set,ver:2}).catch(()=>{});schedSync()}
+function who(){app.innerHTML=`<h1>Qui joue ?</h1><div class="grid">`+Object.keys(D.profiles).map(n=>`<button class="card" style="background:var(--c2)" data-n="${esc(n)}" onclick="pickP(this.dataset.n)"><span class="e">🧒</span>${esc(n)}<small>⭐ ${D.profiles[n].stars||0}</small></button>`).join('')+`</div><p class="sub" style="margin-top:18px">Nouveau joueur :</p><div class="top"><input id="nm" class="inp" maxlength="16" placeholder="Ton prénom" autocomplete="off"><button class="again" onclick="newP()">OK</button></div><p class="sub" style="margin-top:22px"><button class="chip" onclick="cloud('w')">☁️ Retrouver mes données</button> <button class="chip" onclick="backup()">💾 Avec un code</button></p>`}
 function pickP(n){P=n;D.last=n;initSession();D.profiles[n]=D.profiles[n]||{stars:0,lv:{}};stars=D.profiles[n].stars||0;LV=D.profiles[n].lv||{};persist();menu()}
 function newP(){const n=document.getElementById('nm').value.trim().slice(0,16);if(n)pickP(n)}
 (async()=>{try{if(typeof claude==='undefined')return;const db=await claude.use('db'),us=await claude.use('user');if(!db||!us)return;const uid=await us.id();if(!uid)return;DBREF=db.collection('data/users/'+uid).doc('cp');const s=await DBREF.get(),r=s.exists?s.data():null;
@@ -417,20 +417,20 @@ function parentPanel(){const cur=DUR(),left=SS?LEFT():0;const fr=frVoices();
 <select id="vsel" class="inp" style="width:100%;margin-bottom:10px" onchange="setVoice(this.value)"><option value="">Voix automatique</option>${fr.map(v=>`<option value="${esc(v.name)}" ${v.name===pv?'selected':''}>${HQ(v)?'★ ':''}${esc(v.name)}${v.localService?'':' (en ligne)'}</option>`).join('')}</select>
 <button class="chip" onclick="testVoice()">🔈 Tester la voix</button><p class="sub" style="font-size:.85rem;margin:10px 0 0">Pour une voix plus naturelle (★), installe une voix « améliorée » ou « premium » dans les réglages de ton appareil. Sur Mac : Réglages Système › Accessibilité › Contenu énoncé › Voix du système › Gérer les voix › Français.</p><p class="msg" id="vm" style="font-size:.85rem;font-weight:400"></p>
 <h2 class="h2">🧩 Modules proposés</h2><p class="sub">Touche pour activer ou désactiver :</p><div class="row">${DIS.map(d=>`<button class="chip ${OFF(d[0])?'':'on'}" onclick="togMod('${d[0]}')">${OFF(d[0])?'✖ ':'✓ '}${d[1]}</button>`).join('')}</div>
-<h2 class="h2">💾 Sauvegarde</h2><div class="row"><button class="chip" onclick="backup(1)">Code de sauvegarde</button></div>
+<h2 class="h2">☁️ Retrouver mes données</h2><p class="sub">${cloudLine()}</p><div class="row"><button class="chip" onclick="cloud('p')">${AUTH?'Synchronisation':'Se connecter avec un e-mail'}</button><button class="chip" onclick="backup(1)">💾 Code de sauvegarde</button></div>
 <button class="again" style="margin-top:18px" onclick="closeCfg()">Fermer</button>`)}
 function setDur(m){D.set.min=m;saveD();persist();if(!SS)newSession();parentPanel()}
 function startSess(){newSession();closeOvT()}
 /* code de sauvegarde */
 function mkCode(){return 'CP1-'+btoa(unescape(encodeURIComponent(JSON.stringify({p:D.profiles,s:D.set,v:2}))))}
 function readCode(c){try{c=String(c).replace(/\s+/g,'');if(c.indexOf('CP1-')!==0)return null;const o=JSON.parse(decodeURIComponent(escape(atob(c.slice(4)))));return o&&typeof o.p==='object'&&o.p?o:null}catch(e){return null}}
-function applyCode(o){let n=0;const ids=MENU.map(x=>x.id);
+function applyCode(o,sets,quiet){let n=0;const ids=MENU.map(x=>x.id);
  for(const k in o.p){const nm=String(k).trim().slice(0,16);if(!nm||nm==='__proto__')continue;const b=o.p[k]||{},st=Math.min(99999,Math.max(0,parseInt(b.stars)||0)),l={};
   for(const id of ids){let v=parseInt((b.lv||{})[id]);if(!(v>=1))continue;if(o.v!==2)v=[1,4,7][v-1]||1;if(v>=1&&v<=10)l[id]=v}
   const a=D.profiles[nm];if(!a||st>(a.stars||0))D.profiles[nm]={stars:st,lv:l};n++}
- if(o.s){if(DURS.includes(+o.s.min))D.set.min=+o.s.min;if(Array.isArray(o.s.off))D.set.off=o.s.off.filter(x=>typeof x==='string').slice(0,20)}
+ if(o.s&&sets!==false){if(DURS.includes(+o.s.min))D.set.min=+o.s.min;if(Array.isArray(o.s.off))D.set.off=o.s.off.filter(x=>typeof x==='string').slice(0,20)}
  if(P&&D.profiles[P]){stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}
- saveD();persist();return n}
+ saveD();if(!quiet)persist();return n}
 let BKP=false;
 function backup(f){BKP=!!f;const c=mkCode();
  openOv('other',`<h1>💾 Sauvegarde</h1><p class="sub"><b>1.</b> Sur l’ancien appareil, copie ce code :</p><textarea id="bk" class="inp" readonly onclick="this.select()">${c}</textarea><button class="again" onclick="copyCode()">📋 Copier le code</button><p class="msg" id="bm1"></p><p class="sub" style="margin-top:14px"><b>2.</b> Sur le nouvel appareil, colle le code ici :</p><textarea id="bi" class="inp" placeholder="CP1-…"></textarea><button class="again" onclick="restoreCode()">⬇️ Retrouver mes données</button><p class="msg" id="bm2"></p><button class="chip" onclick="backBk()">← Retour</button>`)}
@@ -441,6 +441,50 @@ function copyCode(){const t=document.getElementById('bk'),m=document.getElementB
 function restoreCode(){const m=document.getElementById('bm2'),o=readCode(document.getElementById('bi').value);
  if(!o){m.textContent='Code non reconnu. Vérifie qu’il est complet.';sfx(false);return}
  const n=applyCode(o);sfx(true);m.textContent=n+' joueur'+(n>1?'s':'')+' retrouvé'+(n>1?'s':'')+' ✔️'}
+/* compte et synchronisation (Supabase, e-mail + code) */
+const SB={url:'',key:''};
+const CLOUD=()=>!!(SB.url&&SB.key);
+let AUTH=null,CL={step:1,email:'',msg:'',busy:false,last:''},CLB='p',SYNCING=false,SYT=0;
+try{AUTH=JSON.parse(localStorage.getItem('cp-auth'))}catch(e){}
+function setAuth(r){const u=r.user||{};AUTH={access_token:r.access_token,refresh_token:r.refresh_token,exp:Date.now()+(r.expires_in||3600)*1000,email:u.email||(AUTH&&AUTH.email)||'',uid:u.id||(AUTH&&AUTH.uid)||''};try{localStorage.setItem('cp-auth',JSON.stringify(AUTH))}catch(e){}}
+function logoutCloud(){AUTH=null;try{localStorage.removeItem('cp-auth')}catch(e){}}
+async function sb(path,opt,auth){opt=opt||{};const h={apikey:SB.key,'Content-Type':'application/json'};
+ if(auth){if(!AUTH)throw new Error('non connecté');if(AUTH.exp-Date.now()<60000){const r=await sb('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:AUTH.refresh_token})});setAuth(r)}h.Authorization='Bearer '+AUTH.access_token}
+ const r=await fetch(SB.url+path,{method:opt.method||'GET',body:opt.body,headers:{...h,...(opt.headers||{})}});let j=null;try{j=await r.json()}catch(e){}
+ if(!r.ok){const e=new Error((j&&(j.msg||j.message||j.error_description||j.error))||('HTTP '+r.status));e.status=r.status;throw e}return j}
+const cloudErr=e=>e&&(e.status===429||/rate|seconds/i.test(e.message))?'Trop d’essais. Réessaie dans quelques minutes.':e&&e.status&&e.status<500&&/otp|token|expired|invalid/i.test(e.message)?'Code incorrect ou expiré. Redemande un code.':'Connexion impossible. Vérifie internet et réessaie.';
+async function syncNow(quiet){if(!CLOUD()||!AUTH||SYNCING)return 0;SYNCING=true;let n=0;
+ try{const rows=await sb('/rest/v1/cp_saves?select=data',{},true);
+  if(rows&&rows[0]&&rows[0].data&&rows[0].data.p)n=applyCode(rows[0].data,!quiet,true);
+  await sb('/rest/v1/cp_saves?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:AUTH.uid,data:{p:D.profiles,s:D.set,v:2},updated_at:new Date().toISOString()})},true);
+  CL.last=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});return n}
+ catch(e){if(e.status===401||e.status===400&&/refresh|token/i.test(e.message))logoutCloud();throw e}
+ finally{SYNCING=false}}
+function schedSync(){if(!CLOUD()||!AUTH)return;clearTimeout(SYT);SYT=setTimeout(()=>{syncNow(true).catch(()=>{})},5000)}
+function cloudLine(){return !CLOUD()?'Synchronisation non activée.':AUTH?'Connecté : '+esc(AUTH.email):'Pas encore connecté.'}
+function cloud(b){CLB=b||CLB;CL.msg=CL.busy?CL.msg:'';drawCloud()}
+function drawCloud(){const back=`<button class="chip" onclick="cloudBack()">← Retour</button>`;let h='<h1>☁️ Mes données</h1>';
+ if(!CLOUD())h+=`<p class="sub">La synchronisation n’est pas activée pour cette application. Utilise le code de sauvegarde.</p><div class="row"><button class="chip" onclick="backup(${CLB==='p'?1:0})">💾 Code de sauvegarde</button></div>${back}`;
+ else if(AUTH)h+=`<p class="sub">Connecté avec <b>${esc(AUTH.email)}</b>.<br>Tes joueurs, étoiles et niveaux sont enregistrés et retrouvés sur tous tes appareils.</p>${CL.last?`<p class="sub">Dernière synchronisation : ${CL.last}</p>`:''}<button class="again" onclick="cloudSync()">🔄 Synchroniser maintenant</button><p class="msg" id="cm">${esc(CL.msg)}</p><div class="row"><button class="chip" onclick="cloudOut()">Se déconnecter</button></div>${back}`;
+ else if(CL.step===1)h+=`<p class="sub">Entre ton e-mail : tu recevras un code pour retrouver tes données sur n’importe quel appareil.</p><input id="em" class="inp" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="ton@email.fr" value="${esc(CL.email)}" style="width:100%;margin-bottom:10px" onkeydown="if(event.key==='Enter')cloudSend()"><button class="again" onclick="cloudSend()">📧 Recevoir le code</button><p class="msg" id="cm">${esc(CL.msg)}</p>${back}`;
+ else h+=`<p class="sub">Un code a été envoyé à <b>${esc(CL.email)}</b>. Pense à regarder les courriers indésirables.</p><input id="cd" class="inp" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Code" style="width:100%;margin-bottom:10px;letter-spacing:.2em" onkeydown="if(event.key==='Enter')cloudCheck()"><button class="again" onclick="cloudCheck()">✔️ Valider</button><p class="msg" id="cm">${esc(CL.msg)}</p><div class="row"><button class="chip" onclick="CL.step=1;CL.msg='';drawCloud()">Changer d’e-mail</button><button class="chip" onclick="cloudSend()">Renvoyer le code</button></div>${back}`;
+ openOv('other',h)}
+function cmsg(t){CL.msg=t;const m=document.getElementById('cm');if(m)m.textContent=t}
+async function cloudSend(){if(CL.busy)return;const i=document.getElementById('em'),em=(i?i.value:CL.email).trim().toLowerCase();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){cmsg('Cet e-mail ne semble pas correct.');return}
+ CL.email=em;CL.busy=true;cmsg('Envoi en cours…');
+ try{await sb('/auth/v1/otp',{method:'POST',body:JSON.stringify({email:em,create_user:true})});CL.step=2;CL.msg='';CL.busy=false;drawCloud()}
+ catch(e){CL.busy=false;cmsg(cloudErr(e))}}
+async function cloudCheck(){if(CL.busy)return;const t=(document.getElementById('cd').value||'').replace(/\s+/g,'');if(t.length<6){cmsg('Entre le code reçu par e-mail.');return}
+ CL.busy=true;cmsg('Vérification…');
+ try{const r=await sb('/auth/v1/verify',{method:'POST',body:JSON.stringify({type:'email',email:CL.email,token:t})});setAuth(r);CL.step=1;
+  let n=0;try{n=await syncNow(false)}catch(e){}
+  CL.busy=false;sfx(true);CL.msg=n?n+' joueur'+(n>1?'s':'')+' retrouvé'+(n>1?'s':'')+' ✔️':'Connecté ✔️';drawCloud()}
+ catch(e){CL.busy=false;sfx(false);cmsg(cloudErr(e))}}
+async function cloudSync(){cmsg('Synchronisation…');try{const n=await syncNow(false);sfx(true);CL.msg=n?n+' joueur'+(n>1?'s':'')+' mis à jour ✔️':'Tout est à jour ✔️';drawCloud()}catch(e){sfx(false);if(!AUTH)drawCloud();else cmsg(cloudErr(e))}}
+function cloudOut(){logoutCloud();CL={step:1,email:'',msg:'',busy:false,last:''};drawCloud()}
+function cloudBack(){if(CLB==='p'&&P)return parentPanel();closeOvT();if(!Q){P?menu():who()}}
+if(CLOUD()&&AUTH)syncNow(true).then(()=>{if(P&&D.profiles[P]){stars=D.profiles[P].stars||0;LV=D.profiles[P].lv||{}}if(!Q&&!OVM)P?menu():who()}).catch(()=>{});
 /* sons des boutons */
 function tap(k){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();if(k==='card')[440,660].forEach((f,i)=>tone(f,i*.06,.12,'sine',.12));else if(k==='back')tone(330,0,.12,'sine',.12);else tone(620,0,.07,'triangle',.12)}catch(e){}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(!b||b.disabled)return;const cl=b.classList;if(cl.contains('opt')&&!cl.contains('k'))return;tap(cl.contains('card')||cl.contains('again')||cl.contains('chip')?'card':cl.contains('back')?'back':'pop')},true);
