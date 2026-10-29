@@ -30,7 +30,19 @@ Concevoir et visualiser son jardin, à l'échelle :
 
 Un exemple de plan est fourni au premier lancement : une maison avec piscine et un jardin méditerranéen.
 
-Les plans sont enregistrés dans le navigateur de l'appareil utilisé (aucun compte, aucun serveur). Pour les garder en sécurité ou les transférer, utilisez l'export.
+Les plans sont enregistrés dans le navigateur de l'appareil utilisé, sans compte. Pour les retrouver sur plusieurs appareils, deux possibilités :
+
+- **☁ Synchroniser** (facultatif) : on saisit son e-mail et on reçoit un code à 6 chiffres, sans mot de passe. Les plans, leurs photos de fond et la palette végétale se synchronisent ensuite automatiquement entre tous les appareils connectés à la même adresse (quelques secondes après chaque modification, à l'ouverture et toutes les minutes). Si un plan a été modifié sur deux appareils, la version la plus récente l'emporte. L'app reste utilisable sans connexion et rattrape au retour du réseau. La session est commune aux apps SynApps.
+- **Export / import** d'un plan en fichier `.json`, ou partage par lien.
+
+### Activer la synchronisation (Supabase)
+
+1. Dans le projet Supabase (le même que pour le Cahier du CP convient), ouvrir **SQL Editor** et exécuter [`mon-jardin/supabase.sql`](mon-jardin/supabase.sql) : il crée les tables `jardin_plans` et `jardin_palette` et leurs règles d'accès (chaque compte ne voit que ses lignes).
+2. **Authentication > Emails > Templates** : dans les modèles « Magic Link » et « Confirm signup », afficher le code avec `{{ .Token }}`.
+3. Renseigner l'**URL du projet** et la **clé publique** (anon ou publishable, dans **Project Settings > API**) dans la constante `SB` de `mon-jardin/index.html` (partie « Compte et synchronisation »). Cette clé est conçue pour être publique : la sécurité repose sur les règles d'accès des tables.
+4. Pour un usage régulier, brancher un SMTP personnalisé (**Authentication > SMTP Settings**) : le service d'e-mails par défaut de Supabase n'envoie que quelques messages par heure.
+
+Tant que la constante `SB` est vide, le bouton ☁ n'apparaît pas et l'app fonctionne comme avant.
 
 ## Pixel arts
 

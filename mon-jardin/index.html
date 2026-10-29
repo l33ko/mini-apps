@@ -202,6 +202,9 @@ i.vn{font-style:italic;color:var(--mute);font-size:.88em}
 .fnpick{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px}
 .fnpick label{display:flex;align-items:center;gap:4px}
 .stdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0}
+#homeCloud.on .ci,#cloudBtn.on .ci{color:var(--acc)}
+#homeCloud.spin .ci,#cloudBtn.spin .ci{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 #home{display:none;flex:1;overflow:auto;background:var(--bg);-webkit-overflow-scrolling:touch}
 body.at-home #home{display:block}
 body.at-home > header.top, body.at-home > main{display:none}
@@ -234,6 +237,7 @@ body.at-home #ioModal .exp{display:none}
 .grp.fold .n{margin-left:auto;font-weight:500;letter-spacing:0}
 @media (max-width: 1450px){ .hide-l{display:none !important} .pname{width:240px} .growth input{width:90px} }
 @media (max-width: 860px){
+  #homeCloud .hide-m{display:none}
   .pname{flex:1;width:auto;min-width:120px;font-size:16px}
   .pgrid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
   .pcard .thumb{height:120px}
@@ -265,6 +269,7 @@ body.at-home #ioModal .exp{display:none}
       Mon jardin
     </div>
     <div class="spacer"></div>
+    <button class="btn" id="homeCloud" hidden>☁</button>
     <button class="btn" id="homeConfig">⚙ <span class="hide-m">Palette végétale</span></button>
     <button class="btn" id="homeImport">⇪ <span class="hide-m">Importer un plan</span></button>
   </div>
@@ -272,7 +277,7 @@ body.at-home #ioModal .exp{display:none}
     <h1>Mes plans de jardin</h1>
     <p class="lead">Créez un plan à partir d'une feuille blanche, d'un contour libre ou d'une photo aérienne, puis retrouvez ici tous vos plans.</p>
     <div class="pgrid" id="homeGrid"></div>
-    <p class="home-foot">Vos plans sont enregistrés dans ce navigateur, sur cet appareil. Pour les conserver ailleurs ou les ouvrir sur un autre appareil, utilisez ⇩ (exporter) puis « Importer un plan ».</p>
+    <p class="home-foot" id="homeFoot">Vos plans sont enregistrés dans ce navigateur, sur cet appareil. Pour les conserver ailleurs ou les ouvrir sur un autre appareil, utilisez ⇩ (exporter) puis « Importer un plan ».</p>
   </div>
 </section>
 
@@ -297,6 +302,7 @@ body.at-home #ioModal .exp{display:none}
     <output id="growthOut"></output>
   </label>
   <div class="spacer"></div>
+  <button class="btn icon" id="cloudBtn" hidden title="Synchronisation">☁</button>
   <button class="btn icon" id="undoBtn" title="Annuler (Ctrl+Z)">↶</button>
   <button class="btn icon" id="redoBtn" title="Rétablir (Ctrl+Maj+Z)">↷</button>
   <button class="btn" id="speciesBtn" title="Palette végétale (tous les plans)">⚙ <span class="hide-m hide-l">Palette</span></button>
@@ -458,6 +464,14 @@ body.at-home #ioModal .exp{display:none}
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Compte et synchronisation -->
+<div class="modal" id="cloudModal">
+  <div class="dlg" style="max-width:520px">
+    <header><h2>☁ Mes appareils</h2><button class="btn" data-close>Fermer</button></header>
+    <div class="body" id="cloudBody"></div>
   </div>
 </div>
 
@@ -909,7 +923,7 @@ function demoItems(sp){
 }
 function defaultState(){
   const species = defaultSpecies();
-  return {v:2, name:'Exemple : maison, piscine et jardin méditerranéen', garden:{w:32, h:24}, species, items:demoItems(species), prefs:{view:'detail', growth:1, snap:true, legal:true}, bg:null, catalogRev:CATALOG_REV};
+  return {v:2, example:true, name:'Exemple : maison, piscine et jardin méditerranéen', garden:{w:32, h:24}, species, items:demoItems(species), prefs:{view:'detail', growth:1, snap:true, legal:true}, bg:null, catalogRev:CATALOG_REV};
 }
 function newState(name, garden){
   return {v:2, name, garden, species:defaultSpecies(), items:[], prefs:{view:'detail', growth:1, snap:true, legal:true}, bg:null, catalogRev:CATALOG_REV};
@@ -937,17 +951,18 @@ function stateArea(s){
   const g = s.garden; if (g.hidden) return 0;
   return polyArea(Array.isArray(g.poly) && g.poly.length >= 3 ? g.poly : [[0, 0], [g.w, 0], [g.w, g.h], [0, g.h]]);
 }
-function persistPlan(id, s, bg){            // bg : undefined = inchangé, null = supprimé
+function persistPlan(id, s, bg, updated){   // bg : undefined = inchangé, null = supprimé ; updated : horodatage imposé (synchro)
   store.set(planKey(id), JSON.stringify(s));
   if (bg !== undefined){ if (bg) store.set(bgKey(id), bg); else store.del(bgKey(id)); }
   const idx = readIndex(); let e = idx.find(x => x.id === id);
   if (!e){ e = {id, created:Date.now()}; idx.push(e); }
-  e.name = s.name || 'Sans nom'; e.updated = Date.now(); e.area = stateArea(s);
+  e.name = s.name || 'Sans nom'; e.updated = updated || Date.now(); e.area = stateArea(s);
   e.plants = s.items.filter(i => i.type === 'plant').length;
   if (s.preset){ e.preset = s.preset; e.presetRev = s.presetRev || 0; }
   writeIndex(idx);
+  if (!updated && typeof schedSync === 'function') schedSync();
 }
-function deletePlan(id){ store.del(planKey(id)); store.del(bgKey(id)); writeIndex(readIndex().filter(x => x.id !== id)); }
+function deletePlan(id){ store.del(planKey(id)); store.del(bgKey(id)); writeIndex(readIndex().filter(x => x.id !== id)); if (typeof addTomb === 'function'){ addTomb(id); schedSync(); } }
 function mergeSpecies(s, list){
   const ids = new Set(s.species.map(x => x.id)), names = new Set(s.species.map(x => x.name + '|' + x.variety));
   let n = 0;
@@ -958,7 +973,7 @@ function mergeSpecies(s, list){
 const CAT_KEY = 'jardin-catalog-v1';
 let catalog = {rev:0, species:[], deleted:[]};
 const spKey = x => x.name + '|' + (x.variety || '');
-function writeCatalog(){ try { store.set(CAT_KEY, JSON.stringify(catalog)); } catch(e){ toast('Mémoire du navigateur pleine'); } }
+function writeCatalog(fromSync){ try { store.set(CAT_KEY, JSON.stringify(catalog)); } catch(e){ toast('Mémoire du navigateur pleine'); } if (!fromSync && typeof schedSync === 'function') schedSync(); }
 function mergeInto(list, add){
   const ids = new Set(list.map(x => x.id)), names = new Set(list.map(spKey)), del = new Set(catalog.deleted || []);
   for (const x of add){
@@ -1029,11 +1044,13 @@ function bootStorage(){
   if (!readIndex().length){ try { persistPlan(uid(), defaultState(), null); } catch(e){} }
 }
 
-let curId = null, saveT;
+let curId = null, saveT, savePending = false;
 let st = defaultState();                     // remplacé à l'ouverture d'un plan
-function save(){ clearTimeout(saveT); saveT = setTimeout(saveNow, 250); }
+function save(){ savePending = true; clearTimeout(saveT); saveT = setTimeout(saveNow, 250); }
 function saveNow(){
   clearTimeout(saveT); if (!curId) return;
+  if (!savePending) return;                            // rien en attente : l'horodatage du plan ne bouge pas
+  savePending = false;
   try { persistPlan(curId, st); }
   catch(e){ toast('Mémoire du navigateur pleine : exportez ce plan, puis supprimez des plans inutiles'); }
 }
@@ -1086,6 +1103,7 @@ function redo(){ if (!redoStack.length) return; undoStack.push(snapshot()); rest
 function updateUndo(){ $('#undoBtn').disabled = !undoStack.length; $('#redoBtn').disabled = !redoStack.length; }
 
 function afterChange(full){
+  if (st.example) delete st.example;               // l'exemple devient un vrai plan dès qu'on le modifie
   save(); render(); renderInspector(); updateUndo();
   if (full){ syncHeader(); renderPalette(); }
 }
@@ -2565,7 +2583,7 @@ function importPalette(text, fname){
       color:hex(raw.color) ? raw.color : (same ? same.color : CATS[cat].color), accent:hex(raw.accent) ? raw.accent : (same ? same.accent : '')};
     if (raw.strate && STRATES[raw.strate]) x.strate = raw.strate; else if (same && same.strate) x.strate = same.strate;
     if (Array.isArray(raw.fn)) x.fn = raw.fn; else if (same && Array.isArray(same.fn)) x.fn = same.fn.slice();
-    catalog.species.push(x); catalog.deleted = catalog.deleted.filter(k => k !== spKey(x)); have.add(key); added++;
+    x.mt = Date.now(); catalog.species.push(x); catalog.deleted = catalog.deleted.filter(k => k !== spKey(x)); have.add(key); added++;
   }
   if (curId) pushHistory();
   cfgForm = null; catCommit(`${added} espèce${added > 1 ? 's' : ''} / variété${added > 1 ? 's' : ''} ajoutée${added > 1 ? 's' : ''}${skipped ? ` · ${skipped} déjà présente${skipped > 1 ? 's' : ''}` : ''}`);
@@ -2602,7 +2620,8 @@ $('#cfgModal').addEventListener('click', e => {
     confirmBox(`Supprimer ${label} de la palette de tous vos plans ?${usedHere ? ` Les ${usedHere} plantation${usedHere > 1 ? 's' : ''} de ce plan seront retirées.` : ' Les plans qui l’utilisent déjà la conservent.'}`, () => {
       if (curId && usedHere) pushHistory();
       catalog.species = catalog.species.filter(x => !ids.has(x.id));
-      for (const t of targets){ catalog.deleted.push(t.id, spKey(t)); }
+      catalog.delAt = catalog.delAt || {};
+      for (const t of targets){ catalog.deleted.push(t.id, spKey(t)); catalog.delAt[t.id] = catalog.delAt[spKey(t)] = Date.now(); }
       if (curId){
         const gone = new Set(st.species.filter(sp => ids.has(sp.cid || sp.id) || keys.has(spKey(sp))).map(sp => sp.id));
         st.items = st.items.filter(i => !gone.has(i.sid)); st.species = st.species.filter(sp => !gone.has(sp.id));
@@ -2631,14 +2650,14 @@ $('#cfgModal').addEventListener('submit', e => {
     const name = val('name'), variety = val('variety'); if (!name){ toast('Indiquez le nom de l’espèce'); return; }
     if (exists(name, variety)){ toast('Cette espèce / variété existe déjà'); return; }
     const x = {id:'u' + uid(), cat:f.cat.value, name, variety, d:r3(d), h:r3(h), color:f.color.value, accent};
-    applyEco(x); catalog.species.push(x); undelete(x); cfgCat = x.cat; cfgOpen.add(name); msg = `« ${spLabel(x)} » ajouté à la palette`;
+    x.mt = Date.now(); applyEco(x); catalog.species.push(x); undelete(x); cfgCat = x.cat; cfgOpen.add(name); msg = `« ${spLabel(x)} » ajouté à la palette`;
   } else if (mode === 'addvar'){
     const variety = val('variety'); if (!variety){ toast('Indiquez le nom de la variété'); return; }
     if (exists(cfgForm.name, variety)){ toast('Cette variété existe déjà'); return; }
     const base = catalog.species.find(x => x.name === cfgForm.name && !x.variety) || catalog.species.find(x => x.name === cfgForm.name);
     const x = {id:'u' + uid(), cat:base.cat, name:base.name, variety, d:r3(d), h:r3(h), color:base.color, accent};
     if (base.strate) x.strate = base.strate; if (Array.isArray(base.fn)) x.fn = base.fn.slice();
-    catalog.species.push(x); undelete(x); assignId = cfgForm.assign ? x.id : null; msg = `Variété « ${variety} » ajoutée`;
+    x.mt = Date.now(); catalog.species.push(x); undelete(x); assignId = cfgForm.assign ? x.id : null; msg = `Variété « ${variety} » ajoutée`;
   } else if (mode === 'editsp'){
     const name = val('name'); if (!name){ toast('Indiquez le nom de l’espèce'); return; }
     if (name !== cfgForm.name && catalog.species.some(x => x.name === name)){ toast('Une espèce porte déjà ce nom'); return; }
@@ -2646,13 +2665,13 @@ $('#cfgModal').addEventListener('submit', e => {
       const isBase = !x.variety;
       x.name = name; x.cat = f.cat.value;
       if (f.all.checked || isBase){ x.d = r3(d); x.h = r3(h); x.color = f.color.value; }
-      applyEco(x);
+      applyEco(x); x.mt = Date.now();
     }
     cfgOpen.add(name); cfgCat = f.cat.value; msg = 'Espèce mise à jour';
   } else if (mode === 'editvar'){
     const x = catalog.species.find(x => x.id === cfgForm.id); if (!x) return;
     const variety = val('variety'); if (exists(x.name, variety, x.id)){ toast('Cette variété existe déjà'); return; }
-    Object.assign(x, {variety, d:r3(d), h:r3(h), accent}); msg = 'Variété mise à jour';
+    Object.assign(x, {variety, d:r3(d), h:r3(h), accent, mt:Date.now()}); msg = 'Variété mise à jour';
   }
   cfgForm = null;
   if (curId) pushHistory();
@@ -2733,7 +2752,8 @@ function openPlan(id){
   curId = id; st = s;
   st.prefs = Object.assign({view:'detail', growth:1, snap:true, legal:true}, st.prefs || {}); st.bg = st.bg || null;
   st.name = st.name || 'Sans nom';
-  syncPlan(st); st.catalogRev = CATALOG_REV; save();
+  const spBefore = JSON.stringify(st.species); syncPlan(st);
+  if (JSON.stringify(st.species) !== spBefore || st.catalogRev !== CATALOG_REV){ st.catalogRev = CATALOG_REV; save(); }
   bgSrc = store.get(bgKey(id)); refreshBgURL();
   undoStack.length = 0; redoStack.length = 0; sel = null; draft = null; op = null; hover = null; editing = false;
   $('#homeGrid').innerHTML = '';                 // évite les doublons d'identifiants SVG
@@ -2791,7 +2811,7 @@ function renameBox(id){
 function applyRename(){
   const name = $('#nameIn').value.trim(); if (!name || !renameId) return;
   const s = renameId === curId ? st : readPlan(renameId); if (!s) return;
-  s.name = name; try { persistPlan(renameId, s); } catch(e){}
+  s.name = name; delete s.example; try { persistPlan(renameId, s); } catch(e){}
   closeModals(); if (renameId === curId){ syncHeader(); document.title = name + ' — Mon jardin'; } else renderHome();
 }
 $('#nameOk').onclick = applyRename;
@@ -2803,7 +2823,7 @@ $('#homeGrid').addEventListener('click', e => {
   if (act === 'rename'){ renameBox(id); return; }
   if (act === 'dup'){
     const s = readPlan(id); if (!s) return;
-    s.name = s.name + ' (copie)'; delete s.preset; delete s.presetRev;
+    s.name = s.name + ' (copie)'; delete s.preset; delete s.presetRev; delete s.example;
     try { persistPlan(uid(), s, store.get(bgKey(id))); toast('Plan dupliqué'); } catch(err){ toast('Mémoire du navigateur pleine'); }
     renderHome(); return;
   }
@@ -2823,7 +2843,7 @@ $('#homeGrid').addEventListener('click', e => {
 $('#homeImport').onclick = () => { $('#jsonIn').value = ''; openModal('ioModal'); };
 $('#homeBtn').onclick = goHome;
 $('#planName').addEventListener('change', e => {
-  st.name = e.target.value.trim() || 'Sans nom'; e.target.value = st.name; document.title = st.name + ' — Mon jardin'; save();
+  st.name = e.target.value.trim() || 'Sans nom'; e.target.value = st.name; document.title = st.name + ' — Mon jardin'; delete st.example; save();
 });
 $('#planName').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
 window.addEventListener('pagehide', saveNow);
@@ -2894,12 +2914,232 @@ async function receiveShare(){
   finally { receiving = false; }
 }
 
+/* ============================================================
+   Compte et synchronisation entre appareils (Supabase, e-mail + code)
+   ------------------------------------------------------------
+   Renseigner l'URL du projet et la clé publique (anon / publishable).
+   Cette clé est faite pour être publique : chaque compte ne peut lire
+   et écrire que ses propres lignes (règles d'accès de supabase.sql).
+   ============================================================ */
+const SB = Object.assign({url:'', key:''}, window.SYNAPPS_SB || {});
+const CLOUD = () => !!(SB.url && SB.key) && !/claude/i.test(location.hostname);   // les aperçus Claude bloquent les connexions externes
+const AUTH_KEY = 'synapps-auth';                       // session commune à toutes les apps SynApps
+const TOMB_KEY = 'jardin-tomb-v1', SYNC_KEY = 'jardin-sync-v1';
+let AUTH = null, syncing = false, syncT = 0, syncAgain = false, cloudState = 'off', cloudErrMsg = '', lastSync = 0;
+let CL = {step:1, email:'', msg:'', busy:false};
+try { AUTH = JSON.parse(store.get(AUTH_KEY) || store.get('cp-auth') || 'null'); } catch(e){}
+try { lastSync = (JSON.parse(store.get(SYNC_KEY) || '{}').at) || 0; } catch(e){}
+function setAuth(r){
+  const u = r.user || {};
+  AUTH = {access_token:r.access_token, refresh_token:r.refresh_token, exp:Date.now() + (r.expires_in || 3600) * 1000,
+          email:u.email || (AUTH && AUTH.email) || '', uid:u.id || (AUTH && AUTH.uid) || ''};
+  try { store.set(AUTH_KEY, JSON.stringify(AUTH)); } catch(e){}
+}
+function logoutCloud(){ AUTH = null; store.del(AUTH_KEY); store.del('cp-auth'); cloudState = 'off'; drawCloudBtn(); }
+async function sb(path, opt, auth){
+  opt = opt || {};
+  const h = {apikey:SB.key, 'Content-Type':'application/json'};
+  if (auth){
+    if (!AUTH) throw new Error('non connecté');
+    if (AUTH.exp - Date.now() < 60000){
+      const r = await sb('/auth/v1/token?grant_type=refresh_token', {method:'POST', body:JSON.stringify({refresh_token:AUTH.refresh_token})});
+      setAuth(r);
+    }
+    h.Authorization = 'Bearer ' + AUTH.access_token;
+  }
+  const r = await fetch(SB.url + path, {method:opt.method || 'GET', body:opt.body, headers:Object.assign(h, opt.headers || {})});
+  let j = null; try { j = await r.json(); } catch(e){}
+  if (!r.ok){ const e = new Error((j && (j.msg || j.message || j.error_description || j.error)) || ('HTTP ' + r.status)); e.status = r.status; throw e; }
+  return j;
+}
+const cloudErr = e => e && (e.status === 429 || /rate|seconds/i.test(e.message)) ? 'Trop d’essais. Réessayez dans quelques minutes.'
+  : e && e.status && e.status < 500 && /otp|token|expired|invalid/i.test(e.message) ? 'Code incorrect ou expiré. Demandez un nouveau code.'
+  : 'Connexion impossible. Vérifiez internet et réessayez.';
+const upsertHdr = {Prefer:'resolution=merge-duplicates,return=minimal'};
+function strHash(t){ let h = 2166136261; for (let i = 0; i < t.length; i++){ h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + t.length.toString(36); }
+function readTombs(){ try { return JSON.parse(store.get(TOMB_KEY) || '[]'); } catch(e){ return []; } }
+function addTomb(id){ const t = readTombs().filter(x => x.id !== id); t.push({id, at:Date.now()}); try { store.set(TOMB_KEY, JSON.stringify(t)); } catch(e){} }
+
+// palette : fusion par espèce (la modification la plus récente l'emporte, suppressions datées)
+function catNorm(c){ return {rev:c.rev || 0, species:(c.species || []).slice().sort((a, b) => a.id < b.id ? -1 : 1), delAt:c.delAt || {}}; }
+function mergeCatalog(a, b){
+  const delAt = Object.assign({}, a.delAt || {});
+  for (const [k, t] of Object.entries(b.delAt || {})) delAt[k] = Math.max(delAt[k] || 0, t);
+  const m = new Map();
+  for (const x of (a.species || []).concat(b.species || [])){ const y = m.get(x.id); if (!y || (x.mt || 0) > (y.mt || 0)) m.set(x.id, x); }
+  const out = [], seen = new Map();
+  for (const x of m.values()){
+    const t = Math.max(delAt[x.id] || 0, delAt[spKey(x)] || 0);
+    if (t && t >= (x.mt || 0)) continue;
+    const k = spKey(x), o = seen.get(k);
+    if (o){ if ((x.mt || 0) > (o.mt || 0)){ out[out.indexOf(o)] = x; seen.set(k, x); } continue; }
+    seen.set(k, x); out.push(x);
+  }
+  const deleted = Object.keys(delAt).filter(k => !out.some(x => x.id === k || spKey(x) === k));
+  return {rev:Math.max(a.rev || 0, b.rev || 0), species:out, deleted, delAt};
+}
+
+async function fetchPlan(id, withBg){
+  const rows = await sb(`/rest/v1/jardin_plans?select=data,name,updated${withBg ? ',bg,bg_hash' : ''}&id=eq.${encodeURIComponent(id)}`, {}, true);
+  return rows && rows[0];
+}
+async function uploadPlan(e, remote){
+  const s = e.id === curId ? st : readPlan(e.id); if (!s) return;
+  const bg = store.get(bgKey(e.id)), bh = bg ? strHash(bg) : null;
+  const body = {user_id:AUTH.uid, id:e.id, name:s.name || '', data:s, updated:e.updated || Date.now(), deleted:false};
+  if (!remote || remote.bg_hash !== bh){ body.bg = bg || null; body.bg_hash = bh; }
+  await sb('/rest/v1/jardin_plans?on_conflict=user_id,id', {method:'POST', headers:upsertHdr, body:JSON.stringify(body)}, true);
+}
+async function downloadPlan(r){
+  const localBg = store.get(bgKey(r.id)), needBg = (r.bg_hash || null) !== (localBg ? strHash(localBg) : null);
+  const row = await fetchPlan(r.id, needBg); if (!row || !validState(row.data)) return false;
+  persistPlan(r.id, row.data, needBg ? (row.bg || null) : undefined, r.updated);
+  if (r.id === curId) reloadOpenPlan();
+  return true;
+}
+function reloadOpenPlan(){
+  const s = readPlan(curId); if (!s) return;
+  st = s; st.prefs = Object.assign({view:'detail', growth:1, snap:true, legal:true}, st.prefs || {}); st.bg = st.bg || null;
+  syncPlan(st); bgSrc = store.get(bgKey(curId)); refreshBgURL();
+  undoStack.length = 0; redoStack.length = 0; if (sel && !itemById(sel)) sel = null;
+  syncHeader(); renderPalette(); renderInspector(); updateUndo(); render();
+  toast('Plan mis à jour depuis un autre appareil');
+}
+async function syncPalette(){
+  const rows = await sb('/rest/v1/jardin_palette?select=data,updated', {}, true);
+  const remote = rows && rows[0] && rows[0].data;
+  const local = {rev:catalog.rev, species:catalog.species, deleted:catalog.deleted, delAt:catalog.delAt || {}};
+  const merged = remote ? mergeCatalog(local, remote) : mergeCatalog(local, {species:[]});
+  const mStr = JSON.stringify(catNorm(merged));
+  if (mStr !== JSON.stringify(catNorm(local))){
+    catalog = merged; writeCatalog(true);
+    if (curId){ const b4 = JSON.stringify(st.species); syncPlan(st); if (JSON.stringify(st.species) !== b4) save(); renderPalette(); render(); renderInspector(); }
+  }
+  if (!remote || mStr !== JSON.stringify(catNorm(remote)))
+    await sb('/rest/v1/jardin_palette?on_conflict=user_id', {method:'POST', headers:upsertHdr, body:JSON.stringify({user_id:AUTH.uid, data:merged, updated:Date.now()})}, true);
+}
+async function syncNow(manual){
+  if (!CLOUD() || !AUTH) return;
+  if (syncing){ syncAgain = true; return; }
+  syncing = true; cloudState = 'sync'; drawCloudBtn();
+  try {
+    if (curId) saveNow(true);
+    const remote = await sb('/rest/v1/jardin_plans?select=id,name,updated,deleted,bg_hash', {}, true) || [];
+    const R = new Map(remote.map(r => [r.id, r]));
+    // première synchro de cet appareil : l'exemple non modifié ne s'ajoute pas aux plans du compte
+    if (!lastSync && remote.some(r => !r.deleted)){
+      for (const e of readIndex()){ const p = readPlan(e.id); if (p && p.example && e.id !== curId){ store.del(planKey(e.id)); store.del(bgKey(e.id)); writeIndex(readIndex().filter(x => x.id !== e.id)); } }
+    }
+    // suppressions faites sur cet appareil
+    for (const t of readTombs()){
+      const r = R.get(t.id);
+      if (r && !r.deleted && r.updated > t.at) continue;            // modifié ailleurs après la suppression : on garde
+      if (!r || !r.deleted) await sb('/rest/v1/jardin_plans?on_conflict=user_id,id', {method:'POST', headers:upsertHdr,
+        body:JSON.stringify({user_id:AUTH.uid, id:t.id, name:'', data:null, bg:null, bg_hash:null, updated:t.at, deleted:true})}, true);
+      R.set(t.id, {id:t.id, deleted:true, updated:t.at});
+    }
+    store.del(TOMB_KEY);
+    let changed = false;
+    for (const e of readIndex()){
+      const r = R.get(e.id), lu = e.updated || 0;
+      if (r && r.deleted && lu <= r.updated){
+        if (e.id === curId){ continue; }                               // ne pas fermer le plan ouvert sous les yeux
+        store.del(planKey(e.id)); store.del(bgKey(e.id)); writeIndex(readIndex().filter(x => x.id !== e.id)); changed = true; continue;
+      }
+      if (!r || r.deleted || lu > r.updated) await uploadPlan(e, r && !r.deleted ? r : null);
+      else if (r.updated > lu){ await downloadPlan(r); changed = true; }
+    }
+    const have = new Set(readIndex().map(e => e.id));
+    for (const r of remote) if (!r.deleted && !have.has(r.id) && !readTombs().some(t => t.id === r.id)){ await downloadPlan(r); changed = true; }
+    await syncPalette();
+    lastSync = Date.now(); try { store.set(SYNC_KEY, JSON.stringify({at:lastSync})); } catch(e){}
+    cloudState = 'ok'; cloudErrMsg = '';
+    if (changed && document.body.classList.contains('at-home')) renderHome();
+    if (manual) toast('Synchronisé');
+  } catch(e){
+    if (e.status === 401 || (e.status === 400 && /refresh|token/i.test(e.message))){ logoutCloud(); toast('Session expirée : reconnectez-vous'); }
+    else { cloudState = navigator.onLine === false ? 'offline' : 'err'; cloudErrMsg = cloudErr(e); if (manual) toast(cloudErrMsg); }
+  } finally {
+    syncing = false; drawCloudBtn(); if ($('#cloudModal').classList.contains('open')) drawCloud();
+    if (syncAgain){ syncAgain = false; schedSync(1500); }
+  }
+}
+function schedSync(ms){ if (!CLOUD() || !AUTH) return; clearTimeout(syncT); syncT = setTimeout(() => syncNow(false), ms == null ? 4000 : ms); }
+function drawCloudBtn(){
+  const show = CLOUD();
+  const ic = !AUTH ? '☁' : cloudState === 'sync' ? '⟳' : cloudState === 'err' || cloudState === 'offline' ? '⚠' : '☁';
+  const t = !AUTH ? 'Synchroniser mes appareils' : cloudState === 'sync' ? 'Synchronisation…' : cloudState === 'offline' ? 'Hors ligne' : cloudState === 'err' ? 'Synchro en erreur' : 'Synchronisé';
+  for (const b of [$('#homeCloud'), $('#cloudBtn')]){ if (!b) continue; b.hidden = !show; b.title = t; b.classList.toggle('on', !!AUTH && cloudState === 'ok'); b.classList.toggle('spin', cloudState === 'sync'); }
+  const hb = $('#homeCloud'); if (hb) hb.innerHTML = `<span class="ci">${ic}</span> <span class="hide-m">${AUTH ? t : 'Synchroniser'}</span>`;
+  const eb = $('#cloudBtn'); if (eb) eb.innerHTML = `<span class="ci">${ic}</span>`;
+  const f = $('#homeFoot');
+  if (f) f.textContent = AUTH ? `Vos plans et votre palette sont synchronisés avec ${AUTH.email} : retrouvez-les sur tous vos appareils.`
+    : 'Vos plans sont enregistrés dans ce navigateur, sur cet appareil.' + (CLOUD() ? ' Pour les retrouver sur vos autres appareils, utilisez ☁ Synchroniser.' : ' Pour les conserver ailleurs ou les ouvrir sur un autre appareil, utilisez ⇩ (exporter) puis « Importer un plan ».');
+}
+function openCloud(){ CL.msg = ''; drawCloud(); openModal('cloudModal'); }
+function drawCloud(){
+  let h = '';
+  if (AUTH){
+    const when = lastSync ? fmtDate(lastSync) : 'jamais';
+    h += `<p class="note" style="margin-top:0">Connecté avec <b>${esc(AUTH.email)}</b>. Vos plans, leurs photos de fond et votre palette végétale sont enregistrés en ligne et retrouvés sur tous les appareils connectés à cette adresse.</p>
+      <p class="note">Dernière synchronisation : <b>${cloudState === 'sync' ? 'en cours…' : when}</b>${cloudState === 'err' || cloudState === 'offline' ? ` — <span style="color:var(--warn)">${esc(cloudErrMsg)}</span>` : ''}</p>
+      <div class="acts"><button class="btn primary" data-cl="sync">⟳ Synchroniser maintenant</button><button class="btn" data-cl="out">Se déconnecter</button></div>
+      <p class="note" style="margin-top:14px">La synchronisation est automatique : quelques secondes après chaque modification, à l’ouverture de l’app et toutes les minutes. Si un même plan a été modifié sur deux appareils, c’est la version la plus récente qui l’emporte.</p>`;
+  } else if (CL.step === 1){
+    h += `<p class="note" style="margin-top:0">Entrez votre e-mail : vous recevrez un code à 6 chiffres. Une fois connecté, vos plans et votre palette se retrouvent sur l’iPhone, l’ordinateur et tous vos appareils. Pas de mot de passe.</p>
+      <input id="clEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="vous@exemple.fr" value="${esc(CL.email)}" style="width:100%">
+      <div class="acts"><button class="btn primary" data-cl="send">📧 Recevoir le code</button></div>`;
+  } else {
+    h += `<p class="note" style="margin-top:0">Un code a été envoyé à <b>${esc(CL.email)}</b>. Pensez à regarder les courriers indésirables.</p>
+      <input id="clCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Code" style="width:100%;letter-spacing:.25em;font-size:20px;text-align:center">
+      <div class="acts"><button class="btn primary" data-cl="check">✔ Valider</button><button class="btn" data-cl="back">Changer d’e-mail</button><button class="btn" data-cl="send">Renvoyer le code</button></div>`;
+  }
+  if (CL.msg) h += `<p class="note" style="color:var(--warn)">${esc(CL.msg)}</p>`;
+  if (!AUTH) h += `<p class="note" style="margin-top:14px">Seuls vos plans et votre palette sont enregistrés, sous votre adresse e-mail ; personne d’autre ne peut les lire. Sans connexion, l’app continue de fonctionner sur cet appareil.</p>`;
+  $('#cloudBody').innerHTML = h;
+  const i = $('#clEmail') || $('#clCode'); if (i) setTimeout(() => i.focus(), 50);
+}
+async function cloudSend(){
+  const em = ($('#clEmail') ? $('#clEmail').value : CL.email).trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ CL.msg = 'Adresse e-mail invalide.'; return drawCloud(); }
+  CL.email = em; CL.msg = 'Envoi…'; drawCloud();
+  try { await sb('/auth/v1/otp', {method:'POST', body:JSON.stringify({email:em, create_user:true})}); CL.step = 2; CL.msg = ''; }
+  catch(e){ CL.msg = cloudErr(e); }
+  drawCloud();
+}
+async function cloudCheck(){
+  const code = ($('#clCode').value || '').replace(/\D/g, '');
+  if (code.length < 6){ CL.msg = 'Entrez le code reçu par e-mail.'; return drawCloud(); }
+  CL.msg = 'Vérification…'; drawCloud();
+  try {
+    const r = await sb('/auth/v1/verify', {method:'POST', body:JSON.stringify({type:'email', email:CL.email, token:code})});
+    setAuth(r); CL.step = 1; CL.msg = ''; drawCloud(); drawCloudBtn();
+    await syncNow(false);
+    toast('Connecté : vos plans sont synchronisés');
+  } catch(e){ CL.msg = cloudErr(e); drawCloud(); }
+}
+$('#cloudModal').addEventListener('click', e => {
+  const b = e.target.closest('[data-cl]'); if (!b) return;
+  const a = b.dataset.cl;
+  if (a === 'send') cloudSend();
+  if (a === 'check') cloudCheck();
+  if (a === 'back'){ CL.step = 1; CL.msg = ''; drawCloud(); }
+  if (a === 'sync') syncNow(true);
+  if (a === 'out') confirmBox('Se déconnecter ? Vos plans restent sur cet appareil et en ligne.', () => { logoutCloud(); openCloud(); });
+});
+$('#cloudModal').addEventListener('keydown', e => { if (e.key !== 'Enter') return; if (e.target.id === 'clEmail') cloudSend(); if (e.target.id === 'clCode') cloudCheck(); });
+$('#homeCloud').onclick = openCloud; $('#cloudBtn').onclick = openCloud;
+window.addEventListener('online', () => schedSync(500));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) schedSync(300); });
+setInterval(() => { if (!document.hidden) schedSync(0); }, 60000);
+
 bootStorage();
 initCatalog();
 if (!store.ok) setTimeout(() => toast('Ce navigateur n’autorise pas l’enregistrement : exportez vos plans avant de fermer'), 800);
 document.body.classList.add('at-home');
 if (/^#p=/.test(location.hash)) receiveShare().then(ok => { if (!ok){ route(); renderHome(); } });
 else { route(); if (!location.hash.startsWith('#plan-')) renderHome(); }
+drawCloudBtn(); schedSync(800);
 let lastW = 0;
 new ResizeObserver(() => { const r = stage.getBoundingClientRect(); if (!lastW) { lastW = r.width; return; } if (Math.abs(r.width - lastW) > 1){ lastW = r.width; render(); } }).observe(stage);
 </script>
