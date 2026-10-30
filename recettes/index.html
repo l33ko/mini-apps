@@ -202,7 +202,7 @@ function authErr(e) {
   if (/email rate limit|over_email_send_rate_limit/i.test(m) || (e?.status === 429 && /email/i.test(m)))
     return 'Limite d’envoi d’e-mails atteinte pour l’instant. Réessaie dans un moment.';
   if (e?.status === 429 || /rate/i.test(m)) return 'Trop d’essais. Réessaie dans quelques minutes.';
-  if (e?.status && e.status < 500 && /otp|token|expired|invalid/i.test(m)) return 'Lien expiré ou déjà utilisé. Redemande un e-mail.';
+  if (e?.status && e.status < 500 && /otp|token|expired|invalid/i.test(m)) return 'Code incorrect ou expiré. Vérifie-le ou redemande un e-mail.';
   return 'Connexion impossible. Vérifie internet et réessaie.';
 }
 function dbErr(e) {
@@ -327,16 +327,19 @@ function renderLogin(msg = '') {
       <div class="f"><label>Ton e-mail</label><input type="email" name="email" inputmode="email" autocomplete="email" autocapitalize="off" required value="${esc(L.email)}" placeholder="ton@email.fr"></div>
       <div id="lmsg">${msg ? `<div class="msg err">${esc(msg)}</div>` : ''}</div>
       <button class="btn" style="width:100%">Recevoir l’e-mail de connexion</button>
-      <p class="muted" style="text-align:center;margin-top:14px">Pas de mot de passe : tu reçois un lien de connexion par e-mail.<br>Déjà connecté au cahier du CP ou à Mon jardin ? C’est le même compte.</p>
+      <p class="muted" style="text-align:center;margin-top:14px">Pas de mot de passe : tu reçois un code de connexion par e-mail.<br>Déjà connecté au cahier du CP ou à Mon jardin ? C’est le même compte.</p>
     </form>` : `
     <div id="cf">
       <div class="msg info" style="font-size:15px">📧 Un e-mail a été envoyé à <b>${esc(L.email)}</b>.</div>
-      <p class="muted" style="text-align:left">Ouvre-le <b>sur cet appareil</b> et touche le lien « Me connecter » : tu seras connecté automatiquement. Pense à regarder dans les courriers indésirables.</p>
+      <p class="muted" style="text-align:left">Recopie ici le <b>code à 6 chiffres</b> qu’il contient (pense à regarder dans les courriers indésirables) :</p>
+      <form id="codef"><div class="f"><input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456" style="text-align:center;letter-spacing:.3em;font-size:22px"></div>
+      <button class="btn" style="width:100%">Valider le code</button></form>
       <div id="lmsg">${msg ? `<div class="msg err">${esc(msg)}</div>` : ''}</div>
       <div class="row-actions" style="justify-content:center;margin-top:12px">
         <button type="button" class="btn ghost" id="chg">Changer d’e-mail</button>
-        <button type="button" class="btn ghost" id="again">Renvoyer l’e-mail</button>
+        <button type="button" class="btn ghost" id="again">Renvoyer un code</button>
       </div>
+      <p class="muted" style="text-align:left;font-size:13px">Le lien « Me connecter » de l’e-mail marche aussi, mais seulement s’il s’ouvre dans ce même navigateur (pas depuis l’app ajoutée à l’écran d’accueil).</p>
     </div>`}
     <p class="muted" style="margin-top:28px"><a href="confidentialite.html">Confidentialité</a> · <a href="../">Toutes les apps SynApps</a></p>
   </div>`;
@@ -359,6 +362,18 @@ function renderLogin(msg = '') {
   if (document.getElementById('cf')) {
     document.getElementById('chg').onclick = () => { L.step = 1; renderLogin(); };
     document.getElementById('again').onclick = send;
+    const cf = document.getElementById('codef');
+    setTimeout(() => cf.code.focus(), 50);
+    cf.onsubmit = async e => {
+      e.preventDefault(); if (L.busy) return;
+      const token = cf.code.value.replace(/\D/g, '');
+      if (token.length < 6) return lmsg('<div class="msg err">Entre le code à 6 chiffres reçu par e-mail.</div>');
+      L.busy = true; lmsg('<p class="muted"><span class="loader"></span>Vérification…</p>');
+      try {
+        const r = await authFetch('/auth/v1/verify', { type: 'email', email: L.email, token });
+        setAuth(r, { email: L.email }); L.busy = false; L.step = 1; loaded = false; route();
+      } catch (e) { L.busy = false; lmsg(`<div class="msg err">${esc(authErr(e))}</div>`); }
+    };
   }
 }
 

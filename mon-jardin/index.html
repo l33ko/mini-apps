@@ -3203,19 +3203,19 @@ function drawCloud(){
       <div class="acts"><button class="btn primary" data-cl="sync">⟳ Synchroniser maintenant</button><button class="btn" data-cl="out">Se déconnecter</button></div>
       <p class="note" style="margin-top:14px">La synchronisation est automatique : quelques secondes après chaque modification, à l’ouverture de l’app et toutes les minutes. Si un même plan a été modifié sur deux appareils, c’est la version la plus récente qui l’emporte.</p>`;
   } else if (CL.step === 1){
-    h += `<p class="note" style="margin-top:0">Entrez votre e-mail : vous recevrez un lien de connexion. Une fois connecté, vos plans et votre palette se retrouvent sur l’iPhone, l’ordinateur et tous vos appareils. Pas de mot de passe.</p>
+    h += `<p class="note" style="margin-top:0">Entrez votre e-mail : vous recevrez un code de connexion à 6 chiffres. Une fois connecté, vos plans et votre palette se retrouvent sur l’iPhone, l’ordinateur et tous vos appareils. Pas de mot de passe.</p>
       <input id="clEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="vous@exemple.fr" value="${esc(CL.email)}" style="width:100%">
-      <div class="acts"><button class="btn primary" data-cl="send">📧 Recevoir le lien</button></div>`;
+      <div class="acts"><button class="btn primary" data-cl="send">📧 Recevoir le code</button></div>`;
   } else {
-    h += `<p class="note" style="margin-top:0">Un e-mail a été envoyé à <b>${esc(CL.email)}</b>. Ouvrez-le <b>sur cet appareil</b> et touchez le lien : vous serez connecté automatiquement. Pensez à regarder les courriers indésirables.</p>
-      <p class="note">Si l’e-mail contient aussi un code à 6 chiffres, vous pouvez le saisir ici :</p>
-      <input id="clCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Code (facultatif)" style="width:100%;letter-spacing:.25em;font-size:18px;text-align:center">
-      <div class="acts"><button class="btn" data-cl="check">✔ Valider le code</button><button class="btn" data-cl="back">Changer d’e-mail</button><button class="btn" data-cl="send">Renvoyer l’e-mail</button></div>`;
+    h += `<p class="note" style="margin-top:0">Un e-mail a été envoyé à <b>${esc(CL.email)}</b> (pensez à regarder les courriers indésirables). Recopiez ici le <b>code à 6 chiffres</b> qu’il contient :</p>
+      <input id="clCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="123456" style="width:100%;letter-spacing:.3em;font-size:22px;text-align:center">
+      <div class="acts"><button class="btn primary" data-cl="check">✔ Valider le code</button><button class="btn" data-cl="back">Changer d’e-mail</button><button class="btn" data-cl="send">Renvoyer un code</button></div>
+      <p class="note">Le lien de l’e-mail marche aussi, mais seulement s’il s’ouvre dans ce même navigateur (pas depuis l’app ajoutée à l’écran d’accueil de l’iPhone).</p>`;
   }
   if (CL.msg) h += `<p class="note" style="color:var(--warn)">${esc(CL.msg)}</p>`;
   if (!AUTH) h += `<p class="note" style="margin-top:14px">Seuls vos plans et votre palette sont enregistrés, sous votre adresse e-mail ; personne d’autre ne peut les lire. Sans connexion, l’app continue de fonctionner sur cet appareil.</p>`;
   $('#cloudBody').innerHTML = h;
-  const i = $('#clEmail'); if (i) setTimeout(() => i.focus(), 50);
+  const i = $('#clEmail') || $('#clCode'); if (i) setTimeout(() => i.focus(), 50);
 }
 async function cloudSend(){
   const em = ($('#clEmail') ? $('#clEmail').value : CL.email).trim().toLowerCase();
