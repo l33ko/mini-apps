@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Recettes · SynApps</title>
+<meta name="theme-color" content="#b5532f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Recettes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Le carnet de recettes de la famille, partagé entre tous vos téléphones. Import depuis un lien, portions ajustables.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root{
+    --bg:#fbf6ef; --card:#fff; --ink:#2b2420; --muted:#8a7d72; --line:#eadfd2;
+    --accent:#b5532f; --accent-soft:#f6e2d6; --ok:#4f7a4a; --danger:#b23a3a;
+    --radius:16px; --shadow:0 1px 2px rgba(60,40,20,.06),0 4px 14px rgba(60,40,20,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#1c1816; --card:#27211e; --ink:#f3ebe3; --muted:#a8998c; --line:#3a312b;
+      --accent:#e07a50; --accent-soft:#3d2a20; --shadow:none; }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  h1,h2,h3{font-family:ui-serif,Georgia,"Times New Roman",serif;font-weight:600;line-height:1.2;margin:0}
+  a{color:var(--accent)}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .wrap{max-width:760px;margin:0 auto;padding:16px 16px 96px}
+  .top{display:flex;align-items:center;gap:10px;margin:6px 0 14px}
+  .top h1{font-size:28px;flex:1}
+  .icon-btn{border:0;background:var(--card);box-shadow:var(--shadow);width:42px;height:42px;border-radius:12px;
+    display:grid;place-items:center;cursor:pointer;font-size:19px;flex:none;text-decoration:none;color:var(--ink)}
+  .btn{border:0;border-radius:12px;padding:11px 16px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff}
+  .btn.ghost{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+  .btn.danger{background:transparent;color:var(--danger);box-shadow:none;padding-left:0}
+  .btn:disabled{opacity:.6}
+  input[type=search],input[type=text],input[type=email],input[type=password],input[type=number],input[type=url],select,textarea{
+    width:100%;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:11px 13px;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+  textarea{resize:vertical;min-height:120px}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:none;margin:0 -16px;padding-left:16px;padding-right:16px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;cursor:pointer;font-size:14px;white-space:nowrap}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .count{color:var(--muted);font-size:14px;margin:10px 2px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column}
+  .card .ph{aspect-ratio:16/9;background:var(--accent-soft) center/cover no-repeat;display:grid;place-items:center;font-size:40px}
+  .card .bd{padding:11px 13px 13px}
+  .card h3{font-size:18px;margin-bottom:4px}
+  .meta{color:var(--muted);font-size:13.5px;display:flex;gap:10px;flex-wrap:wrap}
+  .star{color:#e0a100}
+  .empty{text-align:center;color:var(--muted);padding:50px 10px}
+  .empty .big{font-size:46px}
+  .fab2{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:calc(max(18px,env(safe-area-inset-bottom)) + 70px);
+    width:48px;height:48px;border-radius:50%;background:var(--card);color:var(--ink);font-size:21px;box-shadow:var(--shadow),0 4px 14px rgba(60,40,20,.15);
+    text-decoration:none;display:grid;place-items:center;right:calc(max(18px,env(safe-area-inset-right)) + 5px)}
+  .imp{display:flex;gap:8px;margin:14px 0}
+  .imp input{flex:1;min-width:0}
+  .loader{display:inline-block;width:18px;height:18px;border:3px solid var(--accent-soft);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-4px;margin-right:8px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .muted{color:var(--muted);font-size:14px}
+  .fab{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));
+    width:58px;height:58px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:30px;
+    box-shadow:0 6px 18px rgba(181,83,47,.4);cursor:pointer;text-decoration:none;display:grid;place-items:center}
+  /* fiche */
+  .hero{border-radius:var(--radius);aspect-ratio:16/9;background:var(--accent-soft) center/cover no-repeat;margin-bottom:14px}
+  .detail h1{font-size:30px;margin:4px 0 8px}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+  .tag{background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 10px;font-size:13px}
+  .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:14px 0}
+  .panel h2{font-size:21px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+  .portions{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:-apple-system,sans-serif;font-size:15px;font-weight:500}
+  .portions button{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:18px;line-height:1}
+  .ing{list-style:none;margin:0;padding:0}
+  .ing li{display:flex;gap:11px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .ing li:last-child{border-bottom:0}
+  .ing input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--ok);flex:none}
+  .ing li.done span{text-decoration:line-through;color:var(--muted)}
+  .steps{margin:0;padding:0;list-style:none;counter-reset:s}
+  .steps li{counter-increment:s;display:flex;gap:12px;padding:9px 0;cursor:pointer}
+  .steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:14px;margin-top:1px}
+  .steps li.sec{counter-increment:none;font-weight:700;padding-top:14px;cursor:default}
+  .steps li.sec::before{display:none}
+  .steps li.done{color:var(--muted)}
+  .steps li.done::before{background:var(--ok);content:"✓"}
+  .notes{white-space:pre-wrap}
+  .row-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;cursor:pointer;margin-left:auto}
+  /* formulaire */
+  form .f{margin-bottom:14px}
+  form label{display:block;font-weight:600;font-size:14px;margin-bottom:5px}
+  form .hint{color:var(--muted);font-weight:400;font-size:13px}
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  /* connexion */
+  .login{max-width:380px;margin:12vh auto 0;padding:0 20px;text-align:center}
+  .login .logo{font-size:58px}
+  .login h1{font-size:32px;margin:6px 0 4px}
+  .login p{color:var(--muted);margin:0 0 22px}
+  .login form{text-align:left}
+  .msg{padding:10px 13px;border-radius:12px;font-size:14px;margin:10px 0}
+  .msg.err{background:#fbe4e4;color:#8f2525}
+  .msg.info{background:var(--accent-soft)}
+  .spin{display:grid;place-items:center;height:60vh;color:var(--muted)}
+  @media (max-width:480px){ .cols{grid-template-columns:1fr 1fr} .grid{grid-template-columns:1fr 1fr;gap:10px}
+    .card h3{font-size:16px} .card .ph{font-size:32px} }
+
+  a.btn{text-decoration:none;display:inline-block;text-align:center}
+  .fam-title{flex:1;min-width:0;text-decoration:none;color:inherit}
+  .fam-title small{display:block;color:var(--muted);font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+  .fam-title span{display:block;font-family:ui-serif,Georgia,serif;font-weight:600;font-size:26px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mem{list-style:none;margin:12px 0 0;padding:0}
+  .mem li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+  .mem li>span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .mem em{color:var(--muted);font-style:normal}
+  .mem .btn.danger{padding:4px 0}
+  .code{font:700 34px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:6px;text-align:center;padding:16px;margin:6px 0 12px;
+    background:var(--accent-soft);color:var(--accent);border-radius:14px}
+  .fams{display:flex;flex-direction:column;gap:8px}
+  .famb{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 13px;cursor:pointer}
+  .famb b{display:block}.famb span{color:var(--muted);font-size:13.5px}
+  .famb.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .by{margin-top:6px}
+  .login .msg{text-align:left}
+</style>
+</head>
+<body>
+<div id="app"><div class="spin">Chargement…</div></div>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+/* =============================================================
+   Recettes — SynApps
+   Compte : e-mail + lien ou code (session commune aux apps SynApps).
+   Données : projet Supabase public, protégées par les règles RLS
+   (voir supabase.sql) : on ne voit que les recettes de ses familles.
+   ============================================================= */
+const SB = { url: 'https://qxwypwcxdhhtgmzaskzs.supabase.co', key: 'sb_publishable_BZ9SxprfxkC-dUQZori4zA_txbvmngw' };
+const AUTH_KEY = 'synapps-auth';          // même session que le cahier du CP et Mon jardin
+const FAM_KEY = 'recettes-famille';
+const JOIN_KEY = 'recettes-rejoindre';
+const APP_URL = location.origin + location.pathname;
+
+const CATS = [
+  ['Apéro','🫒'],['Entrée','🥗'],['Plat','🍲'],['Accompagnement','🥔'],['Dessert','🍰'],
+  ['Petit-déj','🥐'],['Pain & pâte','🥖'],['Sauce','🫙'],['Boisson','🍹'],['Autre','🍽️']
+];
+const emoji = c => (CATS.find(x => x[0] === c) || [, '🍽️'])[1];
+const app = document.getElementById('app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const lines = t => String(t || '').split('\n').map(s => s.trim()).filter(Boolean);
+const mins = m => !m ? '' : m < 60 ? `${m} min` : `${Math.floor(m/60)} h${m%60 ? ' ' + String(m%60).padStart(2,'0') : ''}`;
+const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : '';
+const fmtCode = c => c ? c.slice(0, 3) + '-' + c.slice(3) : '';
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+/* ---------- session (identique aux autres apps SynApps) ---------- */
+let AUTH = store.get(AUTH_KEY);
+function setAuth(r, extra = {}) {
+  const u = r.user || {};
+  AUTH = { access_token: r.access_token, refresh_token: r.refresh_token, exp: Date.now() + (r.expires_in || 3600) * 1000,
+    email: u.email || extra.email || AUTH?.email || '', uid: u.id || extra.uid || AUTH?.uid || '' };
+  store.set(AUTH_KEY, AUTH);
+}
+function logout() { AUTH = null; store.set(AUTH_KEY, null); }
+async function authFetch(path, body) {
+  const r = await fetch(SB.url + path, { method: body ? 'POST' : 'GET',
+    headers: { apikey: SB.key, 'Content-Type': 'application/json', ...(AUTH && !body ? { Authorization: 'Bearer ' + AUTH.access_token } : {}) },
+    body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => null);
+  if (!r.ok) { const e = new Error(j?.msg || j?.message || j?.error_description || j?.error || 'HTTP ' + r.status); e.status = r.status; throw e; }
+  return j;
+}
+let refreshing = null;
+async function token() {
+  if (!AUTH) throw new Error('non connecté');
+  if (AUTH.exp - Date.now() < 60000) {
+    refreshing ||= authFetch('/auth/v1/token?grant_type=refresh_token', { refresh_token: AUTH.refresh_token })
+      .then(r => { setAuth(r); sb.realtime.setAuth(AUTH.access_token); })
+      .catch(e => { if (e.status && e.status < 500) { logout(); route(); } throw e; })
+      .finally(() => { refreshing = null; });
+    await refreshing;
+  }
+  return AUTH.access_token;
+}
+const sb = createClient(SB.url, SB.key, { accessToken: async () => AUTH ? token() : null });
+const authErr = e => e?.status === 429 || /rate|seconds/i.test(e?.message) ? 'Trop d’essais. Réessaie dans quelques minutes.'
+  : e?.status && e.status < 500 && /otp|token|expired|invalid/i.test(e.message) ? 'Code incorrect ou expiré. Redemande un e-mail.'
+  : 'Connexion impossible. Vérifie internet et réessaie.';
+function dbErr(e) {
+  const m = e?.message || String(e);
+  if (/schema cache|does not exist|Could not find the (table|function)/i.test(m))
+    return 'La base n’est pas encore prête : lance le script recettes/supabase.sql dans Supabase.';
+  if (/JWT|401|non connecté/i.test(m)) return 'Session expirée, reconnecte-toi.';
+  return m;
+}
+const q = async p => { const { data, error } = await p; if (error) throw error; return data; };
+
+/* ---------- état ---------- */
+let familles = [], fam = null, membres = [], recipes = [], loaded = false, draft = null, channel = null, editing = false;
+const filt = { q: '', cat: '', fav: false };
+let wakeLock = null;
+
+/* ---------- démarrage ---------- */
+async function boot() {
+  const qs = new URLSearchParams(location.search);
+  const join = qs.get('rejoindre'), imp = qs.get('import');
+  if (join) store.set(JOIN_KEY, join.toUpperCase().replace(/[^A-Z0-9]/g, ''));
+  // Retour du lien magique : #access_token=…
+  const h = location.hash;
+  let linkMsg = '';
+  if (/access_token=|error_code=/.test(h)) {
+    const p = new URLSearchParams(h.slice(1));
+    history.replaceState(null, '', location.pathname);
+    if (p.get('access_token')) {
+      AUTH = { access_token: p.get('access_token'), refresh_token: p.get('refresh_token') || '', exp: Date.now() + (+p.get('expires_in') || 3600) * 1000, email: '', uid: '' };
+      try { const u = await authFetch('/auth/v1/user'); AUTH.email = u.email || ''; AUTH.uid = u.id || ''; store.set(AUTH_KEY, AUTH); }
+      catch (e) { logout(); linkMsg = authErr(e); }
+    } else linkMsg = 'Lien expiré ou déjà utilisé. Redemande un e-mail.';
+  } else if (join || imp) history.replaceState(null, '', location.pathname + (imp ? '#/import' : location.hash));
+  window.addEventListener('hashchange', route);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && loaded) reload(); });
+  await route(linkMsg);
+  if (imp && AUTH && loaded) renderImport(imp);
+}
+
+async function loadAll() {
+  familles = await q(sb.rpc('mes_familles'));
+  const saved = store.get(FAM_KEY);
+  fam = familles.find(f => f.id === saved) || familles[0];
+  store.set(FAM_KEY, fam?.id);
+  await loadFamily();
+}
+async function loadFamily() {
+  [recipes, membres] = await Promise.all([
+    q(sb.from('recettes').select('*').eq('famille_id', fam.id).order('titre')),
+    q(sb.from('membres_famille').select('user_id, role, email, created_at').eq('famille_id', fam.id).order('created_at')),
+  ]);
+  loaded = true;
+  subscribe();
+}
+async function reload() {
+  try { await loadAll(); rerender(); } catch {}
+}
+function subscribe() {
+  if (channel) sb.removeChannel(channel);
+  sb.realtime.setAuth(AUTH.access_token);
+  channel = sb.channel('recettes-' + fam.id)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'recettes', filter: 'famille_id=eq.' + fam.id }, p => {
+      if (p.eventType === 'DELETE') recipes = recipes.filter(r => r.id !== p.old?.id);
+      else if (p.new?.famille_id === fam.id) {
+        const i = recipes.findIndex(r => r.id === p.new.id);
+        if (i >= 0) recipes[i] = p.new; else recipes.push(p.new);
+        recipes.sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
+      }
+      rerender(p.new?.id || p.old?.id);
+    }).subscribe();
+}
+// Rafraîchit la vue après une modification venue d'un autre appareil (sauf pendant une saisie)
+function rerender(id) {
+  if (editing) return;
+  const h = location.hash.slice(1) || '/';
+  if (h === '/') { if (document.getElementById('res')) drawResults(); }
+  else if (h === '/r/' + id) { const r = find(id); r ? renderDetail(r, true) : go('/'); }
+  else if (h === '/famille' && !id) renderFamille();
+}
+
+async function route(msg = '') {
+  releaseWake(); editing = false;
+  if (!AUTH) return renderLogin(msg);
+  if (!loaded) {
+    app.innerHTML = '<div class="spin">Chargement des recettes…</div>';
+    try { await loadAll(); }
+    catch (e) { return renderError(e); }
+    const pending = store.get(JOIN_KEY);
+    if (pending) return renderJoin(pending);
+  }
+  const h = location.hash.slice(1) || '/';
+  let m;
+  if (h === '/new') renderEdit(null);
+  else if (h === '/import') renderImport();
+  else if (h === '/famille') renderFamille();
+  else if (h === '/compte') renderCompte();
+  else if ((m = h.match(/^\/edit\/(.+)$/))) find(m[1]) ? renderEdit(find(m[1])) : go('/');
+  else if ((m = h.match(/^\/r\/(.+)$/))) renderDetail(find(m[1]));
+  else renderList();
+}
+const find = id => recipes.find(r => r.id === id);
+const go = h => { if (location.hash === '#' + h) route(); else location.hash = h; };
+const who = uid => !uid ? '' : uid === AUTH?.uid ? 'toi' : (membres.find(m => m.user_id === uid)?.email || 'un ancien membre').split('@')[0];
+
+/* ---------- connexion ---------- */
+const L = { step: 1, email: '', busy: false };
+function renderLogin(msg = '') {
+  const join = store.get(JOIN_KEY);
+  app.innerHTML = `
+  <div class="login">
+    <div class="logo">🍲</div>
+    <h1>Recettes</h1>
+    <p>Le carnet de cuisine de la famille, partagé entre vos téléphones.</p>
+    ${join ? `<div class="msg info">Tu as été invité à rejoindre une famille. Connecte-toi pour accepter.</div>` : ''}
+    ${L.step === 1 ? `
+    <form id="lf">
+      <div class="f"><label>Ton e-mail</label><input type="email" name="email" inputmode="email" autocomplete="email" autocapitalize="off" required value="${esc(L.email)}" placeholder="ton@email.fr"></div>
+      <div id="lmsg">${msg ? `<div class="msg err">${esc(msg)}</div>` : ''}</div>
+      <button class="btn" style="width:100%">Recevoir l’e-mail de connexion</button>
+      <p class="muted" style="text-align:center;margin-top:14px">Pas de mot de passe : tu reçois un lien (et un code) par e-mail.<br>Déjà connecté au cahier du CP ou à Mon jardin ? C’est le même compte.</p>
+    </form>` : `
+    <form id="cf">
+      <p class="muted" style="text-align:left">Un e-mail a été envoyé à <b>${esc(L.email)}</b>.<br>
+      Touche le lien <b>sur cet appareil</b>, ou saisis ci-dessous le code qu’il contient (pratique si l’app est installée sur l’écran d’accueil).</p>
+      <div class="f"><label>Code reçu</label><input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" style="letter-spacing:4px;font-size:22px;text-align:center"></div>
+      <div id="lmsg">${msg ? `<div class="msg err">${esc(msg)}</div>` : ''}</div>
+      <button class="btn" style="width:100%">Valider le code</button>
+      <div class="row-actions" style="justify-content:center;margin-top:12px">
+        <button type="button" class="btn ghost" id="chg">Changer d’e-mail</button>
+        <button type="button" class="btn ghost" id="again">Renvoyer</button>
+      </div>
+    </form>`}
+    <p class="muted" style="margin-top:28px"><a href="confidentialite.html">Confidentialité</a> · <a href="../">Toutes les apps SynApps</a></p>
+  </div>`;
+  const lmsg = t => { document.getElementById('lmsg').innerHTML = t; };
+  const send = async () => {
+    if (L.busy) return; L.busy = true;
+    lmsg('<p class="muted"><span class="loader"></span>Envoi…</p>');
+    try {
+      await authFetch('/auth/v1/otp' + (/^https:/.test(location.href) ? '?redirect_to=' + encodeURIComponent(APP_URL) : ''), { email: L.email, create_user: true });
+      L.step = 2; L.busy = false; renderLogin();
+    } catch (e) { L.busy = false; lmsg(`<div class="msg err">${esc(authErr(e))}</div>`); }
+  };
+  const lf = document.getElementById('lf');
+  if (lf) lf.onsubmit = e => {
+    e.preventDefault();
+    const em = lf.email.value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return lmsg('<div class="msg err">Cet e-mail ne semble pas correct.</div>');
+    L.email = em; send();
+  };
+  const cf = document.getElementById('cf');
+  if (cf) {
+    cf.onsubmit = async e => {
+      e.preventDefault();
+      const code = cf.code.value.replace(/\D/g, '');
+      if (code.length < 6) return lmsg('<div class="msg err">Le code contient au moins 6 chiffres.</div>');
+      lmsg('<p class="muted"><span class="loader"></span>Vérification…</p>');
+      try {
+        const r = await authFetch('/auth/v1/verify', { type: 'email', email: L.email, token: code });
+        setAuth(r, { email: L.email }); L.step = 1; loaded = false; route();
+      } catch (e) { lmsg(`<div class="msg err">${esc(authErr(e))}</div>`); }
+    };
+    document.getElementById('chg').onclick = () => { L.step = 1; renderLogin(); };
+    document.getElementById('again').onclick = send;
+    setTimeout(() => cf.code.focus(), 50);
+  }
+}
+
+function renderError(error) {
+  app.innerHTML = `<div class="wrap"><div class="msg err">${esc(dbErr(error))}</div>
+    <div class="row-actions"><button class="btn ghost" id="retry">Réessayer</button><button class="btn ghost" id="out">Se déconnecter</button></div></div>`;
+  document.getElementById('retry').onclick = () => { loaded = false; route(); };
+  document.getElementById('out').onclick = () => { logout(); loaded = false; route(); };
+}
+
+/* ---------- invitation ---------- */
+async function renderJoin(code) {
+  app.innerHTML = '<div class="spin">Invitation…</div>';
+  let info = null;
+  try { info = (await q(sb.rpc('apercu_famille', { p_code: code })))[0]; } catch {}
+  if (!info) { store.set(JOIN_KEY, null); app.innerHTML = `<div class="wrap"><div class="msg err">Ce lien d’invitation n’est plus valable. Demande un nouveau lien.</div><a class="btn" href="#/">Continuer</a></div>`; return; }
+  const deja = familles.find(f => f.nom === info.nom && f.code === code);
+  app.innerHTML = `
+  <div class="login">
+    <div class="logo">👨‍👩‍👧</div>
+    <h1>Rejoindre « ${esc(info.nom)} »</h1>
+    <p>${info.nb_membres} membre${info.nb_membres > 1 ? 's' : ''} · Vous partagerez les mêmes recettes, sur tous vos appareils.</p>
+    ${deja ? '<div class="msg info">Tu fais déjà partie de cette famille.</div>' : ''}
+    <div id="jmsg"></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${deja ? '' : '<button class="btn" id="ok">Rejoindre la famille</button>'}
+      <button class="btn ghost" id="no">${deja ? 'Continuer' : 'Plus tard'}</button>
+    </div>
+    ${deja ? '' : '<p class="muted" style="margin-top:16px">Si ton carnet actuel est vide, il sera remplacé par celui de la famille. Sinon, tu garderas les deux et pourras passer de l’un à l’autre.</p>'}
+  </div>`;
+  document.getElementById('no').onclick = () => { store.set(JOIN_KEY, null); go('/'); };
+  const ok = document.getElementById('ok');
+  if (ok) ok.onclick = async () => {
+    ok.disabled = true;
+    try {
+      const fid = await q(sb.rpc('rejoindre_famille', { p_code: code }));
+      store.set(JOIN_KEY, null); store.set(FAM_KEY, fid);
+      await loadAll(); go('/');
+    } catch (e) { ok.disabled = false; document.getElementById('jmsg').innerHTML = `<div class="msg err">${esc(dbErr(e))}</div>`; }
+  };
+}
+
+/* ---------- liste ---------- */
+function renderList() {
+  const used = CATS.filter(([c]) => recipes.some(r => r.categorie === c));
+  app.innerHTML = `
+  <div class="wrap">
+    <div class="top">
+      <a class="fam-title" href="#/famille" title="Famille"><small>Recettes</small><span>${esc(fam.nom)}${familles.length > 1 ? ' ▾' : ''}</span></a>
+      <a class="icon-btn" href="#/famille" title="Famille et invitations">👥</a>
+      <a class="icon-btn" href="#/compte" title="Mon compte">👤</a>
+    </div>
+    <input type="search" id="q" placeholder="Chercher une recette, un ingrédient…" value="${esc(filt.q)}">
+    <div class="chips" id="chips">
+      <button class="chip ${!filt.cat && !filt.fav ? 'on' : ''}" data-c="">Toutes</button>
+      <button class="chip ${filt.fav ? 'on' : ''}" data-f="1">★ Favorites</button>
+      ${used.map(([c, e]) => `<button class="chip ${filt.cat === c ? 'on' : ''}" data-c="${esc(c)}">${e} ${esc(c)}</button>`).join('')}
+    </div>
+    <div id="res"></div>
+  </div>
+  <a class="fab2" href="#/import" title="Importer depuis un lien">🔗</a>
+  <a class="fab" href="#/new" title="Nouvelle recette">+</a>`;
+  const qi = document.getElementById('q');
+  qi.oninput = () => { filt.q = qi.value; drawResults(); };
+  document.getElementById('chips').onclick = e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    if (b.dataset.f) { filt.fav = !filt.fav; filt.cat = ''; } else { filt.cat = b.dataset.c; filt.fav = false; }
+    renderList();
+  };
+  drawResults();
+}
+
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function drawResults() {
+  const words = norm(filt.q).split(/\s+/).filter(Boolean);
+  const list = recipes.filter(r => {
+    if (filt.fav && !r.favori) return false;
+    if (filt.cat && r.categorie !== filt.cat) return false;
+    if (!words.length) return true;
+    const hay = norm([r.titre, r.categorie, r.ingredients, r.notes, (r.tags || []).join(' ')].join(' '));
+    return words.every(w => hay.includes(w));
+  });
+  const res = document.getElementById('res');
+  if (!recipes.length) {
+    res.innerHTML = `<div class="empty"><div class="big">📖</div><p>Le carnet est vide pour l’instant.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:300px;margin:0 auto">
+      <a class="btn" href="#/import">🔗 Importer depuis un lien</a>
+      <a class="btn ghost" href="#/new">✎ Écrire une recette</a>
+      ${fam.nb_membres <= 1 ? '<a class="btn ghost" href="#/famille">👥 Inviter ma famille</a>' : ''}</div></div>`;
+    return;
+  }
+  if (!list.length) { res.innerHTML = `<div class="empty"><div class="big">🤷</div><p>Aucune recette ne correspond.</p></div>`; return; }
+  res.innerHTML = `<div class="count">${list.length} recette${list.length > 1 ? 's' : ''}</div>
+  <div class="grid">${list.map(r => {
+    const t = (r.temps_prep || 0) + (r.temps_cuisson || 0);
+    const ph = safeUrl(r.photo);
+    return `<a class="card" href="#/r/${r.id}">
+      <div class="ph" ${ph ? `style="background-image:url('${esc(ph)}')"` : ''}>${ph ? '' : emoji(r.categorie)}</div>
+      <div class="bd"><h3>${r.favori ? '<span class="star">★</span> ' : ''}${esc(r.titre)}</h3>
+      <div class="meta">${r.categorie ? `<span>${esc(r.categorie)}</span>` : ''}${t ? `<span>⏱ ${mins(t)}</span>` : ''}</div></div>
+    </a>`;
+  }).join('')}</div>`;
+}
+
+/* ---------- fiche recette ---------- */
+const FRAC = { '½': .5, '¼': .25, '¾': .75, '⅓': 1/3, '⅔': 2/3 };
+function scaleLine(line, f) {
+  const m = line.match(/^(\d+\s*\/\s*\d+|\d+(?:[.,]\d+)?(?:\s*[½¼¾⅓⅔])?|[½¼¾⅓⅔])/);
+  if (!m) return esc(line);
+  const t = m[1];
+  let v;
+  if (t.includes('/')) { const [a, b] = t.split('/').map(Number); v = a / b; }
+  else if (FRAC[t]) v = FRAC[t];
+  else { const fr = t.match(/[½¼¾⅓⅔]/); v = parseFloat(t.replace(',', '.')) + (fr ? FRAC[fr[0]] : 0); }
+  const n = v * f;
+  const out = n.toLocaleString('fr-FR', { maximumFractionDigits: n >= 10 ? 0 : n >= 1 ? 1 : 2 });
+  return `<b>${f === 1 ? esc(t) : out}</b>${esc(line.slice(t.length))}`;
+}
+
+let detailState = {};
+function renderDetail(r, keep = false) {
+  if (!r) return go('/');
+  const base = r.portions || 4;
+  if (!keep || detailState.id !== r.id) detailState = { id: r.id, por: base, ing: new Set(), st: new Set() };
+  const S = detailState;
+  const ph = safeUrl(r.photo), src = safeUrl(r.source);
+  const ings = lines(r.ingredients);
+  const steps = lines(r.etapes).map(s => s.replace(/^\d+[.)-]\s*/, ''));
+  const auteur = who(r.cree_par), modif = r.modifie_par && r.modifie_par !== r.cree_par ? who(r.modifie_par) : '';
+  app.innerHTML = `
+  <div class="wrap detail">
+    <div class="top">
+      <a class="icon-btn" href="#/" title="Retour">←</a>
+      <span style="flex:1"></span>
+      <button class="icon-btn" id="fav" title="Favori">${r.favori ? '★' : '☆'}</button>
+      <a class="icon-btn" href="#/edit/${r.id}" title="Modifier">✎</a>
+    </div>
+    ${ph ? `<div class="hero" style="background-image:url('${esc(ph)}')"></div>` : ''}
+    <div class="meta">${emoji(r.categorie)} ${esc(r.categorie || '')}</div>
+    <h1>${esc(r.titre)}</h1>
+    <div class="meta">
+      ${r.temps_prep ? `<span>🔪 Préparation ${mins(r.temps_prep)}</span>` : ''}
+      ${r.temps_cuisson ? `<span>🔥 Cuisson ${mins(r.temps_cuisson)}</span>` : ''}
+    </div>
+    ${(r.tags || []).length ? `<div class="tags">${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+    <div class="row-actions">
+      ${src ? `<a href="${esc(src)}" target="_blank" rel="noopener">Recette d’origine ↗</a>` : ''}
+      ${'wakeLock' in navigator ? `<label class="toggle"><input type="checkbox" id="wake"> Garder l’écran allumé</label>` : ''}
+    </div>
+    ${ings.length ? `<div class="panel">
+      <h2>Ingrédients
+        <span class="portions"><button id="minus" aria-label="Moins">−</button>
+        <span id="por"></span><button id="plus" aria-label="Plus">+</button></span></h2>
+      <ul class="ing" id="ing"></ul></div>` : ''}
+    ${steps.length ? `<div class="panel"><h2>Préparation</h2>
+      <ol class="steps" id="steps">${steps.map((s, i) => /^—.*—$/.test(s)
+        ? `<li class="sec">${esc(s.replace(/^—\s*|\s*—$/g, ''))}</li>` : `<li data-i="${i}" class="${S.st.has(i) ? 'done' : ''}">${esc(s)}</li>`).join('')}</ol></div>` : ''}
+    ${r.notes ? `<div class="panel"><h2>Notes</h2><div class="notes">${esc(r.notes)}</div></div>` : ''}
+    ${auteur ? `<p class="muted by">Ajoutée par ${esc(auteur)}${modif ? ` · modifiée par ${esc(modif)}` : ''}</p>` : ''}
+  </div>`;
+
+  const drawIng = () => {
+    const el = document.getElementById('ing'); if (!el) return;
+    document.getElementById('por').textContent = `${S.por} pers.`;
+    el.innerHTML = ings.map((l, i) => `<li data-i="${i}" class="${S.ing.has(i) ? 'done' : ''}">
+      <input type="checkbox" ${S.ing.has(i) ? 'checked' : ''}><span>${scaleLine(l, S.por / base)}</span></li>`).join('');
+  };
+  drawIng();
+  const ingEl = document.getElementById('ing');
+  if (ingEl) {
+    ingEl.onclick = e => { const li = e.target.closest('li'); if (!li) return; const i = +li.dataset.i;
+      S.ing.has(i) ? S.ing.delete(i) : S.ing.add(i); drawIng(); };
+    document.getElementById('minus').onclick = () => { if (S.por > 1) { S.por--; drawIng(); } };
+    document.getElementById('plus').onclick = () => { S.por++; drawIng(); };
+  }
+  const st = document.getElementById('steps');
+  if (st) st.onclick = e => { const li = e.target.closest('li'); if (!li || li.classList.contains('sec')) return;
+    const i = +li.dataset.i; S.st.has(i) ? S.st.delete(i) : S.st.add(i); li.classList.toggle('done'); };
+  document.getElementById('fav').onclick = async e => {
+    const val = !r.favori;
+    try { Object.assign(r, await q(sb.from('recettes').update({ favori: val }).eq('id', r.id).select().single())); e.target.textContent = val ? '★' : '☆'; }
+    catch (err) { alert(dbErr(err)); }
+  };
+  const w = document.getElementById('wake');
+  if (w) { w.checked = !!wakeLock; w.onchange = async () => {
+    if (w.checked) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch { w.checked = false; } }
+    else releaseWake();
+  }; }
+  if (!keep) window.scrollTo(0, 0);
+}
+function releaseWake() { if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; } }
+
+/* ---------- import depuis un lien ---------- */
+function renderImport(preset = '') {
+  app.innerHTML = `
+  <div class="wrap">
+    <div class="top"><a class="icon-btn" href="#/" title="Annuler">✕</a><h1 style="font-size:24px">Importer un lien</h1></div>
+    <p class="muted">Colle le lien d’une recette (Marmiton, 750g, un blog…). La fiche est créée automatiquement dans « ${esc(fam.nom)} », tu pourras la corriger ensuite.</p>
+    <form id="if">
+      <div class="imp">
+        <input type="url" name="url" placeholder="https://…" required value="${esc(preset)}" autocomplete="off">
+        ${navigator.clipboard?.readText ? '<button type="button" class="btn ghost" id="paste">Coller</button>' : ''}
+      </div>
+      <button class="btn" id="go" style="width:100%">Importer la recette</button>
+    </form>
+    <div id="imsg"></div>
+  </div>`;
+  const f = document.getElementById('if'), msg = document.getElementById('imsg'), b = document.getElementById('go');
+  const p = document.getElementById('paste');
+  if (p) p.onclick = async () => { try { const t = await navigator.clipboard.readText(); f.url.value = (t.match(/https?:\/\/\S+/) || [t])[0].trim(); } catch {} };
+  f.onsubmit = async e => {
+    e.preventDefault(); b.disabled = true;
+    msg.innerHTML = '<p class="muted"><span class="loader"></span>Lecture de la page et extraction de la recette…</p>';
+    try {
+      await token();
+      const { data, error } = await sb.functions.invoke('import-recette', { body: { url: f.url.value } });
+      if (error) throw new Error(/not found|404/i.test(error.message + (error.context?.status || ''))
+        ? 'L’import n’est pas encore installé (fonction « import-recette » à créer dans Supabase).' : 'Le service d’import ne répond pas. Réessaie plus tard.');
+      if (!data?.recette) { const er = new Error(data?.error || 'Import impossible.'); er.partiel = data?.partiel; throw er; }
+      const rec = await q(sb.from('recettes').insert({ ...data.recette, famille_id: fam.id }).select().single());
+      if (!find(rec.id)) recipes.push(rec);
+      recipes.sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
+      go('/r/' + rec.id);
+    } catch (err) {
+      b.disabled = false;
+      msg.innerHTML = `<div class="msg err">${esc(err.partiel !== undefined ? err.message : dbErr(err))}</div>` + (err.partiel
+        ? `<p class="muted">Tu peux créer la fiche à la main : le lien${err.partiel.titre ? ' et le titre' : ''} seront déjà remplis.</p>
+           <button class="btn ghost" id="manual">✎ Créer la fiche à la main</button>` : '');
+      const mb = document.getElementById('manual');
+      if (mb) mb.onclick = () => { draft = err.partiel; go('/new'); };
+    }
+  };
+  if (preset) f.requestSubmit(); else setTimeout(() => f.url.focus(), 50);
+}
+
+/* ---------- ajout / modification ---------- */
+function renderEdit(r) {
+  const isNew = !r;
+  r = r || { titre: '', categorie: 'Plat', portions: 4, ingredients: '', etapes: '', notes: '', tags: [], source: '', photo: '', ...draft };
+  draft = null; editing = true;
+  app.innerHTML = `
+  <div class="wrap">
+    <div class="top">
+      <a class="icon-btn" href="${isNew ? '#/' : '#/r/' + r.id}" title="Annuler">✕</a>
+      <h1 style="font-size:24px">${isNew ? 'Nouvelle recette' : 'Modifier'}</h1>
+    </div>
+    ${isNew && !r.source ? '<p class="muted">Tu as un lien ? <a href="#/import">Importer la recette automatiquement</a></p>' : ''}
+    <form id="ef">
+      <div class="f"><label>Nom de la recette</label><input type="text" name="titre" required maxlength="200" value="${esc(r.titre)}" placeholder="Ex : Tarte aux pommes de mamie"></div>
+      <div class="cols2">
+        <div class="f"><label>Catégorie</label><select name="categorie">
+          ${CATS.map(([c, e]) => `<option ${r.categorie === c ? 'selected' : ''} value="${esc(c)}">${e} ${esc(c)}</option>`).join('')}</select></div>
+        <div class="f"><label>Portions</label><input type="number" name="portions" min="1" max="99" value="${r.portions || 4}"></div>
+      </div>
+      <div class="cols2">
+        <div class="f"><label>Préparation <span class="hint">(min)</span></label><input type="number" name="temps_prep" min="0" inputmode="numeric" value="${r.temps_prep ?? ''}"></div>
+        <div class="f"><label>Cuisson <span class="hint">(min)</span></label><input type="number" name="temps_cuisson" min="0" inputmode="numeric" value="${r.temps_cuisson ?? ''}"></div>
+      </div>
+      <div class="f"><label>Ingrédients <span class="hint">— un par ligne, quantité en premier (« 200 g de farine ») pour pouvoir ajuster les portions</span></label>
+        <textarea name="ingredients" rows="8" placeholder="200 g de farine&#10;3 œufs&#10;1 pincée de sel">${esc(r.ingredients)}</textarea></div>
+      <div class="f"><label>Étapes <span class="hint">— une par ligne</span></label>
+        <textarea name="etapes" rows="8" placeholder="Préchauffer le four à 180 °C.&#10;Mélanger la farine et les œufs.">${esc(r.etapes)}</textarea></div>
+      <div class="f"><label>Notes <span class="hint">(astuces, variantes…)</span></label><textarea name="notes" rows="3">${esc(r.notes)}</textarea></div>
+      <div class="f"><label>Mots-clés <span class="hint">— séparés par des virgules</span></label><input type="text" name="tags" value="${esc((r.tags || []).join(', '))}" placeholder="rapide, végé, hiver"></div>
+      <div class="f"><label>Lien vers la recette d’origine <span class="hint">(facultatif)</span></label><input type="url" name="source" value="${esc(r.source || '')}" placeholder="https://…"></div>
+      <div class="f"><label>Lien vers une photo <span class="hint">(facultatif)</span></label><input type="url" name="photo" value="${esc(r.photo || '')}" placeholder="https://…"></div>
+      <div id="emsg"></div>
+      <div class="row-actions">
+        <button class="btn">${isNew ? 'Ajouter la recette' : 'Enregistrer'}</button>
+        ${isNew ? '' : '<button type="button" class="btn danger" id="del" style="margin-left:auto">Supprimer</button>'}
+      </div>
+    </form>
+  </div>`;
+  const f = document.getElementById('ef');
+  f.onsubmit = async e => {
+    e.preventDefault();
+    const b = f.querySelector('.btn'); b.disabled = true;
+    const num = v => v === '' ? null : parseInt(v, 10);
+    const row = {
+      titre: f.titre.value.trim(), categorie: f.categorie.value,
+      portions: num(f.portions.value) || 4, temps_prep: num(f.temps_prep.value), temps_cuisson: num(f.temps_cuisson.value),
+      ingredients: f.ingredients.value.trim(), etapes: f.etapes.value.trim(), notes: f.notes.value.trim(),
+      tags: f.tags.value.split(',').map(s => s.trim()).filter(Boolean).slice(0, 20),
+      source: f.source.value.trim() || null, photo: f.photo.value.trim() || null,
+    };
+    try {
+      const data = isNew
+        ? await q(sb.from('recettes').insert({ ...row, famille_id: fam.id }).select().single())
+        : await q(sb.from('recettes').update(row).eq('id', r.id).select().single());
+      const i = recipes.findIndex(x => x.id === data.id);
+      if (i >= 0) recipes[i] = data; else recipes.push(data);
+      recipes.sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
+      editing = false; go('/r/' + data.id);
+    } catch (err) {
+      b.disabled = false;
+      document.getElementById('emsg').innerHTML = `<div class="msg err">${esc(dbErr(err))}</div>`;
+    }
+  };
+  const del = document.getElementById('del');
+  if (del) del.onclick = async () => {
+    if (!confirm(`Supprimer « ${r.titre} » pour toute la famille ? C’est définitif.`)) return;
+    try { await q(sb.from('recettes').delete().eq('id', r.id)); } catch (err) { return alert(dbErr(err)); }
+    recipes = recipes.filter(x => x.id !== r.id);
+    editing = false; go('/');
+  };
+  window.scrollTo(0, 0);
+}
+
+/* ---------- famille ---------- */
+function renderFamille(msg = '') {
+  const admin = fam.role === 'admin';
+  const link = APP_URL + '?rejoindre=' + fam.code;
+  app.innerHTML = `
+  <div class="wrap">
+    <div class="top"><a class="icon-btn" href="#/" title="Retour">←</a><h1 style="font-size:24px">Famille</h1></div>
+    <div id="fmsg">${msg}</div>
+
+    ${familles.length > 1 ? `<div class="panel"><h2>Mes familles</h2>
+      <div class="fams">${familles.map(f => `<button class="famb ${f.id === fam.id ? 'on' : ''}" data-id="${f.id}">
+        <b>${esc(f.nom)}</b><span>${f.nb_recettes} recette${f.nb_recettes > 1 ? 's' : ''} · ${f.nb_membres} membre${f.nb_membres > 1 ? 's' : ''}</span></button>`).join('')}</div></div>` : ''}
+
+    <div class="panel">
+      <h2>${esc(fam.nom)}</h2>
+      ${admin ? `<form id="rn" class="imp"><input type="text" name="nom" maxlength="60" value="${esc(fam.nom)}" aria-label="Nom de la famille"><button class="btn ghost">Renommer</button></form>` : ''}
+      <ul class="mem">${membres.map(m => `<li><span>${esc(m.email || '—')}${m.user_id === AUTH.uid ? ' <em>(toi)</em>' : ''}</span>
+        <span class="muted">${m.role === 'admin' ? 'admin' : 'membre'}</span>
+        ${admin && m.user_id !== AUTH.uid ? `<button class="btn danger rm" data-u="${m.user_id}" data-e="${esc(m.email || '')}">Retirer</button>` : ''}</li>`).join('')}</ul>
+    </div>
+
+    <div class="panel">
+      <h2>Inviter quelqu’un</h2>
+      <p class="muted" style="margin-top:0">Envoie ce lien. La personne se connecte avec son e-mail et voit aussitôt toutes les recettes de « ${esc(fam.nom)} ». Chacun peut ajouter, modifier ou supprimer des recettes.</p>
+      <div class="code">${fmtCode(fam.code)}</div>
+      <div class="row-actions" style="justify-content:center">
+        <button class="btn" id="share">${navigator.share ? 'Partager le lien' : 'Copier le lien'}</button>
+        ${admin ? '<button class="btn ghost" id="regen">Nouveau code</button>' : ''}
+      </div>
+      <p class="muted" id="cpmsg" style="text-align:center"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Rejoindre une autre famille</h2>
+      <form id="jf" class="imp"><input type="text" name="code" placeholder="Code (ex. K7P-42Q)" autocapitalize="characters" maxlength="8"><button class="btn ghost">Rejoindre</button></form>
+      <p class="muted" style="margin:14px 0 6px">ou</p>
+      <button class="btn ghost" id="newf">➕ Créer une nouvelle famille</button>
+    </div>
+
+    <div class="panel">
+      <button class="btn danger" id="quit" style="padding-left:0">Quitter « ${esc(fam.nom)} »</button>
+      <p class="muted" style="margin:4px 0 0">${fam.nb_membres <= 1 ? 'Tu es le seul membre : quitter supprimera cette famille et ses recettes.' : 'Les recettes restent pour les autres membres.'}</p>
+    </div>
+  </div>`;
+  const fmsg = t => { document.getElementById('fmsg').innerHTML = t; window.scrollTo(0, 0); };
+  const err = e => fmsg(`<div class="msg err">${esc(dbErr(e))}</div>`);
+
+  app.querySelectorAll('.famb').forEach(b => b.onclick = async () => {
+    fam = familles.find(f => f.id === b.dataset.id); store.set(FAM_KEY, fam.id);
+    app.innerHTML = '<div class="spin">Chargement…</div>';
+    try { await loadFamily(); go('/'); } catch (e) { renderError(e); }
+  });
+  const rn = document.getElementById('rn');
+  if (rn) rn.onsubmit = async e => {
+    e.preventDefault(); const nom = rn.nom.value.trim(); if (!nom) return;
+    try { await q(sb.from('familles').update({ nom }).eq('id', fam.id)); fam.nom = nom; renderFamille('<div class="msg info">Famille renommée.</div>'); }
+    catch (e) { err(e); }
+  };
+  app.querySelectorAll('.rm').forEach(b => b.onclick = async () => {
+    if (!confirm(`Retirer ${b.dataset.e || 'ce membre'} de la famille ? Il ne verra plus les recettes.`)) return;
+    try { await q(sb.from('membres_famille').delete().eq('famille_id', fam.id).eq('user_id', b.dataset.u)); await loadAll(); renderFamille(); }
+    catch (e) { err(e); }
+  });
+  document.getElementById('share').onclick = async () => {
+    const text = `Rejoins « ${fam.nom} » sur l’app Recettes pour partager nos recettes : ${link}`;
+    if (navigator.share) { try { await navigator.share({ title: 'Recettes', text, url: link }); } catch {} return; }
+    try { await navigator.clipboard.writeText(link); document.getElementById('cpmsg').textContent = 'Lien copié ✔'; }
+    catch { document.getElementById('cpmsg').textContent = link; }
+  };
+  const rg = document.getElementById('regen');
+  if (rg) rg.onclick = async () => {
+    if (!confirm('Créer un nouveau code ? L’ancien lien d’invitation ne fonctionnera plus (les membres actuels restent).')) return;
+    try { fam.code = await q(sb.rpc('nouveau_code_famille', { f: fam.id })); renderFamille('<div class="msg info">Nouveau code créé.</div>'); }
+    catch (e) { err(e); }
+  };
+  document.getElementById('jf').onsubmit = e => {
+    e.preventDefault(); const c = e.target.code.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (c.length !== 6) return fmsg('<div class="msg err">Le code contient 6 caractères.</div>');
+    renderJoin(c);
+  };
+  document.getElementById('newf').onclick = async () => {
+    const nom = prompt('Nom de la nouvelle famille ?', 'Famille ');
+    if (nom == null) return;
+    try { const id = await q(sb.rpc('creer_famille', { p_nom: nom })); store.set(FAM_KEY, id); await loadAll(); go('/'); }
+    catch (e) { err(e); }
+  };
+  document.getElementById('quit').onclick = async () => {
+    const seul = fam.nb_membres <= 1;
+    if (!confirm(seul ? `Tu es le seul membre : « ${fam.nom} » et ses ${recipes.length} recette(s) seront supprimées définitivement. Continuer ?`
+      : `Quitter « ${fam.nom} » ? Tu ne verras plus ses recettes.`)) return;
+    try { await q(sb.from('membres_famille').delete().eq('famille_id', fam.id).eq('user_id', AUTH.uid)); store.set(FAM_KEY, null); await loadAll(); go('/'); }
+    catch (e) { err(e); }
+  };
+}
+
+/* ---------- compte ---------- */
+function renderCompte(msg = '') {
+  app.innerHTML = `
+  <div class="wrap">
+    <div class="top"><a class="icon-btn" href="#/" title="Retour">←</a><h1 style="font-size:24px">Mon compte</h1></div>
+    <div id="cmsg">${msg}</div>
+    <div class="panel">
+      <p style="margin-top:0">Connecté avec <b>${esc(AUTH.email)}</b>.</p>
+      <p class="muted">Ce compte est commun aux apps SynApps (cahier du CP, Mon jardin…).</p>
+      <div class="row-actions"><button class="btn ghost" id="out">Se déconnecter</button></div>
+    </div>
+    <div class="panel">
+      <h2>Mes données</h2>
+      <p class="muted" style="margin-top:0">Télécharge les recettes de « ${esc(fam.nom)} » dans un fichier, pour les garder ou les transférer.</p>
+      <button class="btn ghost" id="exp">⬇ Exporter les recettes (.json)</button>
+      <p class="muted"><a href="confidentialite.html">Confidentialité : quelles données, où, pour quoi</a></p>
+    </div>
+    <div class="panel">
+      <h2>Supprimer mon compte</h2>
+      <p class="muted" style="margin-top:0">Efface ton compte SynApps et toutes ses données (y compris celles des autres apps SynApps). Les familles dont tu es le seul membre sont supprimées avec leurs recettes ; dans les autres, les recettes restent pour les autres membres.</p>
+      <button class="btn danger" id="del" style="padding-left:0">Supprimer mon compte</button>
+    </div>
+  </div>`;
+  document.getElementById('out').onclick = () => {
+    if (!confirm('Se déconnecter ? (Tu seras aussi déconnecté des autres apps SynApps sur cet appareil.)')) return;
+    if (channel) sb.removeChannel(channel);
+    logout(); loaded = false; go('/');
+  };
+  document.getElementById('exp').onclick = () => {
+    const data = { app: 'synapps-recettes', version: 1, famille: fam.nom, exporte_le: new Date().toISOString(),
+      recettes: recipes.map(({ id, famille_id, cree_par, modifie_par, ...r }) => r) };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    a.download = `recettes-${norm(fam.nom).replace(/[^a-z0-9]+/g, '-')}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+  document.getElementById('del').onclick = async () => {
+    const t = prompt('Pour confirmer, écris SUPPRIMER');
+    if (t?.trim().toUpperCase() !== 'SUPPRIMER') return;
+    try { await q(sb.rpc('supprimer_mon_compte')); if (channel) sb.removeChannel(channel); logout(); loaded = false; renderLogin(); }
+    catch (e) { document.getElementById('cmsg').innerHTML = `<div class="msg err">${esc(dbErr(e))}</div>`; }
+  };
+}
+boot();
+</script>
+</body>
+</html>

@@ -7,10 +7,29 @@ La page d'accueil ([`index.html`](index.html)) présente toutes les applications
 | Application | Dossier | Description |
 |---|---|---|
 | Mon cahier du CP | [`cahier-du-cp/`](cahier-du-cp/) | Lecture, écriture et calcul pour les enfants de CP. |
+| Recettes | [`recettes/`](recettes/) | Carnet de recettes partagé en famille, avec import depuis un lien. |
 | Mon jardin | [`mon-jardin/`](mon-jardin/) | Éditeur de plan de jardin à l'échelle, façon paysagiste. |
 | Lego Builder | [`lego-builder/`](lego-builder/) | Constructions Lego en 3D à monter pas à pas, pour les 8-10 ans. |
 | Pixel arts | [`pixel-arts/`](pixel-arts/) | Modèles de pixel art à recopier sur papier ou en perles à repasser. |
 | Rétro Console | [`retro-console/`](retro-console/) | Émulateur de consoles rétro (SNES, NES, Neo Geo, Mega Drive, Game Boy…) dans le navigateur. |
+
+## Recettes
+
+Le carnet de recettes de la famille, partagé entre plusieurs personnes et appareils :
+
+- **Compte par e-mail**, sans mot de passe : lien ou code reçu par e-mail. Le compte est commun aux apps SynApps.
+- **Familles** : chaque compte commence avec son carnet « Mes recettes ». Un lien ou un code d'invitation (ex. `K7P-42Q`) permet d'y faire entrer d'autres personnes, qui voient et modifient les mêmes recettes. L'admin renomme la famille, retire des membres, change le code. On peut appartenir à plusieurs familles et passer de l'une à l'autre.
+- **Temps réel** : une recette ajoutée ou modifiée sur un téléphone apparaît aussitôt sur les autres.
+- **Import depuis un lien** (Marmiton, 750g, blogs…) : la recette est extraite et la fiche créée automatiquement.
+- **Fiche** : portions ajustables (quantités recalculées), ingrédients et étapes à cocher, écran maintenu allumé, « ajoutée par … ».
+- **Mon compte** : export des recettes en `.json`, suppression du compte. Page [confidentialité](recettes/confidentialite.html).
+
+### Mise en place (projet Supabase public)
+
+1. **SQL Editor** : exécuter [`recettes/supabase.sql`](recettes/supabase.sql) (tables `familles`, `membres_famille`, `recettes`, règles d'accès, temps réel).
+2. **Edge Functions → Deploy a new function → Via Editor** : nom `import-recette`, coller [`recettes/import-recette.ts`](recettes/import-recette.ts), laisser « Verify JWT » activé.
+3. **Authentication → URL Configuration → Redirect URLs** : ajouter `https://l33ko.github.io/synapps/recettes/`.
+4. Les modèles d'e-mail « Magic Link » et « Confirm signup » doivent contenir `{{ .Token }}` (déjà fait pour Mon jardin) pour que le code s'affiche.
 
 ## Mon jardin
 
