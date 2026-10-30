@@ -154,6 +154,8 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-off
 .lvn{font-size:2.4rem;font-weight:800;font-stretch:80%;font-variant-numeric:tabular-nums;line-height:1}
 .gm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--rule)}
 .gm:first-of-type{border-top:0}
+.sonb{white-space:nowrap}
+.bk .ex{min-width:0;text-align:center;font-size:.9rem}
 .in{font:inherit;font-size:1rem;width:100%;min-height:48px;padding:10px 12px;border:1.5px solid var(--ink);border-radius:4px;background:var(--card);color:var(--ink)}
 .foot{color:var(--ink2);font-size:.85rem}
 
@@ -677,6 +679,27 @@ function verifyCode(){
  ACC.busy=true;ACC.msg='';render();
  api('/auth/v1/verify',{method:'POST',anon:true,body:{type:'email',email:ACC.email,token:code}})
  .then(function(r){setAuth(r);ACC.step=1;ACC.busy=false;return initDb()},function(e){ACC.msg=authMsg(e);ACC.busy=false}).then(render)}
+/* ---------- Sons légers (bonne / mauvaise réponse), coupables ---------- */
+var SND={on:true,ctx:null};
+try{SND.on=localStorage.getItem('synapse-son')!=='0'}catch(e){}
+function audioCtx(){
+ if(!SND.ctx){var A=window.AudioContext||window.webkitAudioContext;if(!A)return null;try{SND.ctx=new A()}catch(e){return null}}
+ if(SND.ctx.state==='suspended'){try{SND.ctx.resume()}catch(e){}}
+ return SND.ctx}
+function tone(f,t0,d,type,vol,f2){
+ var c=SND.ctx,t=c.currentTime+t0,o=c.createOscillator(),g=c.createGain();
+ o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+ g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+ o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+0.03)}
+function sfx(good){
+ if(!SND.on)return;var c=audioCtx();if(!c)return;
+ try{if(good){tone(660,0,0.12,'sine',0.11);tone(990,0.09,0.2,'sine',0.11)}else tone(200,0,0.24,'triangle',0.15,110)}catch(e){}}
+function sonLabel(){return SND.on?'Son : oui':'Son : non'}
+function sonBtn(){return '<button class="lnk sonb" data-act="son" aria-pressed="'+SND.on+'">'+sonLabel()+'</button>'}
+function toggleSon(){
+ SND.on=!SND.on;try{localStorage.setItem('synapse-son',SND.on?'1':'0')}catch(e){}
+ var bs=document.querySelectorAll('.sonb'),i;for(i=0;i<bs.length;i++){bs[i].textContent=sonLabel();bs[i].setAttribute('aria-pressed',String(SND.on))}
+ if(SND.on)sfx(true)}
 function doLogout(){logout();ACC.state='off';ACC.step=1;ACC.msg='';ACC.last=0;ACC.err='';render()}
 
 /* ---------- Aides ---------- */
@@ -810,7 +833,7 @@ function viewCompte(){
   '<button class="btn" data-act="login"'+(ACC.busy?' disabled':'')+'>'+(ACC.busy?'Envoi…':'Recevoir le lien de connexion')+'</button>'+
   '<dl class="kv"><dt>Résultats sur cet appareil</dt><dd>'+n+'</dd></dl></div>'+
   '<p class="foot">Déjà connecté à Recettes ou à Mon jardin ? C’est le même compte. Si tu vides les données du navigateur, les résultats gardés uniquement sur l’appareil sont perdus.</p>'}
- return '<header class="hd"><h1>Compte</h1></header>'+body}
+ return '<header class="hd"><h1>Compte</h1></header>'+body+'<div class="card"><h2>Sons</h2><p class="note">Un petit son marque les bonnes et les mauvaises réponses.</p>'+sonBtn()+'</div>'}
 
 
 function demo(e){
@@ -872,10 +895,10 @@ function endRun(e,r){
 
 function playTimed(e,L,cfg){
  var end=Date.now()+DUR*1000,ok=0,ko=0,item=null,lock=false;
- app.innerHTML='<div class="bk"><button class="lnk" data-act="home">Quitter</button><span class="ex">'+e.nom+' · '+e.jeu+'</span></div><div class="tb"><i id="tb"></i></div><p class="hud"><span><b id="sc">0</b> juste</span><span id="tl">'+DUR+' s</span></p>'+(cfg.top||'')+'<div class="screen" id="stim"></div><div id="ctl"></div>';
+ app.innerHTML='<div class="bk"><button class="lnk" data-act="home">Quitter</button><span class="ex">'+e.nom+' · '+e.jeu+'</span>'+sonBtn()+'</div><div class="tb"><i id="tb"></i></div><p class="hud"><span><b id="sc">0</b> juste</span><span id="tl">'+DUR+' s</span></p>'+(cfg.top||'')+'<div class="screen" id="stim"></div><div id="ctl"></div>';
  var stim=document.getElementById('stim'),ctl=document.getElementById('ctl'),tb=document.getElementById('tb'),sc=document.getElementById('sc'),tl=document.getElementById('tl');
  function nextItem(){item=cfg.next();cfg.show(item,stim,ctl);lock=false}
- function submit(good){if(lock)return;lock=true;if(good)ok++;else ko++;sc.textContent=ok;stim.classList.add(good?'good':'bad');later(160,function(){stim.classList.remove('good','bad');nextItem()})}
+ function submit(good){if(lock)return;lock=true;sfx(good);if(good)ok++;else ko++;sc.textContent=ok;stim.classList.add(good?'good':'bad');later(160,function(){stim.classList.remove('good','bad');nextItem()})}
  CUR={handle:function(a,v){if(!lock&&item)cfg.handle(a,v,item,submit)},key:function(k){if(!lock&&item&&cfg.key)cfg.key(k,item,submit)}};
  nextItem();
  tickId=setInterval(function(){var left=end-Date.now();if(left<=0){clearInterval(tickId);tickId=null;endRun(e,{sc:ok,ok:ok,ko:ko,dl:dlTimed(ok,ko)});return}tb.style.width=(left/(DUR*10)).toFixed(1)+'%';tl.textContent=Math.ceil(left/1000)+' s'},100)}
@@ -971,7 +994,7 @@ function playRotation(e,L){
 function playMemoire(e,L){
  var g=memGrid(L),len0=memLen(L),len=len0,best=0,okT=0,koT=0,trial=0,seq=[],idx=0,accept=false,cells='',i;
  for(i=0;i<g*g;i++)cells+='<button class="cell" data-act="cell" data-v="'+i+'" aria-label="Case '+(i+1)+'"></button>';
- app.innerHTML='<div class="bk"><button class="lnk" data-act="home">Quitter</button><span class="ex">Mémoire · Séquence</span></div><p class="hud"><span id="mt">Essai 1 sur 5</span><span id="ml">Longueur '+len+'</span></p><div class="screen"><div class="gr" id="gr" style="grid-template-columns:repeat('+g+',1fr)">'+cells+'</div></div><p class="mst" id="ms" aria-live="polite"> </p>';
+ app.innerHTML='<div class="bk"><button class="lnk" data-act="home">Quitter</button><span class="ex">Mémoire · Séquence</span>'+sonBtn()+'</div><p class="hud"><span id="mt">Essai 1 sur 5</span><span id="ml">Longueur '+len+'</span></p><div class="screen"><div class="gr" id="gr" style="grid-template-columns:repeat('+g+',1fr)">'+cells+'</div></div><p class="mst" id="ms" aria-live="polite"> </p>';
  var btn=document.getElementById('gr').children,ms=document.getElementById('ms'),mt=document.getElementById('mt'),ml=document.getElementById('ml');
  function say(t){ms.textContent=t}
  function lit(c,on){btn[c].classList.toggle('lit',on)}
@@ -986,13 +1009,13 @@ function playMemoire(e,L){
   if(c===seq[idx]){
    b.classList.add('tap');later(180,function(){b.classList.remove('tap')});
    idx++;
-   if(idx===seq.length){accept=false;okT++;best=Math.max(best,len);len++;say('Juste');later(800,nextTrial)}
-  }else{accept=false;koT++;b.classList.add('bad');len=Math.max(2,len-1);say('Raté');later(1000,nextTrial)}}};
+   if(idx===seq.length){accept=false;sfx(true);okT++;best=Math.max(best,len);len++;say('Juste');later(800,nextTrial)}
+  }else{accept=false;sfx(false);koT++;b.classList.add('bad');len=Math.max(2,len-1);say('Raté');later(1000,nextTrial)}}};
  nextTrial()}
 
 function playChiffres(e,L){
  var len0=digLen(L),len=len0,best=0,okT=0,koT=0,trial=0,seq=[],buf='',accept=false,tdig=digShow(L);
- app.innerHTML='<div class="bk"><button class="lnk" data-act="home">Quitter</button><span class="ex">Mémoire · Chiffres</span></div><p class="hud"><span id="mt">Essai 1 sur 5</span><span id="ml">Longueur '+len+'</span></p><div class="screen"><span class="qa" id="dg"> </span></div><p class="mst" id="ms" aria-live="polite"> </p><div id="ctl">'+keypad()+'</div>';
+ app.innerHTML='<div class="bk"><button class="lnk" data-act="home">Quitter</button><span class="ex">Mémoire · Chiffres</span>'+sonBtn()+'</div><p class="hud"><span id="mt">Essai 1 sur 5</span><span id="ml">Longueur '+len+'</span></p><div class="screen"><span class="qa" id="dg"> </span></div><p class="mst" id="ms" aria-live="polite"> </p><div id="ctl">'+keypad()+'</div>';
  var dg=document.getElementById('dg'),ms=document.getElementById('ms'),mt=document.getElementById('mt'),ml=document.getElementById('ml');
  function say(t){ms.textContent=t}
  function showBuf(){dg.textContent=buf?buf.split('').join(' '):' '}
@@ -1008,8 +1031,8 @@ function playChiffres(e,L){
   buf+=k;showBuf();
   if(buf.length===seq.length){
    accept=false;
-   if(buf===seq.join('')){okT++;best=Math.max(best,len);len++;say('Juste');later(800,nextTrial)}
-   else{koT++;len=Math.max(2,len-1);say('Raté. C’était '+seq.join(' '));later(1600,nextTrial)}}}
+   if(buf===seq.join('')){sfx(true);okT++;best=Math.max(best,len);len++;say('Juste');later(800,nextTrial)}
+   else{sfx(false);koT++;len=Math.max(2,len-1);say('Raté. C’était '+seq.join(' '));later(1600,nextTrial)}}}
  CUR={handle:function(a,v){if(a==='key')press(v)},key:function(k){press(k==='Backspace'?'del':k)}};
  nextTrial()}
 
@@ -1116,13 +1139,14 @@ function act(a,v){
  if(a==='verify'){verifyCode();return}
  if(a==='back'){ACC.step=1;ACC.msg='';render();return}
  if(a==='logout'){doLogout();return}
+ if(a==='son'){toggleSon();return}
  if(a==='train'){SESS={single:true,from:V.name==='jeux'?'jeux':'detail'};openIntro(exById(v));return}
  if(a==='go'){startPlay(V.ex);return}
  if(a==='after'){
   if(SESS&&SESS.single){var fr2=SESS.from;DET.theme=themeOf(V.ex.id).id;SESS=null;go({name:fr2==='jeux'?'jeux':'detail'});return}
   var nx=nextUndone();if(nx)openIntro(nx);else go({name:'sum'});return}
  if(CUR)CUR.handle(a,v)}
-document.addEventListener('click',function(ev){var t=ev.target.closest('[data-act]');if(!t||t.disabled)return;act(t.getAttribute('data-act'),t.getAttribute('data-v'))});
+document.addEventListener('click',function(ev){if(SND.on&&!SND.ctx)audioCtx();var t=ev.target.closest('[data-act]');if(!t||t.disabled)return;act(t.getAttribute('data-act'),t.getAttribute('data-v'))});
 document.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.id==='em'){sendLink();return}if(ev.key==='Enter'&&ev.target&&ev.target.id==='cd'){verifyCode();return}
  if(CUR&&CUR.key&&!ev.metaKey&&!ev.ctrlKey&&!ev.altKey)CUR.key(ev.key)});
 
