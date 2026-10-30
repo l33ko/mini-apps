@@ -46,7 +46,28 @@ header.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:8
 main{flex:1;display:grid;grid-template-columns:268px 1fr 292px;min-height:0}
 aside{background:var(--panel);overflow:auto;min-height:0;-webkit-overflow-scrolling:touch}
 #palette{border-right:1px solid var(--line);display:flex;flex-direction:column}
-#inspector{border-left:1px solid var(--line);padding:12px 14px 24px}
+#inspector{border-left:1px solid var(--line);padding:0;display:flex;flex-direction:column;overflow:hidden}
+.ihead{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--line);flex:none}
+.ihead b{flex:1;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600}
+#selPanel{flex:none;max-height:58%;overflow:auto;padding:4px 14px 14px;border-bottom:2px solid var(--line);box-shadow:0 4px 10px rgba(40,50,30,.07);position:relative;z-index:1;-webkit-overflow-scrolling:touch}
+#invPanel{flex:1;overflow:auto;min-height:0;padding:0 0 24px;-webkit-overflow-scrolling:touch}
+.irail{display:none}
+main.rail{grid-template-columns:268px 1fr 44px}
+main.rail #inspector>*:not(.irail){display:none !important}
+main.rail .irail{display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 0}
+.irail .vt{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;color:var(--mute);font-weight:600;letter-spacing:.03em;cursor:pointer}
+.ilbl{position:sticky;top:0;background:var(--panel);z-index:2;display:flex;align-items:center;gap:6px;padding:10px 10px 6px 14px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600;border-bottom:1px solid var(--line)}
+.ilbl span{flex:1}
+.icat{border-bottom:1px solid var(--line)}
+.ich{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 14px;cursor:pointer;font-weight:600;font-size:13px;user-select:none;-webkit-user-select:none}
+.ich:hover{background:#f6f1e2}
+.ich .ar{font-size:9px;color:var(--mute);transition:transform .15s;width:10px;flex:none}
+.icat.open .ich .ar{transform:rotate(90deg)}
+.ich .n{margin-left:auto;background:#efe9d8;border-radius:999px;padding:0 8px;font-size:11.5px;color:var(--mute);font-weight:600}
+.ibody{display:none;padding:0 12px 8px 26px}
+.icat.open .ibody{display:block}
+.ibody .note{margin:6px 0 2px}
+.inv tr.on td{background:#fde6d6}
 .tabs{display:flex;gap:4px;padding:10px 10px 0}
 .tabs button{flex:1;border:0;background:none;padding:7px 4px;border-bottom:2px solid transparent;cursor:pointer;color:var(--mute);font-weight:500}
 .tabs button.on{color:var(--ink);border-color:var(--acc)}
@@ -86,6 +107,7 @@ aside{background:var(--panel);overflow:auto;min-height:0;-webkit-overflow-scroll
 .ov.tl{top:10px;left:10px;right:10px;flex-wrap:wrap}
 .ov.br{bottom:12px;right:12px;flex-direction:column;align-items:flex-end}
 .ov.bl{bottom:14px;left:12px}
+.mbar{display:none}
 .chip{background:rgba(255,253,246,.96);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 10px rgba(40,50,30,.12)}
 .chip b{font-weight:600}
 .chip .btn{padding:3px 9px;border-radius:999px}
@@ -98,7 +120,7 @@ aside{background:var(--panel);overflow:auto;min-height:0;-webkit-overflow-scroll
 .scalebar .bar{height:6px;border:1.5px solid var(--ink);border-top:0;margin-top:2px}
 .mob{display:none}
 
-#inspector h3{font-family:Fraunces,Georgia,serif;font-size:17px;margin:4px 0 10px;font-weight:600}
+#inspector h3{font-family:Fraunces,Georgia,serif;font-size:17px;margin:6px 0 10px;font-weight:600}
 #inspector h4{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:18px 0 6px;font-weight:600}
 .row{display:grid;grid-template-columns:104px 1fr;align-items:center;gap:6px 8px;margin:6px 0}
 .row label{color:var(--mute);font-size:13px}
@@ -198,7 +220,18 @@ i.vn{font-style:italic;color:var(--mute);font-size:.88em}
 .fnchips{display:flex;flex-wrap:wrap;gap:4px;padding:4px 4px 6px}
 .fnchips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 8px;font-size:12px;cursor:pointer}
 .fnchips button.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.tags{display:flex;flex-wrap:wrap;gap:5px;margin:-4px 0 10px}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.ehd{display:flex;align-items:flex-start;gap:6px;margin:6px 0 4px}
+.ehd h3{flex:1;min-width:0;margin:2px 0 0 !important;line-height:1.2}
+.ehd .btn.icon{min-width:30px;padding:4px 6px;font-size:14px}
+.ehd .btn.danger{color:var(--warn)}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;margin:4px 0 2px}
+.cgrid label{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:11.5px;color:var(--mute)}
+.cgrid label.wide{grid-column:1/-1}
+.cgrid select,.cgrid input{width:100%;min-width:0}
+.cgrid .pair{gap:4px}
+.cgrid .pair .btn.icon{min-width:30px;padding:4px 6px}
+.warn.mini{padding:5px 8px;margin:6px 0 2px;font-size:12px}
 .tag{font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;background:#fff}
 .fnpick{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px}
 .fnpick label{display:flex;align-items:center;gap:4px}
@@ -256,13 +289,33 @@ body.at-home #ioModal .exp{display:none}
   aside.open{transform:none}
   aside.dragging{transition:none}
   .grip{display:flex;position:sticky;top:0;z-index:5;justify-content:center;align-items:center;height:26px;margin:0 0 2px;background:var(--panel);cursor:grab;touch-action:none;flex:none}
-  #inspector .grip{margin:-12px -14px 4px}
+  #inspector .grip{margin:0}
+  #inspector .ihead{display:none}
+  #inspector.m-edit{overflow:auto;display:block}
+  #inspector.m-edit #invPanel{display:none}
+  #inspector.m-edit #selPanel{max-height:none;overflow:visible;border:0;box-shadow:none;padding:0 14px 12px}
+  #inspector.m-edit .grip{height:18px}
+  #inspector.m-edit .ehd{margin-top:0}
+  #inspector.m-edit .tags{margin-bottom:6px}
+  .cgrid{gap:6px 10px}
+  .cgrid select,.cgrid input{font-size:16px;padding:6px 8px}
+  #inspector.m-inv{height:85vh;max-height:85vh}
+  #inspector.m-inv #selPanel{display:none}
+  #inspector.m-inv .ilbl{font-size:13px;padding:2px 12px 8px 16px}
+  .ich{padding:11px 14px 11px 16px;font-size:14.5px}
+  .ibody{padding:0 14px 10px 28px}
+  .inv{font-size:14px}
+  .inv td{padding:8px 2px}
   .grip span{width:44px;height:5px;border-radius:3px;background:#cfc8b6}
   #palette{height:55vh}
   .mob{display:inline-flex}
   .sp-wrap{grid-template-columns:1fr}
   .sp-form{position:static}
-  .ov.br{bottom:calc(14px + env(safe-area-inset-bottom))}
+  .ov.br,.ov.bl{bottom:calc(74px + env(safe-area-inset-bottom))}
+  .mbar{display:flex;position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));gap:10px;z-index:4}
+  .mbar button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);font:inherit;font-size:16px;font-weight:600;box-shadow:0 3px 14px rgba(40,50,30,.18);cursor:pointer}
+  .mbar button span{font-size:19px;line-height:1}
+  .mbar button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
 }
 </style>
 </head>
@@ -332,13 +385,13 @@ body.at-home #ioModal .exp{display:none}
     <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
     <div class="ov tl" id="toolChip"></div>
     <div class="ov bl" style="flex-direction:column;align-items:flex-start;gap:8px"><div class="legend" id="legend"></div><div class="scalebar" id="scalebar"></div></div>
+    <div class="mbar"><button id="mobAdd" class="pri"><span>＋</span>Ajouter</button><button id="mobInfo"><span>☰</span>Inventaire</button></div>
     <div class="ov br">
       <div class="zoomgrp">
-        <button class="mob" id="mobAdd" title="Ajouter" style="font-weight:600">＋</button>
-        <button class="mob" id="mobInfo" title="Détails et inventaire">ⓘ</button>
         <button id="zIn" title="Zoomer">+</button>
         <button id="zOut" title="Dézoomer">−</button>
         <button id="zFit" title="Tout afficher">⤢</button>
+        <button id="lockBtn" title="Verrouiller les éléments du plan (empêche de les déplacer par accident)">🔓</button>
         <button id="snapBtn" title="Aimanter à la grille (0,5 m)">⌗</button>
         <button id="legalBtn" title="Vérifier les distances de plantation par rapport aux limites (art. 671 du Code civil)">⚖</button>
       </div>
@@ -347,6 +400,8 @@ body.at-home #ioModal .exp{display:none}
 
   <aside id="inspector">
     <div class="grip" title="Glisser vers le bas ou toucher pour fermer"><span></span></div>
+    <div class="ihead"><b id="iTitle">Terrain</b><button class="btn icon" id="railBtn" title="Rabattre le panneau">⟩</button></div>
+    <div class="irail"><button class="btn icon" id="unrailBtn" title="Ouvrir le panneau">⟨</button><span class="vt" id="railTxt" title="Ouvrir le panneau">Inventaire</span></div>
     <div id="selPanel"></div>
     <div id="invPanel"></div>
   </aside>
@@ -1097,6 +1152,7 @@ const undoStack = [], redoStack = [];
 const spById = id => st.species.find(s => s.id === id);
 const itemById = id => st.items.find(i => i.id === id);
 const snapOn = () => st.prefs.snap;
+const locked = () => !!st.prefs.lock;
 const snapv = v => snapOn() ? Math.round(v * 2) / 2 : r3(v);
 function plantR(p, sp){ sp = sp || spById(p.sid); if (!sp) return 0.3; return (p.d || sp.d) / 2 * st.prefs.growth; }
 function spLabel(sp){ return sp ? sp.name + (sp.variety ? ' ‘' + sp.variety + '’' : '') : '?'; }
@@ -1413,7 +1469,7 @@ function overlaySVG(){
   const it = sel && itemById(sel);
   const selStroke = `fill="none" stroke="#1f6fd1" stroke-width="1.6" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"`;
   const hs = 5.5 / s;
-  const handle = (x, y, round) => round
+  const handle = (x, y, round) => locked() ? '' : round
     ? `<circle cx="${x}" cy="${y}" r="${hs}" fill="#fff" stroke="#1f6fd1" stroke-width="1.6" vector-effect="non-scaling-stroke"/>`
     : `<rect x="${x - hs}" y="${y - hs}" width="${hs * 2}" height="${hs * 2}" fill="#fff" stroke="#1f6fd1" stroke-width="1.6" vector-effect="non-scaling-stroke"/>`;
   if (it){
@@ -1428,8 +1484,8 @@ function overlaySVG(){
       out += `<g transform="translate(${it.cx} ${it.cy}) rotate(${it.rot || 0})"><rect x="${-it.w/2}" y="${-it.h/2}" width="${it.w}" height="${it.h}" ${selStroke}/></g>`;
       for (const c of zoneCorners(it)) out += handle(c[0], c[1]);
       const rh = rotHandle(it), top = rot(0, -it.h / 2, it.rot || 0);
-      out += `<line x1="${it.cx + top[0]}" y1="${it.cy + top[1]}" x2="${rh[0]}" y2="${rh[1]}" stroke="#1f6fd1" stroke-width="1.4" vector-effect="non-scaling-stroke"/>`;
-      out += `<circle cx="${rh[0]}" cy="${rh[1]}" r="${6.5 / s}" fill="#1f6fd1" stroke="#fff" stroke-width="1.5" vector-effect="non-scaling-stroke"/>` +
+      if (!locked()) out += `<line x1="${it.cx + top[0]}" y1="${it.cy + top[1]}" x2="${rh[0]}" y2="${rh[1]}" stroke="#1f6fd1" stroke-width="1.4" vector-effect="non-scaling-stroke"/>`;
+      if (!locked()) out += `<circle cx="${rh[0]}" cy="${rh[1]}" r="${6.5 / s}" fill="#1f6fd1" stroke="#fff" stroke-width="1.5" vector-effect="non-scaling-stroke"/>` +
              `<path d="M${rh[0] - 3 / s} ${rh[1] + 1 / s}a${3 / s} ${3 / s} 0 1 1 ${3 / s} ${2.2 / s}" fill="none" stroke="#fff" stroke-width="1.2" vector-effect="non-scaling-stroke"/>`;
     } else if (it.type === 'line'){
       out += `<polyline points="${it.points.map(p => p.join(' ')).join(' ')}" ${selStroke}/>`;
@@ -1567,8 +1623,9 @@ svg.addEventListener('pointerdown', e => {
   try { svg.setPointerCapture(e.pointerId); } catch(_){}
   pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
   if (pointers.size === 2){
-    // pincement : on annule l'action en cours
+    // pincement : on annule l'action en cours (et la sélection faite par le premier doigt)
     if (op && op.moved && op.snap0){ restore(op.snap0); undoStack.pop(); updateUndo(); }
+    if (op && 'prevSel' in op && sel !== op.prevSel){ sel = op.prevSel; renderInspector(); }
     op = null;
     const [a, b] = [...pointers.values()];
     const r = svg.getBoundingClientRect();
@@ -1587,9 +1644,15 @@ svg.addEventListener('pointerdown', e => {
 
   const h = handleHit(sx, sy);
   if (h && (h.kind === 'gv' || h.kind === 'gm')){ op = {type:'gedit', h, orig:clone(gPoly()), sx, sy, moved:false}; return; }
-  if (h){ op = {type:'handle', h, id:sel, orig:clone(itemById(sel)), sx, sy, moved:false}; return; }
+  if (h && !locked()){ op = {type:'handle', h, id:sel, orig:clone(itemById(sel)), sx, sy, moved:false}; return; }
   const it = hitTest(wx, wy);
-  if (it){ setSel(it.id); op = {type:'move', id:it.id, wx, wy, sx, sy, orig:clone(it), moved:false}; }
+  if (it){
+    // sur mobile, le bloc éditable ne s'ouvre qu'au relâcher d'un simple toucher (pas pendant un pincement)
+    const touch = isMobile(), prevSel = sel;
+    setSel(it.id, !touch);
+    op = locked() ? {type:'pan', id:it.id, sx, sy, vx:view.x, vy:view.y} : {type:'move', id:it.id, wx, wy, sx, sy, orig:clone(it), moved:false};
+    if (touch){ op.prevSel = prevSel; op.openSheet = true; }
+  }
   else {
     if (sel) setSel(null);
     if (isMobile()) closeSheets();
@@ -1614,10 +1677,10 @@ svg.addEventListener('pointermove', e => {
     if (draft){ const p = draft.type === 'calib' ? [r3(wx), r3(wy)] : [snapv(wx), snapv(wy)]; hover = constrain(draft.points[draft.points.length - 1], p, e.shiftKey); render(); }
     return;
   }
-  if (op.type === 'pan'){ view.x = op.vx + sx - op.sx; view.y = op.vy + sy - op.sy; applyViewTransform(); return; }
+  if (op.type === 'pan'){ if (Math.hypot(sx - op.sx, sy - op.sy) > 8) op.panned = true; view.x = op.vx + sx - op.sx; view.y = op.vy + sy - op.sy; applyViewTransform(); return; }
   if (op.type === 'zoneDraw'){ op.x1 = snapv(wx); op.y1 = snapv(wy); render(); return; }
   if (!op.moved){
-    if (Math.hypot(sx - op.sx, sy - op.sy) < 3) return;
+    if (Math.hypot(sx - op.sx, sy - op.sy) < (e.pointerType === 'touch' ? 8 : 3)) return;
     op.snap0 = snapshot(); pushHistory(); op.moved = true;
   }
   if (op.type === 'gedit'){
@@ -1688,8 +1751,9 @@ function endPointer(e){
     gSelV = null; if (o.moved){ save(); syncHeader(); render(); renderInspector(); renderToolChip(); }
     return;
   }
-  const changed = op.moved; op = null;
+  const changed = op.moved, openIt = op.openSheet && !changed && !op.panned && sel === op.id; op = null;
   if (changed){ save(); render(); renderInspector(); }
+  if (openIt && e.type === 'pointerup') openInspector('edit');
 }
 svg.addEventListener('pointerup', endPointer);
 svg.addEventListener('pointercancel', endPointer);
@@ -1805,7 +1869,13 @@ function addZoneAt(kind, wx, wy){
   st.items.push(z); sel = z.id; afterChange();
 }
 
-function setSel(id){ sel = id; render(); renderInspector(); if (id && isMobile()) openSheet('inspector'); }
+function setSel(id, sheet = true){
+  sel = id; const it = id && itemById(id);
+  if (it && it.type === 'plant'){ const sp = spById(it.sid); if (sp) invOpenSet('c:' + sp.cat, true); }
+  render(); renderInspector();
+  if (id && isMobile() && sheet) openInspector('edit');
+  if (id && !isMobile()){ const r = $('#invPanel tr.on'); if (r) r.scrollIntoView({block:'nearest'}); }
+}
 function setTool(t){
   tool = t; draft = null; hover = null; editContour = false; gSelV = null;
   if (t.mode !== 'detect') detect = null;
@@ -1868,7 +1938,7 @@ document.addEventListener('keydown', e => {
   if ((e.key === 'r' || e.key === 'R') && !mod && sel){ const it = itemById(sel); if (it && it.type === 'zone'){ pushHistory(); it.rot = normRot((it.rot || 0) + (e.shiftKey ? -15 : 15)); afterChange(); } return; }
   if ((e.key === 'Delete' || e.key === 'Backspace') && editContour && gSelV != null){ e.preventDefault(); deleteVertex(); return; }
   if ((e.key === 'Delete' || e.key === 'Backspace') && sel){ e.preventDefault(); deleteSel(); return; }
-  if (sel && e.key.startsWith('Arrow')){
+  if (sel && e.key.startsWith('Arrow') && !locked()){
     e.preventDefault();
     const it = itemById(sel), d = e.shiftKey ? 1 : .1;
     const dx = e.key === 'ArrowLeft' ? -d : e.key === 'ArrowRight' ? d : 0, dy = e.key === 'ArrowUp' ? -d : e.key === 'ArrowDown' ? d : 0;
@@ -1882,7 +1952,7 @@ function moveItem(it, dx, dy){
   else if (it.type === 'zone'){ it.cx = r3(it.cx + dx); it.cy = r3(it.cy + dy); }
   else it.points = it.points.map(([x, y]) => [r3(x + dx), r3(y + dy)]);
 }
-function deleteSel(){ if (!sel) return; pushHistory(); st.items = st.items.filter(i => i.id !== sel); sel = null; afterChange(); }
+function deleteSel(){ if (!sel) return; pushHistory(); st.items = st.items.filter(i => i.id !== sel); sel = null; afterChange(); if (isMobile()) closeSheets(); toast("Élément supprimé — ↶ pour annuler"); }
 function duplicateSel(){
   const it = sel && itemById(sel); if (!it) return;
   pushHistory(); const c = clone(it); c.id = uid();
@@ -1950,12 +2020,15 @@ $('#palList').addEventListener('click', e => { const a = e.target.closest('[data
 let pdrag = null; const ghost = $('#ghost');
 $('#palList').addEventListener('pointerdown', e => {
   const el = e.target.closest('.pitem'); if (!el) return;
-  pdrag = {el, kind:el.dataset.kind, id:el.dataset.id, x:e.clientX, y:e.clientY, dragging:false, pid:e.pointerId};
+  pdrag = {el, kind:el.dataset.kind, id:el.dataset.id, x:e.clientX, y:e.clientY, dragging:false, pid:e.pointerId, touch:e.pointerType !== 'mouse', t:Date.now()};
 });
 window.addEventListener('pointermove', e => {
   if (!pdrag || e.pointerId !== pdrag.pid) return;
   if (!pdrag.dragging){
-    if (Math.hypot(e.clientX - pdrag.x, e.clientY - pdrag.y) < 7 || pdrag.kind === 'line') return;
+    const dx = Math.abs(e.clientX - pdrag.x), dy = Math.abs(e.clientY - pdrag.y);
+    // au doigt : un geste vertical fait défiler la liste (ni ajout ni glisser-déposer)
+    if (pdrag.touch && dy > 8 && dy >= dx){ pdrag = null; return; }
+    if (Math.hypot(dx, dy) < (pdrag.touch ? 14 : 7) || pdrag.kind === 'line') return;
     pdrag.dragging = true;
     let w, h, bg, br = '50%';
     if (pdrag.kind === 'plant'){ const sp = spById(pdrag.id); w = h = Math.max(14, sp.d * st.prefs.growth * view.s); bg = shade(sp.color, .1); }
@@ -1977,7 +2050,8 @@ window.addEventListener('pointerup', e => {
     }
     return;
   }
-  // simple clic : activer / désactiver l'outil
+  // simple clic : activer / désactiver l'outil (au doigt, un appui long ou un défilement ne compte pas)
+  if (d.touch && Date.now() - d.t > 600) return;
   const same = tool.mode === d.kind && (tool.sid === d.id || tool.kind === d.id);
   if (same) setTool({mode:'select'});
   else if (d.kind === 'plant') setTool({mode:'plant', sid:d.id});
@@ -2020,29 +2094,23 @@ function renderInspector(){
     h += `<h4>Aide</h4><p class="note">Choisissez un végétal ou un aménagement à gauche, puis cliquez sur le plan (ou faites-le glisser directement).</p>`;
     h += `<div class="kbd hide-m"><kbd>Suppr</kbd> effacer · <kbd>Ctrl</kbd>+<kbd>D</kbd> dupliquer · flèches : déplacer (<kbd>Maj</kbd> = 1 m) · <kbd>Maj</kbd> en traçant : angles à 45° · <kbd>Entrée</kbd> ou double-clic : terminer un tracé · molette / pincement : zoom · glisser le fond : se déplacer</div>`;
   } else if (it.type === 'note'){
-    h += `<h3>${isBadge(it) ? 'Repère' : 'Étiquette'}</h3>`;
     h += `<div class="row"><label>Texte</label><textarea data-f="text" rows="${Math.min(8, Math.max(2, String(it.text).split('\n').length + 1))}" style="width:100%;resize:vertical">${esc(it.text)}</textarea></div>`;
     h += `<div class="row"><label>Couleur</label><select data-f="color">${Object.keys(NOTE_COLORS).map(c => `<option value="${c}"${c === it.color ? ' selected' : ''}>${c}</option>`).join('')}</select></div>`;
     h += `<p class="note">3 caractères maximum : pastille ronde (ex. « 12 », « a/b »). Au-delà : étiquette ; Entrée pour aller à la ligne.</p>`;
   } else if (it.type === 'plant'){
-    const sp = spById(it.sid), r = plantR(it, sp), li = legalIssue(it);
-    h += `<h3>${spHTML(sp)}</h3>`;
+    const sp = spById(it.sid), li = legalIssue(it);
     h += `<div class="tags"><span class="tag" style="background:${STRATES[strateOf(sp)].color};color:#fff">${STRATES[strateOf(sp)].label}</span>${fnOf(sp).map(k => `<span class="tag">${FONCTIONS[k].icon} ${FONCTIONS[k].label}</span>`).join('')}</div>`;
     const groups = speciesGroups(st.species), vars = st.species.filter(x => x.name === sp.name).sort(bySpecies);
-    h += `<div class="row"><label>Espèce</label><select data-f="spname">${Object.entries(CATS).map(([c, info]) => { const gs = groups.filter(g => g.cat === c); return gs.length ? `<optgroup label="${esc(info.label)}">${gs.map(g => `<option value="${esc(g.name)}"${g.name === sp.name ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</optgroup>` : ''; }).join('')}</select></div>`;
-    h += `<div class="row"><label>Variété</label><div class="pair"><select data-f="sid" style="flex:1;min-width:0">${vars.map(x => `<option value="${x.id}"${x.id === it.sid ? ' selected' : ''}>${x.variety ? esc(x.variety) : '— non précisée —'}</option>`).join('')}</select><button class="btn icon" data-act="addvar" title="Ajouter une variété de ${esc(sp.name)}">＋</button></div></div>`;
-    h += `<div class="row"><label>Nom affiché</label><input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(sp.name)}"></div>`;
-    h += `<div class="row"><label>Envergure adulte</label><div class="pair"><input type="number" step="0.1" min="0.1" data-f="d" value="${it.d ?? ''}" placeholder="${fmt(sp.d)}"><span style="align-self:center">m</span></div></div>`;
-    h += `<div class="row"><label>Position</label><div class="pair"><input type="number" step="0.1" data-f="x" value="${it.x}"><input type="number" step="0.1" data-f="y" value="${it.y}"></div></div>`;
-    h += `<p class="note">Hauteur adulte ${fmt(sp.h)} m · diamètre affiché ${fmt(r * 2)} m${st.prefs.growth < 1 ? ` (croissance ${Math.round(st.prefs.growth * 100)} %)` : ''}. Laissez l'envergure vide pour la valeur de l'espèce.</p>`;
-    if (st.prefs.legal && sp.cat !== 'grimpante'){
-      h += li ? `<div class="warn">⚠ À ${fmt(li.dist, 2)} m de la limite du terrain. Pour un végétal de plus de 2 m de haut, la distance minimale est de 2 m (0,5 m en dessous), sauf règlement local — art. 671 du Code civil.</div>`
-              : `<div class="ok">✓ Distance aux limites respectée (${sp.h > 2 ? '2 m' : '0,5 m'} minimum).</div>`;
-    }
-    h += `<div class="row"><label>Notes</label><input type="text" data-f="note" value="${esc(it.note || '')}" placeholder="date de plantation, porte-greffe…"></div>`;
+    h += `<div class="cgrid">`;
+    h += `<label>Espèce<select data-f="spname">${Object.entries(CATS).map(([c, info]) => { const gs = groups.filter(g => g.cat === c); return gs.length ? `<optgroup label="${esc(info.label)}">${gs.map(g => `<option value="${esc(g.name)}"${g.name === sp.name ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</optgroup>` : ''; }).join('')}</select></label>`;
+    h += `<label>Variété<span class="pair"><select data-f="sid" style="flex:1">${vars.map(x => `<option value="${x.id}"${x.id === it.sid ? ' selected' : ''}>${x.variety ? esc(x.variety) : '— non précisée —'}</option>`).join('')}</select><button class="btn icon" data-act="addvar" title="Ajouter une variété de ${esc(sp.name)}">＋</button></span></label>`;
+    h += `<label>Nom affiché<input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(sp.name)}"></label>`;
+    h += `<label>Envergure (m)<input type="number" step="0.1" min="0.1" data-f="d" value="${it.d ?? ''}" placeholder="${fmt(sp.d)}"></label>`;
+    h += `<label class="wide">Notes<input type="text" data-f="note" value="${esc(it.note || '')}" placeholder="date de plantation, porte-greffe…"></label>`;
+    h += `</div>`;
+    if (st.prefs.legal && sp.cat !== 'grimpante' && li) h += `<div class="warn mini">⚠ À ${fmt(li.dist, 2)} m de la limite : ${sp.h > 2 ? '2 m' : '0,5 m'} minimum (art. 671 du Code civil).</div>`;
   } else if (it.type === 'zone'){
     const k = ZONES[it.kind];
-    h += `<h3>${esc(it.label || k.label)}</h3>`;
     h += `<div class="row"><label>Type</label><select data-f="kind">${Object.entries(ZONES).map(([kk, z]) => `<option value="${kk}"${kk === it.kind ? ' selected' : ''}>${z.label}</option>`).join('')}</select></div>`;
     h += `<div class="row"><label>Nom</label><input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(k.label)}"></div>`;
     h += `<div class="row"><label>Dimensions</label><div class="pair"><input type="number" step="0.1" min="0.2" data-f="w" value="${it.w}"><input type="number" step="0.1" min="0.2" data-f="h" value="${it.h}"></div></div>`;
@@ -2053,7 +2121,6 @@ function renderInspector(){
     h += `<div class="row"><label>Notes</label><input type="text" data-f="note" value="${esc(it.note || '')}"></div>`;
   } else if (it.type === 'line'){
     const k = LINES[it.kind];
-    h += `<h3>${esc(it.label || k.label)}</h3>`;
     h += `<div class="row"><label>Type</label><select data-f="kind">${Object.entries(LINES).map(([kk, l]) => `<option value="${kk}"${kk === it.kind ? ' selected' : ''}>${l.label}</option>`).join('')}</select></div>`;
     h += `<div class="row"><label>Nom</label><input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(k.label)}"></div>`;
     if (k.editW) h += `<div class="row"><label>Largeur</label><div class="pair"><input type="number" step="0.1" min="0.1" data-f="width" value="${it.width || k.w}"><span style="align-self:center">m</span></div></div>`;
@@ -2061,8 +2128,12 @@ function renderInspector(){
     h += `<p class="note">Longueur : <b>${fmt(L, 1)} m</b>${k.editW ? ` · surface ≈ ${fmt(L * (it.width || k.w), 1)} m²` : ''} · ${it.points.length} points. Faites glisser les points pour modifier le tracé.</p>`;
     h += `<div class="row"><label>Notes</label><input type="text" data-f="note" value="${esc(it.note || '')}"></div>`;
   }
-  if (it) h += `<div class="acts"><button class="btn" data-act="dup">Dupliquer</button><button class="btn danger" data-act="del">Supprimer</button>${isMobile() ? '<button class="btn" data-act="close">Fermer</button>' : ''}</div>`;
+  if (it){
+    const title = it.type === 'plant' ? spHTML(spById(it.sid)) : it.type === 'note' ? (isBadge(it) ? 'Repère' : 'Étiquette') : esc(it.label || (it.type === 'zone' ? ZONES[it.kind] : LINES[it.kind]).label);
+    h = `<div class="ehd"><h3>${title}</h3><button class="btn icon" data-act="dup" title="Dupliquer">⧉</button><button class="btn icon danger" data-act="del" title="Supprimer">🗑</button><button class="btn icon" data-act="close" title="Fermer">✕</button></div>` + h;
+  }
   $('#selPanel').innerHTML = h;
+  $('#iTitle').textContent = !it ? 'Terrain' : it.type === 'plant' ? 'Végétal sélectionné' : 'Élément sélectionné';
   renderInventory();
 }
 $('#selPanel').addEventListener('input', e => {
@@ -2129,7 +2200,7 @@ $('#selPanel').addEventListener('click', e => {
   if (a.dataset.act === 'addvar'){ const it = itemById(sel), sp = it && spById(it.sid); if (sp) openConfig({mode:'addvar', name:sp.name, assign:true}); return; }
   if (a.dataset.act === 'del') deleteSel();
   if (a.dataset.act === 'dup') duplicateSel();
-  if (a.dataset.act === 'close'){ closeSheets(); setSel(null); }
+  if (a.dataset.act === 'close'){ if (isMobile()) closeSheets(); setSel(null); }
 });
 
 function plantStats(){
@@ -2151,47 +2222,65 @@ function renderLegend(){
   el.innerHTML = h; el.style.display = h ? 'block' : 'none';
 }
 $('#legend').addEventListener('click', e => { const d = e.target.closest('[data-hl]'); if (d){ e.preventDefault(); setHL(d.dataset.hl); } });
+let invOpen;
+try { invOpen = new Set(JSON.parse(localStorage.getItem('jardin-inv-open-v1') || '[]')); } catch(_){ invOpen = new Set(); }
+function invOpenSet(k, on){ on ? invOpen.add(k) : invOpen.delete(k); try { localStorage.setItem('jardin-inv-open-v1', JSON.stringify([...invOpen])); } catch(_){} }
+const invSec = (k, title, n, body) => `<div class="icat${invOpen.has(k) ? ' open' : ''}"><div class="ich" data-sec="${k}"><span class="ar">▶</span>${title}${n !== '' ? `<span class="n">${n}</span>` : ''}</div><div class="ibody">${body}</div></div>`;
 function forestHTML(){
   const S = plantStats(); if (!S.n) return '';
-  let h = `<h4>Jardin-forêt</h4><div class="stbar">`;
+  let h = `<div class="stbar">`;
   for (const [k, v] of Object.entries(STRATES)) if (S.st[k]) h += `<i style="flex:${S.st[k]};background:${v.color}" title="${v.label} : ${S.st[k]}"></i>`;
   h += `</div><table class="inv">`;
   for (const [k, v] of Object.entries(STRATES)) if (S.st[k]) h += `<tr class="clk${hl === 'st:' + k ? ' hl' : ''}" data-hl="st:${k}"><td><span class="dot" style="background:${v.color}"></span>${v.label} <small style="color:var(--mute)">${v.desc}</small></td><td>${S.st[k]} · ${Math.round(S.st[k] / S.n * 100)} %</td></tr>`;
   h += `</table><table class="inv" style="margin-top:8px">`;
   for (const [k, v] of Object.entries(FONCTIONS)) h += `<tr class="clk${hl === 'fn:' + k ? ' hl' : ''}" data-hl="fn:${k}"><td>${v.icon} ${v.label}</td><td>${S.fn[k] || 0} · ${Math.round((S.fn[k] || 0) / S.n * 100)} %</td></tr>`;
   h += `</table><p class="note">Touchez une ligne pour la repérer sur le plan. Strates et fonctions se règlent dans ⚙ Palette.</p>`;
-  return h;
+  return invSec('forest', 'Jardin-forêt', '', h);
 }
 function renderInventory(){
   const plants = st.items.filter(i => i.type === 'plant'), zones = st.items.filter(i => i.type === 'zone'), lines = st.items.filter(i => i.type === 'line');
-  let h = `<h4>Inventaire</h4>`;
-  if (!st.items.length){ $('#invPanel').innerHTML = h + '<p class="note">Le plan est vide.</p>'; return; }
+  const cur = sel && itemById(sel), curSid = cur && cur.type === 'plant' ? cur.sid : null;
+  $('#railTxt').textContent = `Inventaire · ${plants.length} végéta${plants.length > 1 ? 'ux' : 'l'}`;
+  let h = `<div class="ilbl"><span>Inventaire${plants.length ? ` · ${plants.length} végéta${plants.length > 1 ? 'ux' : 'l'}` : ''}</span><button class="btn mob" data-act="terrain">Terrain</button><button class="btn icon mob" data-act="inv-close" title="Fermer">✕</button></div>`;
+  if (!st.items.length){ $('#invPanel').innerHTML = h + '<p class="note" style="padding:0 14px">Le plan est vide.</p>'; return; }
   if (plants.length){
     const count = {}; for (const p of plants) count[p.sid] = (count[p.sid] || 0) + 1;
     const rows = Object.entries(count).map(([sid, n]) => [spById(sid), n]).filter(x => x[0]).sort((a, b) => bySpecies(a[0], b[0]));
-    h += `<table class="inv">` + rows.map(([sp, n]) => `<tr class="clk" data-sid="${sp.id}"><td><span class="dot" style="background:${sp.color}"></span>${spHTML(sp)}</td><td>× ${n}</td></tr>`).join('') + `</table>`;
-    h += `<p class="note">${plants.length} végéta${plants.length > 1 ? 'ux' : 'l'} · ${rows.length} espèce${rows.length > 1 ? 's' : ''} / variété${rows.length > 1 ? 's' : ''}</p>`;
+    for (const c of Object.keys(CATS)){
+      const rs = rows.filter(([sp]) => sp.cat === c); if (!rs.length) continue;
+      const n = rs.reduce((a, r) => a + r[1], 0);
+      h += invSec('c:' + c, esc(CATS[c].label), n, `<table class="inv">` + rs.map(([sp, n]) => `<tr class="clk${sp.id === curSid ? ' on' : ''}" data-sid="${sp.id}"><td><span class="dot" style="background:${sp.color}"></span>${spHTML(sp)}</td><td>× ${n}</td></tr>`).join('') + `</table>`);
+    }
   }
   if (zones.length){
     const agg = {}; for (const z of zones){ agg[z.kind] = (agg[z.kind] || 0) + z.w * z.h; }
-    h += `<table class="inv" style="margin-top:8px">` + Object.entries(agg).map(([k, a]) => `<tr><td><span class="dot" style="background:${ZONES[k].fill};border-radius:2px"></span>${ZONES[k].label}</td><td>${fmt(a, 1)} m²</td></tr>`).join('') + `</table>`;
+    h += invSec('zones', 'Zones & surfaces', zones.length, `<table class="inv">` + Object.entries(agg).map(([k, a]) => `<tr><td><span class="dot" style="background:${ZONES[k].fill};border-radius:2px"></span>${ZONES[k].label}</td><td>${fmt(a, 1)} m²</td></tr>`).join('') + `</table>`);
   }
   if (lines.length){
     const agg = {}; for (const l of lines){ agg[l.kind] = (agg[l.kind] || 0) + polyLen(l.points); }
-    h += `<table class="inv" style="margin-top:8px">` + Object.entries(agg).map(([k, L]) => `<tr><td><span class="dot" style="background:${LINES[k].color};border-radius:2px"></span>${LINES[k].label}</td><td>${fmt(L, 1)} m</td></tr>`).join('') + `</table>`;
+    h += invSec('lines', 'Clôtures, haies & chemins', lines.length, `<table class="inv">` + Object.entries(agg).map(([k, L]) => `<tr><td><span class="dot" style="background:${LINES[k].color};border-radius:2px"></span>${LINES[k].label}</td><td>${fmt(L, 1)} m</td></tr>`).join('') + `</table>`);
   }
-  const bad = plants.filter(p => legalIssue(p)).length;
-  if (st.prefs.legal && bad) h += `<div class="warn">⚠ ${bad} végétal${bad > 1 ? 'aux' : ''} trop près des limites (repéré${bad > 1 ? 's' : ''} en rouge).</div>`;
   h += forestHTML();
+  const bad = plants.filter(p => legalIssue(p)).length;
+  if (st.prefs.legal && bad) h += `<div class="warn" style="margin:10px 14px">⚠ ${bad} végétal${bad > 1 ? 'aux' : ''} trop près des limites (repéré${bad > 1 ? 's' : ''} en rouge).</div>`;
   $('#invPanel').innerHTML = h;
 }
 $('#invPanel').addEventListener('click', e => {
+  const sec = e.target.closest('[data-sec]');
+  if (sec){ const k = sec.dataset.sec, on = !invOpen.has(k); invOpenSet(k, on); sec.parentElement.classList.toggle('open', on); return; }
+  const act = e.target.closest('[data-act]');
+  if (act){ if (act.dataset.act === 'inv-close') closeSheets(); else if (act.dataset.act === 'terrain'){ sel = null; render(); renderInspector(); openInspector('edit'); } return; }
   const hh = e.target.closest('tr[data-hl]'); if (hh){ setHL(hh.dataset.hl); return; }
   const tr = e.target.closest('tr[data-sid]'); if (!tr) return;
   const list = st.items.filter(i => i.type === 'plant' && i.sid === tr.dataset.sid); if (!list.length) return;
   const cur = list.findIndex(p => p.id === sel); const next = list[(cur + 1) % list.length];
   setSel(next.id);
 });
+/* Panneau de droite rabattable (ordinateur) */
+function setRail(on){ document.querySelector('main').classList.toggle('rail', on); try { localStorage.setItem('jardin-panel-rail', on ? '1' : ''); } catch(_){} }
+$('#railBtn').onclick = () => setRail(true);
+$('#unrailBtn').onclick = $('#railTxt').onclick = () => setRail(false);
+try { if (localStorage.getItem('jardin-panel-rail')) setRail(true); } catch(_){}
 
 /* ============================================================
    En-tête
@@ -2208,6 +2297,7 @@ function syncHeader(){
   const g = st.prefs.growth; $('#growthOut').textContent = g >= 1 ? 'adulte' : Math.round(g * 100) + ' %';
   $('#snapBtn').classList.toggle('on', st.prefs.snap);
   $('#legalBtn').classList.toggle('on', st.prefs.legal);
+  $('#lockBtn').classList.toggle('on', locked()); $('#lockBtn').textContent = locked() ? '🔒' : '🔓';
 }
 function setGarden(){
   const w = clamp(parseFloat($('#gw').value) || st.garden.w, 2, 1000), h = clamp(parseFloat($('#gh').value) || st.garden.h, 2, 1000);
@@ -2221,6 +2311,7 @@ $('#undoBtn').onclick = undo; $('#redoBtn').onclick = redo;
 $('#zIn').onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1.3); };
 $('#zOut').onclick = () => { const r = stage.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1 / 1.3); };
 $('#zFit').onclick = fit;
+$('#lockBtn').onclick = () => { st.prefs.lock = !locked(); save(); syncHeader(); render(); toast(locked() ? '🔒 Plan verrouillé : les éléments ne bougent plus (on peut toujours les modifier et en ajouter)' : '🔓 Plan déverrouillé : les éléments peuvent être déplacés'); };
 $('#snapBtn').onclick = () => { st.prefs.snap = !st.prefs.snap; save(); syncHeader(); toast(st.prefs.snap ? 'Aimantation à 0,5 m activée' : 'Aimantation désactivée'); };
 $('#legalBtn').onclick = () => { st.prefs.legal = !st.prefs.legal; save(); syncHeader(); render(); renderInspector(); toast(st.prefs.legal ? 'Contrôle des distances aux limites activé' : 'Contrôle des distances désactivé'); };
 function openNew(){ $('#nName').value = ''; openModal('newModal'); setTimeout(() => $('#nName').focus(), 60); }
@@ -2395,6 +2486,7 @@ function applyDetected(){
 /* Feuilles mobiles */
 const isMobile = () => matchMedia('(max-width: 860px)').matches;
 function openSheet(id){ closeSheets(); $('#' + id).classList.add('open'); }
+function openInspector(mode){ const a = $('#inspector'); a.classList.toggle('m-edit', mode === 'edit'); a.classList.toggle('m-inv', mode === 'inv'); if (mode === 'inv') $('#invPanel').scrollTop = 0; openSheet('inspector'); }
 function closeSheets(){ document.querySelectorAll('aside').forEach(a => { a.classList.remove('open', 'dragging'); a.style.transform = ''; }); }
 // poignée des panneaux mobiles : toucher ou glisser vers le bas pour fermer
 document.querySelectorAll('aside .grip').forEach(g => {
@@ -2410,7 +2502,7 @@ document.querySelectorAll('aside .grip').forEach(g => {
   g.addEventListener('pointerup', end); g.addEventListener('pointercancel', end);
 });
 $('#mobAdd').onclick = () => { $('#palette').classList.contains('open') ? closeSheets() : openSheet('palette'); };
-$('#mobInfo').onclick = () => { $('#inspector').classList.contains('open') ? closeSheets() : openSheet('inspector'); };
+$('#mobInfo').onclick = () => { const a = $('#inspector'); a.classList.contains('open') && a.classList.contains('m-inv') ? closeSheets() : openInspector('inv'); };
 
 /* ============================================================
    Fenêtres : espèces, export, confirmation
