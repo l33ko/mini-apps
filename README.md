@@ -51,17 +51,20 @@ Un exemple de plan est fourni au premier lancement : une maison avec piscine et 
 
 Les plans sont enregistrés dans le navigateur de l'appareil utilisé, sans compte. Pour les retrouver sur plusieurs appareils, deux possibilités :
 
-- **☁ Synchroniser** (facultatif) : on saisit son e-mail et on reçoit un code à 6 chiffres, sans mot de passe. Les plans, leurs photos de fond et la palette végétale se synchronisent ensuite automatiquement entre tous les appareils connectés à la même adresse (quelques secondes après chaque modification, à l'ouverture et toutes les minutes). Si un plan a été modifié sur deux appareils, la version la plus récente l'emporte. L'app reste utilisable sans connexion et rattrape au retour du réseau. La session est commune aux apps SynApps.
+- **☁ Synchroniser** (facultatif) : on saisit son e-mail et on reçoit un lien de connexion, sans mot de passe. Les plans, leurs photos de fond et la palette végétale se synchronisent ensuite automatiquement entre tous les appareils connectés à la même adresse (quelques secondes après chaque modification, à l'ouverture et toutes les minutes). Si un plan a été modifié sur deux appareils, la version la plus récente l'emporte. L'app reste utilisable sans connexion et rattrape au retour du réseau. La session est commune aux apps SynApps.
 - **Export / import** d'un plan en fichier `.json`, ou partage par lien.
 
 ### Activer la synchronisation (Supabase)
 
-1. Dans le projet Supabase (le même que pour le Cahier du CP convient), ouvrir **SQL Editor** et exécuter [`mon-jardin/supabase.sql`](mon-jardin/supabase.sql) : il crée les tables `jardin_plans` et `jardin_palette` et leurs règles d'accès (chaque compte ne voit que ses lignes).
-2. **Authentication > Emails > Templates** : dans les modèles « Magic Link » et « Confirm signup », afficher le code avec `{{ .Token }}`.
-3. Renseigner l'**URL du projet** et la **clé publique** (anon ou publishable, dans **Project Settings > API**) dans la constante `SB` de `mon-jardin/index.html` (partie « Compte et synchronisation »). Cette clé est conçue pour être publique : la sécurité repose sur les règles d'accès des tables.
-4. Pour un usage régulier, brancher un SMTP personnalisé (**Authentication > SMTP Settings**) : le service d'e-mails par défaut de Supabase n'envoie que quelques messages par heure.
+« Mon jardin » utilise le projet Supabase des apps publiques (« Synapps_public »), déjà renseigné dans la constante `SB` de `mon-jardin/index.html`, avec la même session que les autres apps SynApps.
 
-Tant que la constante `SB` est vide, le bouton ☁ n'apparaît pas et l'app fonctionne comme avant.
+1. **SQL Editor** : exécuter [`mon-jardin/supabase.sql`](mon-jardin/supabase.sql). Il crée les tables `jardin_plans` (un plan par ligne, avec sa photo de fond) et `jardin_palette` (la palette du compte), et leurs règles d'accès : chaque compte ne voit que ses lignes.
+2. **Authentication → URL Configuration → Redirect URLs** : `https://app.synapsium.com/**` doit y figurer. Le lien de l'e-mail ramène sur la page de l'app, déjà connecté.
+3. Les e-mails de connexion partent par le SMTP configuré dans le projet (Brevo).
+
+La connexion se fait par un lien reçu par e-mail, à ouvrir sur l'appareil à connecter. Si le modèle d'e-mail contient aussi le code (`{{ .Token }}`), on peut le saisir dans l'app à la place.
+
+Si la constante `SB` est vide, le bouton ☁ n'apparaît pas et l'app fonctionne comme avant.
 
 ## Pixel arts
 

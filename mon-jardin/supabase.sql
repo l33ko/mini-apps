@@ -1,6 +1,6 @@
 -- Synchronisation de « Mon jardin » entre appareils (plans, photos de fond, palette végétale).
 -- À exécuter une fois dans Supabase : SQL Editor > New query > Run.
--- Peut partager le même projet Supabase que les autres apps SynApps (Cahier du CP…).
+-- Projet Supabase des apps publiques (« Synapps_public »), le même que le Cahier du CP et Recettes.
 
 -- Un plan par ligne. Une suppression laisse une ligne « deleted » pour prévenir les autres appareils.
 create table if not exists public.jardin_plans (
