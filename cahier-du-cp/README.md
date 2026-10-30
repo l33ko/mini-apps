@@ -64,7 +64,7 @@ Les attendus de fin de CP en mathématiques ne mentionnent pas les tables de mul
 - Chaque enfant a son profil, créé avec un simple prénom. Les étoiles et les niveaux sont gardés sur l'appareil, dans le navigateur.
 - Pour passer d'un appareil à un autre, un **code de sauvegarde** (commençant par `CP1-`) se copie depuis la configuration et se colle sur le nouvel appareil.
 - Sans compte, aucune donnée n'est envoyée sur un serveur : le prénom, les étoiles et les niveaux restent sur l'appareil.
-- **Retrouver ses données avec un e-mail** (optionnel) : dans la configuration, ou sur l'écran « Qui joue ? », l'adulte saisit son e-mail et reçoit un e-mail de connexion : il suffit de toucher le lien, sur l'appareil à connecter. Une fois connecté, les joueurs, étoiles et niveaux se synchronisent automatiquement entre tous les appareils connectés au même e-mail. Seuls le prénom des joueurs, les étoiles, les niveaux et les réglages sont enregistrés, chaque compte ne pouvant lire que ses propres données. La session est partagée entre les apps hébergées sur le même site.
+- **Retrouver ses données avec un e-mail** (optionnel) : dans la configuration, ou sur l'écran « Qui joue ? », l'adulte saisit son e-mail et reçoit un e-mail de connexion : le plus sûr est de recopier le code à 6 chiffres de l'e-mail dans l'app (cela marche même si l'app est ajoutée à l'écran d'accueil de l'iPhone, qui a son propre stockage). Toucher le lien fonctionne seulement s'il s'ouvre dans le même navigateur. Une fois connecté, les joueurs, étoiles et niveaux se synchronisent automatiquement entre tous les appareils connectés au même e-mail. Seuls le prénom des joueurs, les étoiles, les niveaux et les réglages sont enregistrés, chaque compte ne pouvant lire que ses propres données. La session est partagée entre les apps hébergées sur le même site.
 
 ## Configuration (espace parents)
 
@@ -81,7 +81,7 @@ Le bouton « Parents » du menu ouvre la configuration, protégée par un petit 
 La synchronisation est facultative. Sans réglage, l'application fonctionne comme avant, avec le code de sauvegarde.
 
 1. Dans un projet [Supabase](https://supabase.com), ouvrir **SQL Editor** et exécuter le fichier [`supabase.sql`](supabase.sql) : il crée la table `app_saves` (une ligne par compte et par application) et ses règles d'accès. Il est conseillé d'utiliser un projet Supabase réservé aux apps publiques, séparé de celui des apps privées.
-2. **Authentication > URL Configuration** : renseigner l'adresse de l'application comme **Site URL** et dans **Redirect URLs** (par exemple `https://app.synapsium.com/cahier-du-cp/`). Le lien de l'e-mail y ramène l'utilisateur, déjà connecté.
+2. **Authentication > URL Configuration** : renseigner l'adresse de l'application comme **Site URL** et dans **Redirect URLs** (par exemple `https://app.synapsium.com/cahier-du-cp/`). Le lien de l'e-mail y ramène l'utilisateur, déjà connecté. Avec un SMTP personnalisé, les modèles « Magic Link » et « Confirm signup » sont modifiables : y ajouter le code avec `{{ .Token }}`.
 3. Copier l'**URL du projet** et la **clé publique** (anon ou publishable) depuis **Project Settings > API**, puis les renseigner dans la constante `SB` en haut de la partie « compte et synchronisation » du fichier `index.html`. Cette clé est conçue pour être publique : la sécurité repose sur les règles d'accès de la table.
 4. Le service d'e-mails par défaut de Supabase est limité à quelques messages par heure : pour un usage régulier, brancher un SMTP personnalisé (**Authentication > SMTP Settings**).
 
