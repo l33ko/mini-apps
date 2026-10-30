@@ -605,7 +605,7 @@ function loadLocal(){var r=[];try{var t=localStorage.getItem(KEY);if(t){var o=JS
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({runs:S.runs}))}catch(e){}}
 function persist(){saveLocal();pushDb()}
 /* ---------- Compte SynApps (session commune aux apps, projet Supabase public) ---------- */
-var SB={url:'https://qxwypwcxdhhtgmzaskzs.supabase.co',key:'sb_publishable_BZ9SxprfxkC-dUQZori4zA_txbvmngw'},AUTH_KEY='synapps-auth',AUTH=null,refreshing=null;
+var SB=(/^(app\.synapsium\.com|synapps-bhl\.pages\.dev|l33ko\.github\.io)$/.test(location.hostname) ? {url:'https://qxwypwcxdhhtgmzaskzs.supabase.co',key:'sb_publishable_BZ9SxprfxkC-dUQZori4zA_txbvmngw'} : {url:'https://zlfgcfexvawijldgiqbu.supabase.co',key:'sb_publishable_aLCilH09KKWb4IfJC4Sx1g_df2_RUrC'}),AUTH_KEY='synapps-auth',AUTH=null,refreshing=null;
 function authLoad(){try{AUTH=JSON.parse(localStorage.getItem(AUTH_KEY))}catch(e){AUTH=null}}
 function authSave(){try{if(AUTH)localStorage.setItem(AUTH_KEY,JSON.stringify(AUTH));else localStorage.removeItem(AUTH_KEY)}catch(e){}}
 function setAuth(r){var u=r.user||{};AUTH={access_token:r.access_token,refresh_token:r.refresh_token,exp:Date.now()+(r.expires_in||3600)*1000,email:u.email||(AUTH&&AUTH.email)||'',uid:u.id||(AUTH&&AUTH.uid)||''};authSave()}
@@ -1198,6 +1198,18 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden&&AUT
   if (/[?&]v=/.test(location.search)) try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
   setTimeout(check, 2500);
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) check(); });
+})();
+</script>
+<script>
+/* SynApps — badge « Version test »
+   Hors de la production (app.synapsium.com et sa copie synapps-bhl.pages.dev), la page est une version test :
+   ses données en ligne vont dans le projet Supabase « Synapps_test », jamais dans les vraies données. */
+(function(){
+  if (!/^https?:$/.test(location.protocol) || /^(app\.synapsium\.com|synapps-bhl\.pages\.dev|l33ko\.github\.io)$/.test(location.hostname)) return;
+  var b = document.createElement('div'); b.id = 'synappsTest'; b.textContent = 'Version test';
+  b.title = 'Version test : les données en ligne vont dans Synapps_test, pas dans les vraies données.';
+  b.setAttribute('style', 'position:fixed;left:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:2147482999;pointer-events:none;background:#f38020;color:#fff;border-radius:999px;padding:3px 10px;font:700 12px/1.4 system-ui,-apple-system,sans-serif;letter-spacing:.03em;box-shadow:0 2px 8px rgba(0,0,0,.2);opacity:.92');
+  (document.body || document.documentElement).appendChild(b);
 })();
 </script>
 </body>
