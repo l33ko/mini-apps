@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Recettes · SynApps</title>
+<title>Mes recettes · SynApps</title>
 <meta name="theme-color" content="#b5532f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Recettes">
+<meta name="apple-mobile-web-app-title" content="Mes recettes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="description" content="Le carnet de recettes de la famille, partagé entre tous vos téléphones. Import depuis un lien, portions ajustables.">
 <link rel="manifest" href="manifest.webmanifest">
@@ -319,14 +319,14 @@ function renderLogin(msg = '') {
   app.innerHTML = `
   <div class="login">
     <div class="logo">🍲</div>
-    <h1>Recettes</h1>
+    <h1>Mes recettes</h1>
     <p>Le carnet de cuisine de la famille, partagé entre vos téléphones.</p>
     ${join ? `<div class="msg info">Tu as été invité à rejoindre une famille. Connecte-toi pour accepter.</div>` : ''}
     ${L.step === 1 ? `
     <form id="lf">
       <div class="f"><label>Ton e-mail</label><input type="email" name="email" inputmode="email" autocomplete="email" autocapitalize="off" required value="${esc(L.email)}" placeholder="ton@email.fr"></div>
       <div id="lmsg">${msg ? `<div class="msg err">${esc(msg)}</div>` : ''}</div>
-      <button class="btn" style="width:100%">Recevoir l’e-mail de connexion</button>
+      <button class="btn" style="width:100%">Recevoir mon code</button>
       <p class="muted" style="text-align:center;margin-top:14px">Pas de mot de passe : tu reçois un code de connexion par e-mail.<br>Déjà connecté au cahier du CP ou à Mon jardin ? C’est le même compte.</p>
     </form>` : `
     <div id="cf">
