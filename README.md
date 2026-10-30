@@ -17,7 +17,7 @@ La page d'accueil ([`index.html`](index.html)) présente toutes les applications
 
 Le carnet de recettes de la famille, partagé entre plusieurs personnes et appareils :
 
-- **Compte par e-mail**, sans mot de passe : lien reçu par e-mail, à ouvrir sur l’appareil à connecter. Le compte est commun aux apps SynApps.
+- **Compte par e-mail**, sans mot de passe : code à 6 chiffres reçu par e-mail, à recopier dans l’app (le lien de l’e-mail marche aussi s’il s’ouvre dans le même navigateur). Le compte est commun aux apps SynApps.
 - **Familles** : chaque compte commence avec « Mon carnet de recettes ». Un lien ou un code d'invitation (ex. `K7P-42Q`) permet d'y faire entrer d'autres personnes, qui voient et modifient les mêmes recettes. L'admin renomme la famille, retire des membres, change le code. On peut appartenir à plusieurs familles et passer de l'une à l'autre.
 - **Temps réel** : une recette ajoutée ou modifiée sur un téléphone apparaît aussitôt sur les autres.
 - **Import depuis un lien** (Marmiton, 750g, blogs…) : la recette est extraite et la fiche créée automatiquement.
@@ -30,7 +30,7 @@ Le carnet de recettes de la famille, partagé entre plusieurs personnes et appar
 1. **SQL Editor** : exécuter [`recettes/supabase.sql`](recettes/supabase.sql) (tables `familles`, `membres_famille`, `recettes`, règles d'accès, temps réel).
 2. **Edge Functions → Deploy a new function → Via Editor** : nom `import-recette`, coller [`recettes/import-recette.ts`](recettes/import-recette.ts), laisser « Verify JWT » activé.
 3. **Authentication → URL Configuration → Redirect URLs** : ajouter `https://app.synapsium.com/**` (et `https://l33ko.github.io/synapps/**` tant que l’ancienne adresse sert).
-4. Les e-mails de connexion partent par le SMTP configuré dans le projet (Brevo) ; le lien `{{ .ConfirmationURL }}` du modèle « Magic Link » suffit.
+4. Les e-mails de connexion partent par le SMTP configuré dans le projet (Brevo) ; les modèles « Magic Link » et « Confirm signup » doivent contenir le code `{{ .Token }}` (et peuvent garder le lien `{{ .ConfirmationURL }}`).
 
 ## Mises à jour
 
@@ -56,7 +56,7 @@ Un exemple de plan est fourni au premier lancement : une maison avec piscine et 
 
 Les plans sont enregistrés dans le navigateur de l'appareil utilisé, sans compte. Pour les retrouver sur plusieurs appareils, deux possibilités :
 
-- **☁ Synchroniser** (facultatif) : on saisit son e-mail et on reçoit un lien de connexion, sans mot de passe. Les plans, leurs photos de fond et la palette végétale se synchronisent ensuite automatiquement entre tous les appareils connectés à la même adresse (quelques secondes après chaque modification, à l'ouverture et toutes les minutes). Si un plan a été modifié sur deux appareils, la version la plus récente l'emporte. L'app reste utilisable sans connexion et rattrape au retour du réseau. La session est commune aux apps SynApps.
+- **☁ Synchroniser** (facultatif) : on saisit son e-mail et on recopie le code à 6 chiffres reçu, sans mot de passe. Les plans, leurs photos de fond et la palette végétale se synchronisent ensuite automatiquement entre tous les appareils connectés à la même adresse (quelques secondes après chaque modification, à l'ouverture et toutes les minutes). Si un plan a été modifié sur deux appareils, la version la plus récente l'emporte. L'app reste utilisable sans connexion et rattrape au retour du réseau. La session est commune aux apps SynApps.
 - **Export / import** d'un plan en fichier `.json`, ou partage par lien.
 
 ### Activer la synchronisation (Supabase)
