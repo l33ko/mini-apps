@@ -31,6 +31,10 @@ Le carnet de recettes de la famille, partagé entre plusieurs personnes et appar
 3. **Authentication → URL Configuration → Redirect URLs** : ajouter `https://app.synapsium.com/**` (et `https://l33ko.github.io/synapps/**` tant que l’ancienne adresse sert).
 4. Les modèles d'e-mail « Magic Link » et « Confirm signup » doivent contenir `{{ .Token }}` (déjà fait pour Mon jardin) pour que le code s'affiche.
 
+## Mises à jour
+
+Les navigateurs gardent une copie des pages : après une mise en ligne, un appareil peut continuer d'afficher l'ancienne version (surtout sur iPhone et depuis l'écran d'accueil). Chaque app vérifie donc, à l'ouverture et quand on y revient, si son code en ligne a changé ; si oui, un bandeau « Une nouvelle version est disponible » propose **Mettre à jour**, qui recharge la page en contournant la copie gardée en mémoire.
+
 ## Mon jardin
 
 Concevoir et visualiser son jardin, à l'échelle :
