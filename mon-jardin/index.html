@@ -107,6 +107,7 @@ main.rail .irail{display:flex;flex-direction:column;align-items:center;gap:10px;
 .ov.tl{top:10px;left:10px;right:10px;flex-wrap:wrap}
 .ov.br{bottom:12px;right:12px;flex-direction:column;align-items:flex-end}
 .ov.bl{bottom:14px;left:12px}
+.mbar{display:none}
 .chip{background:rgba(255,253,246,.96);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 10px rgba(40,50,30,.12)}
 .chip b{font-weight:600}
 .chip .btn{padding:3px 9px;border-radius:999px}
@@ -310,7 +311,11 @@ body.at-home #ioModal .exp{display:none}
   .mob{display:inline-flex}
   .sp-wrap{grid-template-columns:1fr}
   .sp-form{position:static}
-  .ov.br{bottom:calc(14px + env(safe-area-inset-bottom))}
+  .ov.br,.ov.bl{bottom:calc(74px + env(safe-area-inset-bottom))}
+  .mbar{display:flex;position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));gap:10px;z-index:4}
+  .mbar button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);font:inherit;font-size:16px;font-weight:600;box-shadow:0 3px 14px rgba(40,50,30,.18);cursor:pointer}
+  .mbar button span{font-size:19px;line-height:1}
+  .mbar button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
 }
 </style>
 </head>
@@ -380,10 +385,9 @@ body.at-home #ioModal .exp{display:none}
     <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
     <div class="ov tl" id="toolChip"></div>
     <div class="ov bl" style="flex-direction:column;align-items:flex-start;gap:8px"><div class="legend" id="legend"></div><div class="scalebar" id="scalebar"></div></div>
+    <div class="mbar"><button id="mobAdd" class="pri"><span>＋</span>Ajouter</button><button id="mobInfo"><span>☰</span>Inventaire</button></div>
     <div class="ov br">
       <div class="zoomgrp">
-        <button class="mob" id="mobAdd" title="Ajouter" style="font-weight:600">＋</button>
-        <button class="mob" id="mobInfo" title="Inventaire">☰</button>
         <button id="zIn" title="Zoomer">+</button>
         <button id="zOut" title="Dézoomer">−</button>
         <button id="zFit" title="Tout afficher">⤢</button>
