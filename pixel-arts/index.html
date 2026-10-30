@@ -874,8 +874,8 @@ buildPal();renderCatalogue();window.addEventListener("resize",()=>{if($("#creer"
   function banner(){
     if (shown || document.getElementById('synappsMaj')) return; shown = true;
     var b = document.createElement('div'); b.id = 'synappsMaj';
-    b.setAttribute('style', 'position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;background:#25321e;color:#fff;border-radius:999px;padding:8px 8px 8px 16px;display:flex;align-items:center;gap:10px;font:14px/1.3 system-ui,-apple-system,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:calc(100% - 24px)');
-    b.innerHTML = '<span>Une nouvelle version est disponible</span><button type="button" style="border:0;border-radius:999px;padding:7px 14px;background:#8fd16a;color:#18240f;font:600 14px system-ui,-apple-system,sans-serif;cursor:pointer">Mettre à jour</button><button type="button" aria-label="Plus tard" style="border:0;background:none;color:#cfd8c6;font-size:18px;cursor:pointer;padding:0 6px">×</button>';
+    b.setAttribute('style', 'position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);width:max-content;z-index:2147483000;background:#25321e;color:#fff;border-radius:999px;padding:8px 8px 8px 16px;display:flex;align-items:center;gap:10px;font:14px/1.3 system-ui,-apple-system,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:calc(100% - 24px)');
+    b.innerHTML = '<span>Une nouvelle version est disponible</span><button type="button" style="border:0;border-radius:999px;padding:7px 14px;background:#8fd16a;color:#18240f;font:600 14px system-ui,-apple-system,sans-serif;cursor:pointer;white-space:nowrap">Mettre à jour</button><button type="button" aria-label="Plus tard" style="border:0;background:none;color:#cfd8c6;font-size:18px;cursor:pointer;padding:0 6px">×</button>';
     var bt = b.querySelectorAll('button');
     bt[0].onclick = function(){ location.replace(location.pathname + '?v=' + Date.now().toString(36) + location.hash); };
     bt[1].onclick = function(){ b.remove(); };
@@ -899,8 +899,8 @@ buildPal();renderCatalogue();window.addEventListener("resize",()=>{if($("#creer"
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) check(); });
 })();
 </script>
-<script>
-/* SynApps — badge « Version test »
+<script data-runtime>
+/* SynApps — badge « Version test » (data-runtime : ignoré par la détection de nouvelle version, car lu après elle)
    Hors de la production (app.synapsium.com et sa copie synapps-bhl.pages.dev), la page est une version test :
    ses données en ligne vont dans le projet Supabase « Synapps_test », jamais dans les vraies données. */
 (function(){
