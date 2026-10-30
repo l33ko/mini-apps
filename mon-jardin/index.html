@@ -50,6 +50,7 @@ aside{background:var(--panel);overflow:auto;min-height:0;-webkit-overflow-scroll
 .tabs{display:flex;gap:4px;padding:10px 10px 0}
 .tabs button{flex:1;border:0;background:none;padding:7px 4px;border-bottom:2px solid transparent;cursor:pointer;color:var(--mute);font-weight:500}
 .tabs button.on{color:var(--ink);border-color:var(--acc)}
+.grip{display:none}
 .pal-search{padding:8px 10px;position:sticky;top:0;background:var(--panel);z-index:1}
 .pal-search input{width:100%}
 #palList{padding:0 6px 12px;flex:1;overflow:auto}
@@ -253,6 +254,10 @@ body.at-home #ioModal .exp{display:none}
     border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .22s ease;
     padding-bottom:env(safe-area-inset-bottom)}
   aside.open{transform:none}
+  aside.dragging{transition:none}
+  .grip{display:flex;position:sticky;top:0;z-index:5;justify-content:center;align-items:center;height:26px;margin:0 0 2px;background:var(--panel);cursor:grab;touch-action:none;flex:none}
+  #inspector .grip{margin:-12px -14px 4px}
+  .grip span{width:44px;height:5px;border-radius:3px;background:#cfc8b6}
   #palette{height:55vh}
   .mob{display:inline-flex}
   .sp-wrap{grid-template-columns:1fr}
@@ -311,6 +316,7 @@ body.at-home #ioModal .exp{display:none}
 
 <main>
   <aside id="palette">
+    <div class="grip" title="Glisser vers le bas ou toucher pour fermer"><span></span></div>
     <div class="tabs">
       <button data-tab="veg" class="on">Végétaux</button>
       <button data-tab="amen">Aménagements</button>
@@ -340,6 +346,7 @@ body.at-home #ioModal .exp{display:none}
   </section>
 
   <aside id="inspector">
+    <div class="grip" title="Glisser vers le bas ou toucher pour fermer"><span></span></div>
     <div id="selPanel"></div>
     <div id="invPanel"></div>
   </aside>
@@ -1585,6 +1592,7 @@ svg.addEventListener('pointerdown', e => {
   if (it){ setSel(it.id); op = {type:'move', id:it.id, wx, wy, sx, sy, orig:clone(it), moved:false}; }
   else {
     if (sel) setSel(null);
+    if (isMobile()) closeSheets();
     if (bgShown() && st.bg.locked === false) op = {type:'bgmove', sx, sy, ox:st.bg.x, oy:st.bg.y, moved:false};
     else op = {type:'pan', sx, sy, vx:view.x, vy:view.y};
   }
@@ -2387,7 +2395,20 @@ function applyDetected(){
 /* Feuilles mobiles */
 const isMobile = () => matchMedia('(max-width: 860px)').matches;
 function openSheet(id){ closeSheets(); $('#' + id).classList.add('open'); }
-function closeSheets(){ document.querySelectorAll('aside').forEach(a => a.classList.remove('open')); }
+function closeSheets(){ document.querySelectorAll('aside').forEach(a => { a.classList.remove('open', 'dragging'); a.style.transform = ''; }); }
+// poignée des panneaux mobiles : toucher ou glisser vers le bas pour fermer
+document.querySelectorAll('aside .grip').forEach(g => {
+  let y0 = null, dy = 0, pid = null;
+  const aside = g.closest('aside');
+  g.addEventListener('pointerdown', e => { y0 = e.clientY; dy = 0; pid = e.pointerId; try { g.setPointerCapture(pid); } catch(_){} aside.classList.add('dragging'); });
+  g.addEventListener('pointermove', e => { if (y0 === null || e.pointerId !== pid) return; dy = Math.max(0, e.clientY - y0); aside.style.transform = `translateY(${dy}px)`; });
+  const end = e => {
+    if (y0 === null || e.pointerId !== pid) return;
+    y0 = null; aside.classList.remove('dragging'); aside.style.transform = '';
+    if (dy < 8 || dy > Math.min(90, aside.offsetHeight * .25)) closeSheets();
+  };
+  g.addEventListener('pointerup', end); g.addEventListener('pointercancel', end);
+});
 $('#mobAdd').onclick = () => { $('#palette').classList.contains('open') ? closeSheets() : openSheet('palette'); };
 $('#mobInfo').onclick = () => { $('#inspector').classList.contains('open') ? closeSheets() : openSheet('inspector'); };
 
