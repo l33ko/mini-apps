@@ -18,7 +18,7 @@ La page d'accueil ([`index.html`](index.html)) présente toutes les applications
 Le carnet de recettes de la famille, partagé entre plusieurs personnes et appareils :
 
 - **Compte par e-mail**, sans mot de passe : lien reçu par e-mail, à ouvrir sur l’appareil à connecter. Le compte est commun aux apps SynApps.
-- **Familles** : chaque compte commence avec son carnet « Mes recettes ». Un lien ou un code d'invitation (ex. `K7P-42Q`) permet d'y faire entrer d'autres personnes, qui voient et modifient les mêmes recettes. L'admin renomme la famille, retire des membres, change le code. On peut appartenir à plusieurs familles et passer de l'une à l'autre.
+- **Familles** : chaque compte commence avec « Mon carnet de recettes ». Un lien ou un code d'invitation (ex. `K7P-42Q`) permet d'y faire entrer d'autres personnes, qui voient et modifient les mêmes recettes. L'admin renomme la famille, retire des membres, change le code. On peut appartenir à plusieurs familles et passer de l'une à l'autre.
 - **Temps réel** : une recette ajoutée ou modifiée sur un téléphone apparaît aussitôt sur les autres.
 - **Import depuis un lien** (Marmiton, 750g, blogs…) : la recette est extraite et la fiche créée automatiquement.
 - **Fiche** : portions ajustables (quantités recalculées), ingrédients et étapes à cocher, écran maintenu allumé, « ajoutée par … ».

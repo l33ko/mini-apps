@@ -10,7 +10,7 @@
 -- ---------- Tables ----------
 create table if not exists public.familles (
   id         uuid primary key default gen_random_uuid(),
-  nom        text not null default 'Mes recettes' check (char_length(nom) between 1 and 60),
+  nom        text not null default 'Mon carnet de recettes' check (char_length(nom) between 1 and 60),
   code       text not null unique,                       -- code d'invitation
   created_at timestamptz not null default now()
 );
@@ -190,7 +190,7 @@ begin
   return copier_exemples(f);
 end; $$;
 
--- À l'ouverture : crée « Mes recettes » si le compte n'a encore aucune famille.
+-- À l'ouverture : crée « Mon carnet de recettes » si le compte n'a encore aucune famille.
 create or replace function public.mes_familles()
 returns table (id uuid, nom text, code text, role text, nb_membres bigint, nb_recettes bigint)
 language plpgsql security definer set search_path = public as $$
@@ -198,7 +198,7 @@ declare f uuid;
 begin
   if auth.uid() is null then raise exception 'non connecté'; end if;
   if not exists (select 1 from membres_famille m where m.user_id = auth.uid()) then
-    insert into familles (nom, code) values ('Mes recettes', nouveau_code()) returning familles.id into f;
+    insert into familles (nom, code) values ('Mon carnet de recettes', nouveau_code()) returning familles.id into f;
     insert into membres_famille (famille_id, user_id, role, email) values (f, auth.uid(), 'admin', auth.jwt() ->> 'email');
     perform copier_exemples(f);
   end if;
@@ -251,7 +251,7 @@ begin
   if (select count(*) from membres_famille where user_id = auth.uid()) >= 10 then
     raise exception 'Nombre maximum de familles atteint';
   end if;
-  insert into familles (nom, code) values (left(coalesce(nullif(trim(p_nom), ''), 'Mes recettes'), 60), nouveau_code())
+  insert into familles (nom, code) values (left(coalesce(nullif(trim(p_nom), ''), 'Mon carnet de recettes'), 60), nouveau_code())
     returning id into f;
   insert into membres_famille (famille_id, user_id, role, email) values (f, auth.uid(), 'admin', auth.jwt() ->> 'email');
   return f;
@@ -369,3 +369,6 @@ Passer 5 à 10 minutes sous le gril du four en surveillant : la meringue doit ju
 on conflict (titre) do update set ordre = excluded.ordre, categorie = excluded.categorie, portions = excluded.portions,
   temps_prep = excluded.temps_prep, temps_cuisson = excluded.temps_cuisson, ingredients = excluded.ingredients,
   etapes = excluded.etapes, notes = excluded.notes, tags = excluded.tags;
+
+-- Ancien nom par défaut des carnets
+update public.familles set nom = 'Mon carnet de recettes' where nom = 'Mes recettes';

@@ -116,7 +116,7 @@
   a.btn{text-decoration:none;display:inline-block;text-align:center}
   .fam-title{flex:1;min-width:0;text-decoration:none;color:inherit}
   .fam-title small{display:block;color:var(--muted);font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
-  .fam-title span{display:block;font-family:ui-serif,Georgia,serif;font-weight:600;font-size:26px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fam-title span{display:block;font-family:ui-serif,Georgia,serif;font-weight:600;font-size:28px;line-height:1.15;overflow-wrap:anywhere}
   .mem{list-style:none;margin:12px 0 0;padding:0}
   .mem li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
   .mem li>span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
@@ -407,7 +407,7 @@ function renderList() {
   app.innerHTML = `
   <div class="wrap">
     <div class="top">
-      <a class="fam-title" href="#/famille" title="Famille"><small>Recettes</small><span>${esc(fam.nom)}${familles.length > 1 ? ' ▾' : ''}</span></a>
+      <a class="fam-title" href="#/famille" title="Famille"><span>${esc(fam.nom)}${familles.length > 1 ? ' ▾' : ''}</span></a>
       <a class="icon-btn" href="#/famille" title="Famille et invitations">👥</a>
       <a class="icon-btn" href="#/compte" title="Mon compte">👤</a>
     </div>
