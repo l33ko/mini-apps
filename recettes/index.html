@@ -230,6 +230,11 @@ async function boot() {
     } else linkMsg = 'Lien expiré ou déjà utilisé. Redemande un e-mail.';
   } else if (join || imp) history.replaceState(null, '', location.pathname + (imp ? '#/import' : location.hash));
   window.addEventListener('hashchange', route);
+  window.addEventListener('storage', e => {
+    if (e.key !== AUTH_KEY) return;
+    const was = !!AUTH; AUTH = store.get(AUTH_KEY);
+    if (!!AUTH !== was) { L.step = 1; loaded = false; route(); }
+  });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && loaded) reload(); });
   await route(linkMsg);
   if (imp && AUTH && loaded) renderImport(imp);
@@ -315,19 +320,17 @@ function renderLogin(msg = '') {
       <div class="f"><label>Ton e-mail</label><input type="email" name="email" inputmode="email" autocomplete="email" autocapitalize="off" required value="${esc(L.email)}" placeholder="ton@email.fr"></div>
       <div id="lmsg">${msg ? `<div class="msg err">${esc(msg)}</div>` : ''}</div>
       <button class="btn" style="width:100%">Recevoir l’e-mail de connexion</button>
-      <p class="muted" style="text-align:center;margin-top:14px">Pas de mot de passe : tu reçois un lien (et un code) par e-mail.<br>Déjà connecté au cahier du CP ou à Mon jardin ? C’est le même compte.</p>
+      <p class="muted" style="text-align:center;margin-top:14px">Pas de mot de passe : tu reçois un lien de connexion par e-mail.<br>Déjà connecté au cahier du CP ou à Mon jardin ? C’est le même compte.</p>
     </form>` : `
-    <form id="cf">
-      <p class="muted" style="text-align:left">Un e-mail a été envoyé à <b>${esc(L.email)}</b>.<br>
-      Touche le lien <b>sur cet appareil</b>, ou saisis ci-dessous le code qu’il contient (pratique si l’app est installée sur l’écran d’accueil).</p>
-      <div class="f"><label>Code reçu</label><input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" style="letter-spacing:4px;font-size:22px;text-align:center"></div>
+    <div id="cf">
+      <div class="msg info" style="font-size:15px">📧 Un e-mail a été envoyé à <b>${esc(L.email)}</b>.</div>
+      <p class="muted" style="text-align:left">Ouvre-le <b>sur cet appareil</b> et touche le lien « Me connecter » : tu seras connecté automatiquement. Pense à regarder dans les courriers indésirables.</p>
       <div id="lmsg">${msg ? `<div class="msg err">${esc(msg)}</div>` : ''}</div>
-      <button class="btn" style="width:100%">Valider le code</button>
       <div class="row-actions" style="justify-content:center;margin-top:12px">
         <button type="button" class="btn ghost" id="chg">Changer d’e-mail</button>
-        <button type="button" class="btn ghost" id="again">Renvoyer</button>
+        <button type="button" class="btn ghost" id="again">Renvoyer l’e-mail</button>
       </div>
-    </form>`}
+    </div>`}
     <p class="muted" style="margin-top:28px"><a href="confidentialite.html">Confidentialité</a> · <a href="../">Toutes les apps SynApps</a></p>
   </div>`;
   const lmsg = t => { document.getElementById('lmsg').innerHTML = t; };
@@ -346,21 +349,9 @@ function renderLogin(msg = '') {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return lmsg('<div class="msg err">Cet e-mail ne semble pas correct.</div>');
     L.email = em; send();
   };
-  const cf = document.getElementById('cf');
-  if (cf) {
-    cf.onsubmit = async e => {
-      e.preventDefault();
-      const code = cf.code.value.replace(/\D/g, '');
-      if (code.length < 6) return lmsg('<div class="msg err">Le code contient au moins 6 chiffres.</div>');
-      lmsg('<p class="muted"><span class="loader"></span>Vérification…</p>');
-      try {
-        const r = await authFetch('/auth/v1/verify', { type: 'email', email: L.email, token: code });
-        setAuth(r, { email: L.email }); L.step = 1; loaded = false; route();
-      } catch (e) { lmsg(`<div class="msg err">${esc(authErr(e))}</div>`); }
-    };
+  if (document.getElementById('cf')) {
     document.getElementById('chg').onclick = () => { L.step = 1; renderLogin(); };
     document.getElementById('again').onclick = send;
-    setTimeout(() => cf.code.focus(), 50);
   }
 }
 

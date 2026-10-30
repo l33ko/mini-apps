@@ -17,7 +17,7 @@ La page d'accueil ([`index.html`](index.html)) présente toutes les applications
 
 Le carnet de recettes de la famille, partagé entre plusieurs personnes et appareils :
 
-- **Compte par e-mail**, sans mot de passe : lien ou code reçu par e-mail. Le compte est commun aux apps SynApps.
+- **Compte par e-mail**, sans mot de passe : lien reçu par e-mail, à ouvrir sur l’appareil à connecter. Le compte est commun aux apps SynApps.
 - **Familles** : chaque compte commence avec son carnet « Mes recettes ». Un lien ou un code d'invitation (ex. `K7P-42Q`) permet d'y faire entrer d'autres personnes, qui voient et modifient les mêmes recettes. L'admin renomme la famille, retire des membres, change le code. On peut appartenir à plusieurs familles et passer de l'une à l'autre.
 - **Temps réel** : une recette ajoutée ou modifiée sur un téléphone apparaît aussitôt sur les autres.
 - **Import depuis un lien** (Marmiton, 750g, blogs…) : la recette est extraite et la fiche créée automatiquement.
@@ -29,7 +29,7 @@ Le carnet de recettes de la famille, partagé entre plusieurs personnes et appar
 1. **SQL Editor** : exécuter [`recettes/supabase.sql`](recettes/supabase.sql) (tables `familles`, `membres_famille`, `recettes`, règles d'accès, temps réel).
 2. **Edge Functions → Deploy a new function → Via Editor** : nom `import-recette`, coller [`recettes/import-recette.ts`](recettes/import-recette.ts), laisser « Verify JWT » activé.
 3. **Authentication → URL Configuration → Redirect URLs** : ajouter `https://app.synapsium.com/**` (et `https://l33ko.github.io/synapps/**` tant que l’ancienne adresse sert).
-4. Les modèles d'e-mail « Magic Link » et « Confirm signup » doivent contenir `{{ .Token }}` (déjà fait pour Mon jardin) pour que le code s'affiche.
+4. Les e-mails de connexion partent par le SMTP configuré dans le projet (Brevo) ; le lien `{{ .ConfirmationURL }}` du modèle « Magic Link » suffit.
 
 ## Mises à jour
 
