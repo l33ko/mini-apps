@@ -17,15 +17,15 @@ Dépôt des mini apps publiques de l33ko, publiées sur **https://app.synapsium.
 
 ## Versions test (Cloudflare Pages)
 
-Le dépôt est relié à Cloudflare Pages, projet `synapps`. Chaque branche poussée obtient automatiquement une adresse de test :
+Le dépôt est relié à Cloudflare Pages, projet `synapps` (sous-domaine **`synapps-bhl.pages.dev`**). Chaque branche poussée obtient automatiquement une adresse de test :
 
 ```
-https://<nom-de-branche>.synapps.pages.dev/<dossier-de-l-app>/
+https://<nom-de-branche>.synapps-bhl.pages.dev/<dossier-de-l-app>/
 ```
 
-Exemple : `https://jardin-panneau-mobile.synapps.pages.dev/mon-jardin/`. Les caractères spéciaux du nom de branche deviennent des tirets ; l'adresse exacte figure aussi dans le statut « Cloudflare Pages » de la pull request.
+Exemple : `https://jardin-panneau-mobile.synapps-bhl.pages.dev/mon-jardin/`. La branche `main` y est aussi publiée (`https://synapps-bhl.pages.dev/`), simple copie de la production. Les caractères spéciaux du nom de branche deviennent des tirets ; l'adresse exacte figure aussi dans le statut « Cloudflare Pages » de la pull request.
 
-La version test a sa propre adresse : ses données locales (plans, réglages…) sont séparées de celles de la production. La connexion Supabase y fonctionne si `https://*.synapps.pages.dev/**` figure dans les Redirect URLs du projet Supabase.
+La version test a sa propre adresse : ses données locales (plans, réglages…) sont séparées de celles de la production. La connexion Supabase y fonctionne si `https://*.synapps-bhl.pages.dev/**` figure dans les Redirect URLs du projet Supabase.
 
 Si la version test n'est pas disponible, publier la page modifiée en aperçu privé et le signaler, sans fusionner pour autant.
 
