@@ -2,6 +2,17 @@
 
 Dépôt des mini apps publiques de l33ko, publiées sur **https://app.synapsium.com** (GitHub Pages, branche `main`, fichier `CNAME`). Tout ce qui arrive sur `main` est **immédiatement en production**.
 
+## Règle n°0 : maquettes validées avant de coder une grosse fonctionnalité
+
+**Grosse fonctionnalité** = nouvelle app, nouveau module ou nouvel écran, refonte d'un écran existant, nouveau parcours (connexion, partage, famille…). Les corrections de bugs, retouches de textes et petits ajustements passent directement par la règle n°1. En cas de doute, demander.
+
+1. **Reformuler le besoin** en quelques lignes et poser les questions qui changent le design (pour qui, sur quel appareil, ce qui compte le plus). Ne pas écrire de code de l'app à ce stade.
+2. **Proposer 2 ou 3 pistes de maquettes vraiment différentes** (disposition, parcours, manière d'interagir — pas seulement des couleurs), chacune montrée **sur iPhone et sur ordinateur**, avec des données fictives réalistes, en français, dans le style SynApps. Les principaux enchaînements d'écrans peuvent être cliquables, sans logique réelle derrière.
+3. Les publier sur une **branche `maquettes-<sujet>`**, dans `maquettes/<sujet>/index.html` (une seule page qui présente toutes les pistes côte à côte, chacune avec ses points forts et ses limites). **Pas de pull request** : cette branche n'est jamais fusionnée.
+4. Donner au propriétaire le lien de la version test : `https://maquettes-<sujet>.synapps-bhl.pages.dev/maquettes/<sujet>/`
+5. **Attendre son choix explicite** (« piste B », « A avec le menu de C », retouches…). Les retouches se font sur la même branche, la version test se met à jour.
+6. Une fois la maquette validée, coder sur une **nouvelle branche** selon la règle n°1, en respectant la maquette choisie. Rappeler le lien de la maquette dans la pull request et signaler tout écart qui s'est imposé en cours de route.
+
 ## Règle n°1 : rien ne part en production sans validation
 
 1. **Ne jamais pousser directement sur `main`**, ni fusionner une pull request de sa propre initiative.
