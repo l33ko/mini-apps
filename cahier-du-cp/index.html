@@ -443,20 +443,21 @@ function restoreCode(){const m=document.getElementById('bm2'),o=readCode(documen
  const n=applyCode(o);sfx(true);m.textContent=n+' joueur'+(n>1?'s':'')+' retrouvé'+(n>1?'s':'')+' ✔️'}
 /* compte et synchronisation (Supabase, e-mail + code) */
 const SB={url:'',key:''};
+const APPID='cahier-du-cp';
 const CLOUD=()=>!!(SB.url&&SB.key);
 let AUTH=null,CL={step:1,email:'',msg:'',busy:false,last:''},CLB='p',SYNCING=false,SYT=0;
-try{AUTH=JSON.parse(localStorage.getItem('cp-auth'))}catch(e){}
-function setAuth(r){const u=r.user||{};AUTH={access_token:r.access_token,refresh_token:r.refresh_token,exp:Date.now()+(r.expires_in||3600)*1000,email:u.email||(AUTH&&AUTH.email)||'',uid:u.id||(AUTH&&AUTH.uid)||''};try{localStorage.setItem('cp-auth',JSON.stringify(AUTH))}catch(e){}}
-function logoutCloud(){AUTH=null;try{localStorage.removeItem('cp-auth')}catch(e){}}
+try{AUTH=JSON.parse(localStorage.getItem('synapps-auth'))}catch(e){}
+function setAuth(r){const u=r.user||{};AUTH={access_token:r.access_token,refresh_token:r.refresh_token,exp:Date.now()+(r.expires_in||3600)*1000,email:u.email||(AUTH&&AUTH.email)||'',uid:u.id||(AUTH&&AUTH.uid)||''};try{localStorage.setItem('synapps-auth',JSON.stringify(AUTH))}catch(e){}}
+function logoutCloud(){AUTH=null;try{localStorage.removeItem('synapps-auth')}catch(e){}}
 async function sb(path,opt,auth){opt=opt||{};const h={apikey:SB.key,'Content-Type':'application/json'};
  if(auth){if(!AUTH)throw new Error('non connecté');if(AUTH.exp-Date.now()<60000){const r=await sb('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:AUTH.refresh_token})});setAuth(r)}h.Authorization='Bearer '+AUTH.access_token}
  const r=await fetch(SB.url+path,{method:opt.method||'GET',body:opt.body,headers:{...h,...(opt.headers||{})}});let j=null;try{j=await r.json()}catch(e){}
  if(!r.ok){const e=new Error((j&&(j.msg||j.message||j.error_description||j.error))||('HTTP '+r.status));e.status=r.status;throw e}return j}
 const cloudErr=e=>e&&(e.status===429||/rate|seconds/i.test(e.message))?'Trop d’essais. Réessaie dans quelques minutes.':e&&e.status&&e.status<500&&/otp|token|expired|invalid/i.test(e.message)?'Code incorrect ou expiré. Redemande un code.':'Connexion impossible. Vérifie internet et réessaie.';
 async function syncNow(quiet){if(!CLOUD()||!AUTH||SYNCING)return 0;SYNCING=true;let n=0;
- try{const rows=await sb('/rest/v1/cp_saves?select=data',{},true);
+ try{const rows=await sb('/rest/v1/app_saves?select=data&app=eq.'+APPID,{},true);
   if(rows&&rows[0]&&rows[0].data&&rows[0].data.p)n=applyCode(rows[0].data,!quiet,true);
-  await sb('/rest/v1/cp_saves?on_conflict=user_id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:AUTH.uid,data:{p:D.profiles,s:D.set,v:2},updated_at:new Date().toISOString()})},true);
+  await sb('/rest/v1/app_saves?on_conflict=user_id,app',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:AUTH.uid,app:APPID,data:{p:D.profiles,s:D.set,v:2},updated_at:new Date().toISOString()})},true);
   CL.last=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});return n}
  catch(e){if(e.status===401||e.status===400&&/refresh|token/i.test(e.message))logoutCloud();throw e}
  finally{SYNCING=false}}
