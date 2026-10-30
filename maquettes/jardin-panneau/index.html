@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquettes — Mon jardin : panneau élément & inventaire</title>
+<style>
+:root{
+  --bg:#f3efe3; --panel:#fffdf6; --ink:#25321e; --mute:#6c7663; --line:#e3dccb;
+  --acc:#3d7438; --acc-soft:#e6efdc; --warn:#c8402c; --map:#e9e4cf;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#ece6d4;color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.page{max-width:1320px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:24px;margin:0 0 6px}
+.lead{color:var(--mute);margin:0 0 14px}
+.besoin{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:18px}
+.besoin h2{font-size:15px;margin:0 0 6px}
+.besoin ul{margin:0;padding-left:20px}
+.besoin li{margin:2px 0}
+.howto{font-size:13.5px;background:var(--acc-soft);border-radius:10px;padding:8px 12px;margin-top:10px}
+nav.jump{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+nav.jump a{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);text-decoration:none;font-weight:600}
+section.piste{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:26px}
+section.piste>h2{margin:0;font-size:21px}
+section.piste>h2 small{font-weight:500;color:var(--mute);font-size:15px}
+.concept{margin:4px 0 14px;color:#3f4a37}
+.devices{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
+.dev-label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 6px;font-weight:700}
+.scaler{overflow:hidden}
+.pc{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pc div{border-radius:12px;padding:10px 14px}
+.pc .plus{background:#e6efdc}.pc .moins{background:#f6e6dc}
+.pc h3{margin:0 0 4px;font-size:14px}
+.pc ul{margin:0;padding-left:18px;font-size:14px}
+@media(max-width:700px){.pc{grid-template-columns:1fr}}
+
+/* ---------- cadre ordinateur ---------- */
+.mac{width:940px;border-radius:14px;background:#2b2b2b;padding:10px 10px 14px;box-shadow:0 10px 30px #0003;transform-origin:0 0}
+.mac .scr{height:560px;background:var(--bg);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;position:relative;font-size:13px}
+/* ---------- cadre iPhone ---------- */
+.phone{width:330px;height:690px;border-radius:46px;background:#1d1d1f;padding:11px;box-shadow:0 10px 30px #0003;transform-origin:0 0}
+.phone .scr{width:100%;height:100%;border-radius:36px;background:var(--bg);overflow:hidden;position:relative;display:flex;flex-direction:column;font-size:13px}
+.phone .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:96px;height:26px;background:#000;border-radius:14px;z-index:50}
+.phone .status{height:40px;flex:none;display:flex;justify-content:space-between;align-items:flex-end;padding:0 26px 4px;font-size:12px;font-weight:700}
+
+/* ---------- app ---------- */
+.top{display:flex;align-items:center;gap:8px;background:var(--panel);border-bottom:1px solid var(--line);padding:7px 12px;flex:none}
+.top b{font-size:14px}
+.top .sp{flex:1}
+.top .btn{border:1px solid var(--line);border-radius:7px;padding:3px 8px;background:#fff;font-size:12px}
+.top .btn.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.body{flex:1;display:flex;min-height:0;position:relative}
+.pal{width:150px;flex:none;border-right:1px solid var(--line);background:var(--panel);padding:8px;overflow:hidden;color:var(--mute);font-size:12px}
+.pal h4{margin:6px 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink)}
+.pal .chip{display:flex;align-items:center;gap:5px;margin:3px 0}
+.pal .chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.mapwrap{flex:1;min-width:0;position:relative;background:var(--map)}
+.mapwrap svg{width:100%;height:100%;display:block}
+.tree{cursor:pointer}
+.tree:hover circle.c{stroke:#222;stroke-width:1.2}
+.tree.sel circle.c{stroke:#d9480f;stroke-width:2.2}
+.hint{position:absolute;left:10px;bottom:8px;background:#fffdf6e6;border-radius:8px;padding:3px 8px;font-size:11.5px;color:var(--mute);pointer-events:none}
+
+/* panneau latéral */
+.side{width:300px;flex:none;border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0;transition:width .2s}
+.side.rail{width:40px}
+.side .sh{display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid var(--line);flex:none}
+.side .sh b{flex:1;font-size:13px}
+.icob{border:1px solid var(--line);background:#fff;border-radius:7px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--ink);padding:0;flex:none}
+.icob:hover{background:var(--acc-soft)}
+.rail .railbtns{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0}
+.rail .railbtns .icob{width:28px;height:28px}
+.vt{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11.5px;color:var(--mute);font-weight:600;letter-spacing:.04em;margin-top:6px}
+.fixed{flex:none;border-bottom:2px solid var(--line);background:var(--panel);box-shadow:0 3px 8px #0000000d;position:relative;z-index:2}
+.scroll{flex:1;overflow:auto;min-height:0}
+.lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);font-weight:700;padding:8px 12px 4px;display:flex;align-items:center;gap:6px}
+.lbl .sp{flex:1}
+
+/* bloc éditable */
+.ed{padding:10px 12px}
+.edh{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px}
+.edh .dot{width:26px;height:26px;border-radius:50%;flex:none;border:2px solid #0002}
+.edh .t{flex:1;line-height:1.2}
+.edh .t b{font-size:14.5px}
+.edh .t i{font-size:12px;color:var(--mute)}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.tags span{font-size:10.5px;background:var(--acc-soft);color:var(--acc);border-radius:999px;padding:1px 7px;font-weight:600}
+.row{display:grid;grid-template-columns:86px 1fr;align-items:center;gap:6px;margin:5px 0}
+.row label{font-size:12px;color:var(--mute)}
+.row select,.row input,.row textarea{width:100%;border:1px solid var(--line);border-radius:7px;padding:4px 6px;font:inherit;font-size:12.5px;background:#fff;color:var(--ink)}
+.row textarea{height:38px;resize:none}
+.pair{display:flex;gap:4px;align-items:center}
+.pair input{width:60px}
+.okline{font-size:11.5px;color:var(--acc);background:var(--acc-soft);border-radius:7px;padding:3px 8px;margin:6px 0}
+.move{font-size:11.5px;color:var(--mute);margin:4px 0 2px}
+.acts{display:flex;gap:6px;margin-top:8px}
+.acts button{flex:1;border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px;font:inherit;font-size:12.5px;cursor:pointer}
+.acts .danger{color:var(--warn);border-color:#e7b9ae}
+.terrain{padding:8px 12px;font-size:12.5px;color:var(--mute)}
+.terrain b{color:var(--ink)}
+
+/* inventaire en accordéon */
+.cat{border-bottom:1px solid var(--line)}
+.cat>.ch{display:flex;align-items:center;gap:7px;padding:7px 12px;cursor:pointer;font-weight:650;font-size:12.5px;user-select:none}
+.cat>.ch:hover{background:#f6f1e2}
+.cat>.ch .ar{width:10px;color:var(--mute);font-size:10px;transition:transform .15s}
+.cat.open>.ch .ar{transform:rotate(90deg)}
+.cat>.ch .n{margin-left:auto;background:#efe9d8;border-radius:999px;padding:0 7px;font-size:11px;color:var(--mute)}
+.cat .items{display:none;padding:0 0 4px}
+.cat.open .items{display:block}
+.it{display:flex;align-items:center;gap:7px;padding:4px 12px 4px 29px;cursor:pointer;font-size:12.5px}
+.it:hover{background:#f6f1e2}
+.it.on{background:#fde6d6}
+.it .d{width:10px;height:10px;border-radius:50%;flex:none}
+.it .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .nm i{color:var(--mute)}
+.it .q{color:var(--mute);font-size:11.5px}
+.search{margin:6px 12px;display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:4px 8px;color:var(--mute);font-size:12.5px}
+.misc{padding:6px 12px 10px;font-size:12px;color:var(--mute)}
+.misc table{width:100%;border-collapse:collapse}
+.misc td{padding:2px 0}
+.misc td:last-child{text-align:right;color:var(--ink)}
+.strata{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:4px 0 6px}
+
+/* fiche flottante (B) */
+.float{position:absolute;top:12px;left:12px;width:290px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px #0003;z-index:5}
+.float .grab{height:14px;cursor:grab;display:flex;justify-content:center;align-items:center}
+.float .grab:before{content:"";width:36px;height:4px;border-radius:2px;background:#d6cfbb}
+.float .ed{padding-top:2px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 10px}
+.ccard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
+.ccard .cn{font-weight:700;font-size:12px}
+.ccard .cq{font-size:20px;font-weight:800;color:var(--acc);line-height:1.1}
+.ccard .cd{display:flex;gap:2px;margin-top:4px;flex-wrap:wrap}
+.ccard .cd i{width:8px;height:8px;border-radius:50%}
+.ccard.wide{grid-column:1/-1;cursor:default}
+
+/* tiroir bas (C) */
+.dwr{flex:none;border-top:2px solid var(--line);background:var(--panel);display:flex;flex-direction:column;transition:height .2s}
+.dwr .dh{display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;font-size:12.5px;flex:none}
+.dwr .dh b{font-size:13px}
+.dwr .dh .sp{flex:1}
+.cols{flex:1;display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;padding:2px 12px 10px;min-height:0}
+.col{width:180px;flex:none;background:#fff;border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;min-height:0}
+.col h5{margin:0;padding:6px 9px;font-size:12px;border-bottom:1px solid var(--line);display:flex}
+.col h5 span{margin-left:auto;color:var(--mute);font-weight:600}
+.col .ci{overflow:auto;flex:1}
+.col .it{padding-left:9px}
+
+/* mobile */
+.mbar{position:absolute;left:10px;right:10px;bottom:14px;display:flex;gap:8px;z-index:6}
+.mbar button{flex:1;border:none;border-radius:14px;padding:11px 6px;font:inherit;font-weight:700;font-size:13.5px;background:var(--panel);box-shadow:0 3px 12px #0002;color:var(--ink);cursor:pointer}
+.mbar button.pri{background:var(--acc);color:#fff}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-radius:18px 18px 0 0;box-shadow:0 -6px 22px #0002;z-index:10;display:flex;flex-direction:column;max-height:88%}
+.sheet .grip{height:20px;flex:none;display:flex;justify-content:center;align-items:center;cursor:pointer}
+.sheet .grip:before{content:"";width:40px;height:5px;border-radius:3px;background:#d0c8b3}
+.sheet.full{top:44px;max-height:none}
+.sheet .shd{display:flex;align-items:center;padding:0 14px 6px;gap:8px}
+.sheet .shd b{flex:1;font-size:16px}
+.tabs{flex:none;display:flex;background:var(--panel);border-top:1px solid var(--line);padding:6px 6px 16px}
+.tabs button{flex:1;border:none;background:none;font:inherit;font-size:11px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer}
+.tabs button span{font-size:18px;line-height:1}
+.tabs button.on{color:var(--acc);font-weight:700}
+.peek{position:absolute;left:10px;right:10px;bottom:10px;background:var(--panel);border-radius:16px;box-shadow:0 4px 18px #0003;z-index:10;display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}
+.peek .dot{width:30px;height:30px;border-radius:50%;flex:none}
+.peek .t{flex:1;line-height:1.2}
+.peek .t i{color:var(--mute);font-size:12px}
+.peek .t small{display:block;color:var(--mute);font-size:11.5px}
+.seg{display:flex;margin:6px 12px;background:#e6dfcb;border-radius:10px;padding:3px;flex:none}
+.seg button{flex:1;border:none;background:none;border-radius:8px;padding:6px;font:inherit;font-weight:700;font-size:13px;color:var(--mute);cursor:pointer}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px #0002}
+.stick{position:sticky;top:0;background:#f3efe3;z-index:1;padding:6px 14px;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--acc);display:flex;border-bottom:1px solid var(--line)}
+.stick span{margin-left:auto;color:var(--mute)}
+.mrow{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #eee6d3;background:var(--panel);cursor:pointer}
+.mrow .d{width:14px;height:14px;border-radius:50%;flex:none}
+.mrow .nm{flex:1}
+.mrow .nm i{color:var(--mute)}
+.mrow .q{color:var(--mute);font-weight:600}
+.phone .row{grid-template-columns:96px 1fr}
+.phone .row select,.phone .row input,.phone .row textarea{font-size:14px;padding:6px 8px}
+.phone .ed{padding:4px 16px 14px}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Mon jardin — panneau d'un élément & inventaire</h1>
+  <p class="lead">Maquettes à comparer avant de coder. Données fictives tirées du jardin-forêt de Mauguio. Rien n'est enregistré.</p>
+
+  <div class="besoin">
+    <h2>Ce que j'ai compris de la demande</h2>
+    <ul>
+      <li><b>Ordinateur</b> : on peut rabattre le panneau de droite pour laisser toute la place au plan.</li>
+      <li>Le <b>bloc éditable</b> (l'élément cliqué) et l'<b>inventaire</b> sont séparés : on fait défiler l'inventaire sans perdre de vue le bloc éditable.</li>
+      <li>L'inventaire des végétaux est <b>rangé par catégories de la palette</b> : fruitiers à noyau, à pépins, à coque, agrumes, autres fruitiers, arbustes…</li>
+      <li><b>iPhone</b> : toucher un élément n'ouvre <b>que</b> le bloc éditable. L'inventaire s'ouvre autrement.</li>
+      <li>Partout, <b>plus de champs « Position »</b> : on déplace l'élément en le glissant sur le plan.</li>
+    </ul>
+    <div class="howto">👆 Tout est cliquable : touchez un arbre sur le plan, ouvrez ou fermez les catégories, rabattez le panneau (⟩), ouvrez l'inventaire sur l'iPhone, touchez une ligne de l'inventaire pour retrouver l'arbre.</div>
+  </div>
+
+  <nav class="jump"><a href="#A">Piste A · Volet partagé</a><a href="#B">Piste B · Fiche flottante</a><a href="#C">Piste C · Inventaire en bas</a></nav>
+
+  <section class="piste" id="A">
+    <h2>Piste A — Volet partagé <small>· le panneau de droite garde le bloc éditable en haut</small></h2>
+    <p class="concept">Ordinateur : le panneau de droite est coupé en deux. En haut, le bloc éditable reste fixe. En dessous, l'inventaire défile seul, en accordéon par catégorie. La flèche ⟩ rabat le panneau en un rail fin. iPhone : toucher un arbre ouvre un demi-panneau avec le bloc éditable seul. Le bouton « Inventaire » ouvre l'inventaire en plein écran.</p>
+    <div class="devices"><div><p class="dev-label">Ordinateur</p><div class="scaler" data-w="940"><div class="mac"><div class="scr" data-app="A-d"></div></div></div></div><div><p class="dev-label">iPhone</p><div class="scaler" data-w="330"><div class="phone"><div class="scr" data-app="A-m"></div></div></div></div></div>
+    <div class="pc"><div class="plus"><h3>Points forts</h3><ul><li>Le plus proche de l'app actuelle : on ne réapprend rien.</li><li>Bloc éditable et inventaire visibles en même temps sur ordinateur.</li><li>Sur iPhone, deux gestes bien distincts : toucher un arbre ou toucher « Inventaire ».</li></ul></div><div class="moins"><h3>Limites</h3><ul><li>Quand un élément est sélectionné, il reste moins de hauteur pour l'inventaire (sur un petit écran d'ordinateur).</li><li>Le panneau reste étroit (300 px).</li></ul></div></div>
+  </section>
+
+  <section class="piste" id="B">
+    <h2>Piste B — Fiche flottante <small>· le bloc éditable flotte sur le plan</small></h2>
+    <p class="concept">Ordinateur : le panneau de droite ne contient plus que l'inventaire, sur toute sa hauteur, et se rabat. L'élément cliqué s'ouvre dans une fiche posée sur le plan, en haut à gauche, qu'on ferme avec ✕. iPhone : toucher un arbre affiche une petite barre en bas. On la touche pour déplier la fiche complète. L'inventaire devient un onglet à part, présenté en cartes par catégorie.</p>
+    <div class="devices"><div><p class="dev-label">Ordinateur</p><div class="scaler" data-w="940"><div class="mac"><div class="scr" data-app="B-d"></div></div></div></div><div><p class="dev-label">iPhone</p><div class="scaler" data-w="330"><div class="phone"><div class="scr" data-app="B-m"></div></div></div></div></div>
+    <div class="pc"><div class="plus"><h3>Points forts</h3><ul><li>L'inventaire garde toute la hauteur, même avec un élément ouvert.</li><li>Sur iPhone, la petite barre cache très peu le plan : on voit l'arbre et son nom.</li><li>Les cartes donnent une vue d'ensemble immédiate (combien d'agrumes, de fruitiers…).</li></ul></div><div class="moins"><h3>Limites</h3><ul><li>La fiche cache un coin du plan sur ordinateur (on peut la fermer).</li><li>Sur iPhone, il faut un geste de plus pour modifier (barre → fiche).</li><li>Une barre d'onglets en bas : c'est nouveau dans l'app.</li></ul></div></div>
+  </section>
+
+  <section class="piste" id="C">
+    <h2>Piste C — Inventaire en bas <small>· l'inventaire passe sous le plan</small></h2>
+    <p class="concept">Ordinateur : le panneau de droite ne montre que le bloc éditable (ou le terrain s'il n'y a pas de sélection). L'inventaire devient un tiroir sous le plan, avec une colonne par catégorie qu'on fait défiler de gauche à droite. Le tiroir se replie en une simple ligne de résumé, et le panneau de droite se rabat aussi. iPhone : un sélecteur « Plan / Inventaire » en haut. Toucher un arbre ouvre le bloc éditable en bas.</p>
+    <div class="devices"><div><p class="dev-label">Ordinateur</p><div class="scaler" data-w="940"><div class="mac"><div class="scr" data-app="C-d"></div></div></div></div><div><p class="dev-label">iPhone</p><div class="scaler" data-w="330"><div class="phone"><div class="scr" data-app="C-m"></div></div></div></div></div>
+    <div class="pc"><div class="plus"><h3>Points forts</h3><ul><li>Toutes les catégories sont visibles d'un coup d'œil, côte à côte.</li><li>Le bloc éditable a toute la hauteur du panneau.</li><li>Sur iPhone, l'inventaire est une vraie page, avec des titres de catégorie qui restent visibles en défilant.</li></ul></div><div class="moins"><h3>Limites</h3><ul><li>Le tiroir prend de la hauteur au plan quand il est ouvert.</li><li>Défilement horizontal des colonnes : moins naturel avec une souris sans trackpad.</li><li>C'est le changement le plus important par rapport à l'app actuelle.</li></ul></div></div>
+  </section>
+</div>
+
+<script>
+/* ---------- Données fictives ---------- */
+const CATS=[['noyau','Fruitiers à noyau'],['pepin','Fruitiers à pépins'],['coque','Fruitiers à coque'],['agrume','Agrumes'],['fruitier','Autres fruitiers'],['arbuste','Arbustes'],['grimpante','Grimpantes']];
+const SP=[
+ ['noyau','Abricotier','Bergeron',5,'#e0a23a',3,'Arbre'],['noyau','Abricotier','Polonais',5,'#e0a23a',1,'Arbre'],['noyau','Pêcher','Sanguine de Savoie',4,'#d9787f',1,'Arbre'],['noyau','Cerisier','Burlat',6,'#b8323f',2,'Arbre'],['noyau','Prunier','Reine-Claude dorée',5,'#8a6bb0',1,'Arbre'],['noyau','Amandier','Ferragnès',6,'#c9b48a',2,'Arbre'],
+ ['pepin','Pommier','Reinette grise du Canada',5,'#7fae3c',2,'Arbre'],['pepin','Poirier','Williams',4,'#a8b83f',1,'Arbre'],['pepin','Cognassier','Champion',4,'#d6c03b',1,'Arbre'],
+ ['coque','Noyer','Franquette',10,'#5f7a3a',1,'Canopée'],['coque','Noisetier','Fertile de Coutard',4,'#8d6b3c',2,'Arbuste'],['coque','Pistachier vrai','Kerman',5,'#9bb26a',1,'Arbre'],
+ ['agrume','Citronnier','Meyer',3,'#f2d43a',1,'Arbuste'],['agrume','Citronnier','4 saisons',3,'#f2d43a',1,'Arbuste'],['agrume','Oranger','Navel',4,'#f0962e',1,'Arbuste'],['agrume','Mandarinier','Satsuma',3,'#f4a83c',1,'Arbuste'],['agrume','Kumquat','Nagami',2,'#f6b13f',1,'Arbuste'],
+ ['fruitier','Figuier','Dalmatie',6,'#6d8f3d',2,'Arbre'],['fruitier','Grenadier','Wonderful',3,'#c4413b',1,'Arbuste'],['fruitier','Kaki','Muscat',5,'#e3772a',1,'Arbre'],['fruitier','Olivier','Picholine',6,'#8c9a6a',2,'Arbre'],['fruitier','Jujubier','Li',4,'#a6533a',1,'Arbre'],
+ ['arbuste','Feijoa','Apollo',3,'#6f9a7a',2,'Arbuste'],['arbuste','Argousier','Leikora',3,'#e89a32',1,'Arbuste'],['arbuste','Arbousier','',3,'#c94b3a',1,'Arbuste'],
+ ['grimpante','Vigne','Muscat de Hambourg',2,'#6a4a8a',2,'Grimpante'],['grimpante','Kiwi','Hayward',3,'#7a9a3a',1,'Grimpante']
+].map((a,i)=>({id:'s'+i,cat:a[0],name:a[1],variety:a[2],d:a[3],color:a[4],n:a[5],strate:a[6]}));
+const FN={Amandier:['Mellifère'],Abricotier:['Mellifère'],Argousier:['Fixe l\'azote'],Noyer:['Brise-vent'],Olivier:['Brise-vent'],Feijoa:['Mellifère'],Cerisier:['Mellifère'],Grenadier:['Mellifère']};
+// placement pseudo-aléatoire stable dans le terrain
+let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+const ITEMS=[];
+const inPoly=(x,y)=>{const P=[[40,22],[320,22],[352,292],[22,292]];let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const[xi,yi]=P[i],[xj,yj]=P[j];if(((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c}return c};
+SP.forEach(sp=>{for(let k=0;k<sp.n;k++){let x,y,t=0;do{x=50+rnd()*290;y=34+rnd()*248;t++}while(t<200&&(!inPoly(x,y)||(x>225&&x<335&&y>190&&y<290)||ITEMS.some(o=>Math.hypot(o.x-x,o.y-y)<(o.r+sp.d*2.2)*0.9)));ITEMS.push({id:'i'+ITEMS.length,sid:sp.id,x,y,r:sp.d*2.2})}});
+const spOf=it=>SP.find(s=>s.id===it.sid);
+const TOTAL=ITEMS.length;
+
+/* ---------- Morceaux communs ---------- */
+function mapSVG(st){
+  let s=`<svg viewBox="0 0 380 310" preserveAspectRatio="xMidYMid meet" data-k="map">
+  <polygon points="40,22 320,22 352,292 22,292" fill="#dfe8c6" stroke="#8a7f5e" stroke-width="1.5"/>
+  <rect x="240" y="205" width="80" height="50" fill="#e8d8c0" stroke="#8a7f5e" transform="rotate(-6 280 230)"/><text x="280" y="234" font-size="9" text-anchor="middle" fill="#6c5a3c">Maison</text>
+  <rect x="245" y="262" width="55" height="20" rx="4" fill="#9fd3e6" stroke="#5b9db5"/><text x="272" y="275" font-size="7.5" text-anchor="middle" fill="#2f6b80">Piscine</text>
+  <path d="M30,150 C110,140 170,170 236,215" fill="none" stroke="#cdbf96" stroke-width="5" stroke-linecap="round"/>
+  <rect x="60" y="250" width="70" height="30" fill="#c9dba0" stroke="#8a9b5e" stroke-dasharray="3 2"/><text x="95" y="268" font-size="7.5" text-anchor="middle" fill="#55663a">Potager</text>`;
+  ITEMS.forEach(it=>{const sp=spOf(it);const on=st.sel===it.id;s+=`<g class="tree${on?' sel':''}" data-it="${it.id}"><circle class="c" cx="${it.x}" cy="${it.y}" r="${it.r}" fill="${sp.color}" fill-opacity=".72" stroke="#0004"/><circle cx="${it.x}" cy="${it.y}" r="1.4" fill="#3a2a1a"/>${st.labels!==false&&it.r>8?`<text x="${it.x}" y="${it.y+it.r+7}" font-size="6.5" text-anchor="middle" fill="#25321e" font-weight="700" pointer-events="none">${sp.name}</text>`:''}</g>`});
+  return s+'</svg>';
+}
+function edHTML(st,o={}){
+  const it=ITEMS.find(i=>i.id===st.sel);if(!it)return '';const sp=spOf(it);
+  const vars=SP.filter(s=>s.name===sp.name);const names=[...new Set(SP.map(s=>s.name))];
+  const tags=[`Strate ${sp.strate.toLowerCase()}`,...(FN[sp.name]||[])];
+  return `<div class="ed"><div class="edh"><span class="dot" style="background:${sp.color}"></span><div class="t"><b>${sp.name}</b>${sp.variety?` <i>${sp.variety}</i>`:''}<div class="tags">${tags.map(t=>`<span>${t}</span>`).join('')}</div></div>${o.close!==false?`<button class="icob" data-k="close" title="Fermer">✕</button>`:''}</div>
+  <div class="row"><label>Espèce</label><select>${names.map(n=>`<option${n===sp.name?' selected':''}>${n}</option>`).join('')}</select></div>
+  <div class="row"><label>Variété</label><div class="pair"><select style="flex:1;width:auto">${vars.map(v=>`<option${v.id===sp.id?' selected':''}>${v.variety||'—'}</option>`).join('')}</select><button class="icob" title="Nouvelle variété">＋</button></div></div>
+  <div class="row"><label>Nom affiché</label><input placeholder="(automatique)"></div>
+  <div class="row"><label>Envergure adulte</label><div class="pair"><input type="number" value="${sp.d}"> m <span style="color:var(--mute);font-size:11px">· haut. ~${Math.round(sp.d*1.1)} m</span></div></div>
+  <div class="okline">✓ À plus de 2 m de la limite du terrain</div>
+  ${o.short?'':`<div class="row"><label>Notes</label><textarea>Planté en novembre 2024</textarea></div>`}
+  <div class="move">✋ Pour le déplacer, glissez-le sur le plan.</div>
+  <div class="acts"><button>Dupliquer</button><button class="danger">Supprimer</button></div></div>`;
+}
+function groups(){return CATS.map(([k,l])=>{const sps=SP.filter(s=>s.cat===k);return{k,l,sps,n:sps.reduce((a,s)=>a+s.n,0)}}).filter(g=>g.sps.length)}
+const selSid=st=>{const it=ITEMS.find(i=>i.id===st.sel);return it&&it.sid};
+function accordion(st){
+  return groups().map(g=>{const open=st.open.has(g.k)||g.sps.some(s=>s.id===selSid(st));
+   return `<div class="cat${open?' open':''}"><div class="ch" data-k="cat" data-c="${g.k}"><span class="ar">▶</span>${g.l}<span class="n">${g.n}</span></div><div class="items">${g.sps.map(s=>`<div class="it${s.id===selSid(st)?' on':''}" data-sid="${s.id}"><i class="d" style="background:${s.color}"></i><span class="nm"><b>${s.name}</b>${s.variety?` <i>${s.variety}</i>`:''}</span><span class="q">×${s.n}</span></div>`).join('')}</div></div>`}).join('');
+}
+function miscHTML(){
+  return `<div class="cat"><div class="ch" data-k="nop"><span class="ar">▶</span>Zones & surfaces<span class="n">4</span></div></div>
+  <div class="cat"><div class="ch" data-k="nop"><span class="ar">▶</span>Clôtures & chemins<span class="n">3</span></div></div>
+  <div class="cat open"><div class="ch" data-k="nop"><span class="ar">▶</span>Jardin-forêt</div><div class="items"><div class="misc">${strataBar()}<table><tr><td>Fixent l'azote</td><td>1</td></tr><tr><td>Mellifères</td><td>15</td></tr><tr><td>Brise-vent</td><td>3</td></tr></table></div></div></div>`;
+}
+function strataBar(){const c={'Canopée':'#2f5a2a','Arbre':'#4f8a3a','Arbuste':'#8ab35a','Grimpante':'#b58ad0'};const t={};SP.forEach(s=>t[s.strate]=(t[s.strate]||0)+s.n);return `<div class="strata">${Object.keys(c).map(k=>`<i style="flex:${t[k]||0};background:${c[k]}" title="${k}"></i>`).join('')}</div><div style="font-size:11px;margin-bottom:4px">${Object.keys(c).map(k=>`<span style="color:${c[k]}">■</span> ${k} ${t[k]||0}`).join(' · ')}</div>`}
+const topBar=(extra='')=>`<div class="top"><b>🌳 Mon jardin</b><span style="color:var(--mute)">· Jardin-forêt Mauguio</span><span class="sp"></span><span class="btn on">Détaillée</span><span class="btn">Simplifiée</span><span class="btn">Strates</span>${extra}<span class="btn">⚙</span></div>`;
+const pal=()=>`<div class="pal"><h4>Palette</h4>${CATS.slice(0,5).map(([k,l])=>`<div class="chip"><i style="background:${SP.find(s=>s.cat===k).color}"></i>${l}</div>`).join('')}<h4>Aménagements</h4><div class="chip">▭ Zone</div><div class="chip">┅ Clôture</div><div class="chip">〰 Chemin</div><div class="chip">✎ Note</div></div>`;
+const terrain=()=>`<div class="terrain"><b>Terrain</b> · 2 732 m² · périmètre 228 m<br>Aucun élément sélectionné : touchez un arbre sur le plan.</div>`;
+const status=()=>`<div class="notch"></div><div class="status"><span>9:41</span><span>􀙇 ▮▮▮</span></div>`;
+const mtop=()=>`<div class="top" style="padding:6px 12px"><span class="btn">‹ Plans</span><b style="flex:1;text-align:center">Jardin-forêt Mauguio</b><span class="btn">⚙</span></div>`;
+const searchBox=()=>`<div class="search">🔍 Rechercher une espèce, une variété…</div>`;
+
+/* ---------- Les 6 maquettes ---------- */
+const R={
+'A-d'(st){
+  const side=st.rail?`<div class="side rail"><div class="railbtns"><button class="icob" data-k="unrail" title="Ouvrir le panneau">⟨</button>${st.sel?`<button class="icob" data-k="unrail" title="Élément">✎</button>`:''}<button class="icob" data-k="unrail" title="Inventaire">☰</button><span class="vt">Inventaire · ${TOTAL} végétaux</span></div></div>`
+   :`<div class="side"><div class="sh"><b>${st.sel?'Élément sélectionné':'Terrain'}</b><button class="icob" data-k="rail" title="Rabattre le panneau">⟩</button></div>
+     <div class="fixed">${st.sel?edHTML(st):terrain()}</div>
+     <div class="lbl">Inventaire · ${TOTAL} végétaux<span class="sp"></span><span style="text-transform:none;letter-spacing:0;font-weight:500">défile seul ↕</span></div>
+     <div class="scroll">${accordion(st)}${miscHTML()}</div></div>`;
+  return topBar()+`<div class="body">${pal()}<div class="mapwrap">${mapSVG(st)}<div class="hint">Cliquez un arbre · glissez pour le déplacer</div></div>${side}</div>`;
+},
+'A-m'(st){
+  let h=status()+mtop()+`<div class="body"><div class="mapwrap">${mapSVG({...st,labels:false})}</div>`;
+  if(!st.sel&&!st.inv) h+=`<div class="mbar"><button class="pri">＋ Ajouter</button><button data-k="inv">☰ Inventaire</button></div>`;
+  if(st.sel) h+=`<div class="sheet"><div class="grip" data-k="close"></div>${edHTML(st)}</div>`;
+  if(st.inv) h+=`<div class="sheet full"><div class="grip" data-k="noinv"></div><div class="shd"><b>Inventaire</b><span style="color:var(--mute)">${TOTAL} végétaux</span><button class="icob" data-k="noinv">✕</button></div>${searchBox()}<div class="scroll">${accordion(st)}${miscHTML()}</div></div>`;
+  return h+'</div>';
+},
+'B-d'(st){
+  const side=st.rail?`<div class="side rail"><div class="railbtns"><button class="icob" data-k="unrail" title="Ouvrir l'inventaire">⟨</button><button class="icob" data-k="unrail">☰</button><span class="vt">Inventaire · ${TOTAL} végétaux</span></div></div>`
+   :`<div class="side"><div class="sh"><b>Inventaire · ${TOTAL} végétaux</b><button class="icob" data-k="rail" title="Rabattre">⟩</button></div>${searchBox()}<div class="scroll">${accordion(st)}${miscHTML()}</div></div>`;
+  return topBar()+`<div class="body">${pal()}<div class="mapwrap">${mapSVG(st)}${st.sel?`<div class="float"><div class="grab" title="Déplacer la fiche"></div>${edHTML(st)}</div>`:`<div class="hint">Cliquez un arbre pour ouvrir sa fiche</div>`}</div>${side}</div>`;
+},
+'B-m'(st){
+  const tab=st.tab||'plan';
+  let h=status()+mtop();
+  if(tab==='plan'){
+    h+=`<div class="body"><div class="mapwrap">${mapSVG({...st,labels:false})}</div>`;
+    if(st.sel&&!st.full){const sp=spOf(ITEMS.find(i=>i.id===st.sel));h+=`<div class="peek" data-k="full"><span class="dot" style="background:${sp.color}"></span><div class="t"><b>${sp.name}</b> <i>${sp.variety}</i><small>Envergure ${sp.d} m · strate ${sp.strate.toLowerCase()}</small></div><span style="color:var(--acc);font-weight:700">Modifier ⌃</span></div>`}
+    if(st.sel&&st.full) h+=`<div class="sheet"><div class="grip" data-k="unfull"></div>${edHTML(st)}</div>`;
+    h+='</div>';
+  }else{
+    h+=`<div class="body" style="flex-direction:column"><div class="scroll"><div class="lbl" style="padding-top:10px">Inventaire · ${TOTAL} végétaux · 4 zones</div>`;
+    if(st.cat){const g=groups().find(g=>g.k===st.cat);h+=`<div style="padding:0 10px 6px"><button class="btn" data-k="nocat" style="border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 10px">‹ Toutes les catégories</button></div><div class="stick">${g.l}<span>${g.n}</span></div>`+g.sps.map(s=>`<div class="mrow" data-sid="${s.id}"><i class="d" style="background:${s.color}"></i><span class="nm"><b>${s.name}</b> <i>${s.variety}</i></span><span class="q">×${s.n}</span></div>`).join('')}
+    else h+=`<div class="cards">${groups().map(g=>`<div class="ccard" data-k="opencat" data-c="${g.k}"><div class="cn">${g.l}</div><div class="cq">${g.n}</div><div class="cd">${g.sps.map(s=>`<i style="background:${s.color}"></i>`).join('')}</div></div>`).join('')}<div class="ccard wide"><div class="cn">Jardin-forêt</div>${strataBar()}</div></div>`;
+    h+='</div></div>';
+  }
+  return h+`<div class="tabs"><button class="${tab==='plan'?'on':''}" data-k="tab" data-t="plan"><span>🗺</span>Plan</button><button><span>＋</span>Ajouter</button><button class="${tab==='inv'?'on':''}" data-k="tab" data-t="inv"><span>☰</span>Inventaire</button></div>`;
+},
+'C-d'(st){
+  const side=st.rail?`<div class="side rail"><div class="railbtns"><button class="icob" data-k="unrail" title="Ouvrir le panneau">⟨</button>${st.sel?`<button class="icob" data-k="unrail">✎</button>`:''}</div></div>`
+   :`<div class="side"><div class="sh"><b>${st.sel?'Élément sélectionné':'Terrain'}</b><button class="icob" data-k="rail" title="Rabattre">⟩</button></div><div class="scroll">${st.sel?edHTML(st):terrain()+`<div class="misc">Forme · rectangle / contour libre<br>Fond de plan · photo aérienne (opacité 60 %)</div>`}</div></div>`;
+  const dw=st.dclosed?`<div class="dwr" style="height:34px"><div class="dh" data-k="dopen"><b>Inventaire</b><span>${groups().map(g=>`${g.l.replace('Fruitiers ','').replace('à ','')} ${g.n}`).join(' · ')}</span><span class="sp"></span>▲</div></div>`
+   :`<div class="dwr" style="height:210px"><div class="dh" data-k="dclose"><b>Inventaire · ${TOTAL} végétaux</b><span style="color:var(--mute)">· faites défiler les colonnes →</span><span class="sp"></span>Replier ▼</div><div class="cols">${groups().map(g=>`<div class="col"><h5>${g.l}<span>${g.n}</span></h5><div class="ci">${g.sps.map(s=>`<div class="it${s.id===selSid(st)?' on':''}" data-sid="${s.id}"><i class="d" style="background:${s.color}"></i><span class="nm"><b>${s.name}</b> <i>${s.variety}</i></span><span class="q">×${s.n}</span></div>`).join('')}</div></div>`).join('')}<div class="col"><h5>Jardin-forêt</h5><div class="ci misc">${strataBar()}Mellifères 15<br>Brise-vent 3</div></div></div></div>`;
+  return topBar()+`<div class="body"><div style="flex:1;display:flex;flex-direction:column;min-width:0"><div class="body">${pal()}<div class="mapwrap">${mapSVG(st)}</div></div>${dw}</div>${side}</div>`;
+},
+'C-m'(st){
+  const tab=st.tab||'plan';
+  let h=status()+mtop()+`<div class="seg"><button class="${tab==='plan'?'on':''}" data-k="tab" data-t="plan">Plan</button><button class="${tab==='inv'?'on':''}" data-k="tab" data-t="inv">Inventaire · ${TOTAL}</button></div>`;
+  if(tab==='plan'){
+    h+=`<div class="body"><div class="mapwrap">${mapSVG({...st,labels:false})}</div>`;
+    if(!st.sel) h+=`<div class="mbar"><button class="pri">＋ Ajouter</button></div>`;
+    else h+=`<div class="sheet"><div class="grip" data-k="close"></div>${edHTML(st,{short:true})}</div>`;
+    h+='</div>';
+  }else{
+    h+=`<div class="scroll">${searchBox()}<div style="padding:0 14px">${strataBar()}</div>`+groups().map(g=>`<div class="stick">${g.l}<span>${g.n}</span></div>`+g.sps.map(s=>`<div class="mrow" data-sid="${s.id}"><i class="d" style="background:${s.color}"></i><span class="nm"><b>${s.name}</b> <i>${s.variety}</i></span><span class="q">×${s.n}</span></div>`).join('')).join('')+'</div>';
+  }
+  return h;
+}};
+
+/* ---------- Moteur ---------- */
+document.querySelectorAll('[data-app]').forEach(el=>{
+  const key=el.dataset.app,st={sel:null,open:new Set(['agrume']),rail:false,inv:false};
+  const draw=()=>{const sc=el.querySelector('.scroll');const y=sc?sc.scrollTop:0;el.innerHTML=R[key](st);const s2=el.querySelector('.scroll');if(s2)s2.scrollTop=y};
+  el.addEventListener('click',e=>{
+    const t=e.target.closest('[data-it],[data-sid],[data-k]');
+    if(!t){ if(e.target.closest('svg')){st.sel=null;st.full=false;draw()} return }
+    if(t.dataset.it){st.sel=t.dataset.it;st.full=false;st.inv=false;draw();return}
+    if(t.dataset.sid){const its=ITEMS.filter(i=>i.sid===t.dataset.sid);const idx=its.findIndex(i=>i.id===st.sel);st.sel=its[(idx+1)%its.length].id;
+      if(key.endsWith('-m')){st.inv=false;st.tab='plan';st.full=false}draw();return}
+    const k=t.dataset.k;
+    if(k==='cat'){const c=t.dataset.c;st.open.has(c)?st.open.delete(c):st.open.add(c);if(selSid(st)&&SP.find(s=>s.id===selSid(st)).cat===c&&!st.open.has(c))st.sel=null}
+    else if(k==='rail')st.rail=true; else if(k==='unrail')st.rail=false;
+    else if(k==='close'){st.sel=null;st.full=false}
+    else if(k==='inv')st.inv=true; else if(k==='noinv')st.inv=false;
+    else if(k==='full')st.full=true; else if(k==='unfull')st.full=false;
+    else if(k==='tab'){st.tab=t.dataset.t;st.cat=null}
+    else if(k==='opencat')st.cat=t.dataset.c; else if(k==='nocat')st.cat=null;
+    else if(k==='dclose')st.dclosed=true; else if(k==='dopen')st.dclosed=false;
+    else return;
+    draw();
+  });
+  draw();
+});
+/* mise à l'échelle des cadres selon la largeur de l'écran */
+function fit(){document.querySelectorAll('.scaler').forEach(s=>{const w=+s.dataset.w,box=s.firstElementChild;const avail=s.closest('section').clientWidth-36;const k=Math.min(1,avail/(w+20));box.style.transform=k<1?`scale(${k})`:'';s.style.width=(box.offsetWidth*k)+'px';s.style.height=(box.offsetHeight*k)+'px'})}
+addEventListener('resize',fit);fit();
+</script>
+<script>
+/* SynApps — nouvelle version disponible ?
+   Le navigateur garde une copie des pages (jusqu'à 10 min sur GitHub Pages, parfois bien plus sur iPhone).
+   On compare discrètement le code de la page affichée avec celui en ligne ; s'il a changé, on propose
+   « Mettre à jour », qui recharge la page en contournant la copie gardée en mémoire. */
+(function(){
+  if (!/^https?:$/.test(location.protocol)) return;
+  var KEY = 'synapps-maj:' + location.pathname, last = 0, shown = false;
+  function sig(root){
+    var t = '', els = root.querySelectorAll('script:not([src]),style');
+    for (var i = 0; i < els.length; i++) if (!els[i].hasAttribute('data-runtime')) t += els[i].textContent;
+    var h = 2166136261; for (var j = 0; j < t.length; j++){ h ^= t.charCodeAt(j); h = Math.imul(h, 16777619); }
+    return (h >>> 0).toString(36) + '.' + t.length;
+  }
+  var mine = sig(document);
+  function banner(){
+    if (shown || document.getElementById('synappsMaj')) return; shown = true;
+    var b = document.createElement('div'); b.id = 'synappsMaj';
+    b.setAttribute('style', 'position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;background:#25321e;color:#fff;border-radius:999px;padding:8px 8px 8px 16px;display:flex;align-items:center;gap:10px;font:14px/1.3 system-ui,-apple-system,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:calc(100% - 24px)');
+    b.innerHTML = '<span>Une nouvelle version est disponible</span><button type="button" style="border:0;border-radius:999px;padding:7px 14px;background:#8fd16a;color:#18240f;font:600 14px system-ui,-apple-system,sans-serif;cursor:pointer">Mettre à jour</button><button type="button" aria-label="Plus tard" style="border:0;background:none;color:#cfd8c6;font-size:18px;cursor:pointer;padding:0 6px">×</button>';
+    var bt = b.querySelectorAll('button');
+    bt[0].onclick = function(){ location.replace(location.pathname + '?v=' + Date.now().toString(36) + location.hash); };
+    bt[1].onclick = function(){ b.remove(); };
+    document.body.appendChild(b);
+  }
+  function check(){
+    var now = Date.now(); if (now - last < 5 * 60 * 1000) return; last = now;
+    fetch(location.pathname + '?nocache=' + now.toString(36), {cache:'no-store'}).then(function(r){ return r.ok ? r.text() : null; }).then(function(html){
+      if (!html) return;
+      var theirs = sig(new DOMParser().parseFromString(html, 'text/html'));
+      if (theirs === mine){ try { sessionStorage.removeItem(KEY); } catch(e){} return; }
+      var tried = null; try { tried = sessionStorage.getItem(KEY); } catch(e){}
+      if (tried === theirs) return;                    // déjà rechargé pour cette version : pas de boucle
+      try { sessionStorage.setItem(KEY, theirs); } catch(e){}
+      banner();
+    }).catch(function(){});
+  }
+  // la page vient d'être rechargée par « Mettre à jour » : on nettoie l'adresse
+  if (/[?&]v=/.test(location.search)) try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
+  setTimeout(check, 2500);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) check(); });
+})();
+</script>
+</body>
+</html>
