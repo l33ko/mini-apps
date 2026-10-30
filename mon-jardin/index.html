@@ -219,7 +219,18 @@ i.vn{font-style:italic;color:var(--mute);font-size:.88em}
 .fnchips{display:flex;flex-wrap:wrap;gap:4px;padding:4px 4px 6px}
 .fnchips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 8px;font-size:12px;cursor:pointer}
 .fnchips button.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.tags{display:flex;flex-wrap:wrap;gap:5px;margin:-4px 0 10px}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.ehd{display:flex;align-items:flex-start;gap:6px;margin:6px 0 4px}
+.ehd h3{flex:1;min-width:0;margin:2px 0 0 !important;line-height:1.2}
+.ehd .btn.icon{min-width:30px;padding:4px 6px;font-size:14px}
+.ehd .btn.danger{color:var(--warn)}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;margin:4px 0 2px}
+.cgrid label{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:11.5px;color:var(--mute)}
+.cgrid label.wide{grid-column:1/-1}
+.cgrid select,.cgrid input{width:100%;min-width:0}
+.cgrid .pair{gap:4px}
+.cgrid .pair .btn.icon{min-width:30px;padding:4px 6px}
+.warn.mini{padding:5px 8px;margin:6px 0 2px;font-size:12px}
 .tag{font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;background:#fff}
 .fnpick{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px}
 .fnpick label{display:flex;align-items:center;gap:4px}
@@ -281,7 +292,12 @@ body.at-home #ioModal .exp{display:none}
   #inspector .ihead{display:none}
   #inspector.m-edit{overflow:auto;display:block}
   #inspector.m-edit #invPanel{display:none}
-  #inspector.m-edit #selPanel{max-height:none;overflow:visible;border:0;box-shadow:none;padding:0 16px 16px}
+  #inspector.m-edit #selPanel{max-height:none;overflow:visible;border:0;box-shadow:none;padding:0 14px 12px}
+  #inspector.m-edit .grip{height:18px}
+  #inspector.m-edit .ehd{margin-top:0}
+  #inspector.m-edit .tags{margin-bottom:6px}
+  .cgrid{gap:6px 10px}
+  .cgrid select,.cgrid input{font-size:16px;padding:6px 8px}
   #inspector.m-inv{height:85vh;max-height:85vh}
   #inspector.m-inv #selPanel{display:none}
   #inspector.m-inv .ilbl{font-size:13px;padding:2px 12px 8px 16px}
@@ -2060,28 +2076,23 @@ function renderInspector(){
     h += `<h4>Aide</h4><p class="note">Choisissez un végétal ou un aménagement à gauche, puis cliquez sur le plan (ou faites-le glisser directement).</p>`;
     h += `<div class="kbd hide-m"><kbd>Suppr</kbd> effacer · <kbd>Ctrl</kbd>+<kbd>D</kbd> dupliquer · flèches : déplacer (<kbd>Maj</kbd> = 1 m) · <kbd>Maj</kbd> en traçant : angles à 45° · <kbd>Entrée</kbd> ou double-clic : terminer un tracé · molette / pincement : zoom · glisser le fond : se déplacer</div>`;
   } else if (it.type === 'note'){
-    h += `<h3>${isBadge(it) ? 'Repère' : 'Étiquette'}</h3>`;
     h += `<div class="row"><label>Texte</label><textarea data-f="text" rows="${Math.min(8, Math.max(2, String(it.text).split('\n').length + 1))}" style="width:100%;resize:vertical">${esc(it.text)}</textarea></div>`;
     h += `<div class="row"><label>Couleur</label><select data-f="color">${Object.keys(NOTE_COLORS).map(c => `<option value="${c}"${c === it.color ? ' selected' : ''}>${c}</option>`).join('')}</select></div>`;
     h += `<p class="note">3 caractères maximum : pastille ronde (ex. « 12 », « a/b »). Au-delà : étiquette ; Entrée pour aller à la ligne.</p>`;
   } else if (it.type === 'plant'){
-    const sp = spById(it.sid), r = plantR(it, sp), li = legalIssue(it);
-    h += `<h3>${spHTML(sp)}</h3>`;
+    const sp = spById(it.sid), li = legalIssue(it);
     h += `<div class="tags"><span class="tag" style="background:${STRATES[strateOf(sp)].color};color:#fff">${STRATES[strateOf(sp)].label}</span>${fnOf(sp).map(k => `<span class="tag">${FONCTIONS[k].icon} ${FONCTIONS[k].label}</span>`).join('')}</div>`;
     const groups = speciesGroups(st.species), vars = st.species.filter(x => x.name === sp.name).sort(bySpecies);
-    h += `<div class="row"><label>Espèce</label><select data-f="spname">${Object.entries(CATS).map(([c, info]) => { const gs = groups.filter(g => g.cat === c); return gs.length ? `<optgroup label="${esc(info.label)}">${gs.map(g => `<option value="${esc(g.name)}"${g.name === sp.name ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</optgroup>` : ''; }).join('')}</select></div>`;
-    h += `<div class="row"><label>Variété</label><div class="pair"><select data-f="sid" style="flex:1;min-width:0">${vars.map(x => `<option value="${x.id}"${x.id === it.sid ? ' selected' : ''}>${x.variety ? esc(x.variety) : '— non précisée —'}</option>`).join('')}</select><button class="btn icon" data-act="addvar" title="Ajouter une variété de ${esc(sp.name)}">＋</button></div></div>`;
-    h += `<div class="row"><label>Nom affiché</label><input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(sp.name)}"></div>`;
-    h += `<div class="row"><label>Envergure adulte</label><div class="pair"><input type="number" step="0.1" min="0.1" data-f="d" value="${it.d ?? ''}" placeholder="${fmt(sp.d)}"><span style="align-self:center">m</span></div></div>`;
-    h += `<p class="note">Hauteur adulte ${fmt(sp.h)} m · diamètre affiché ${fmt(r * 2)} m${st.prefs.growth < 1 ? ` (croissance ${Math.round(st.prefs.growth * 100)} %)` : ''}. Laissez l'envergure vide pour la valeur de l'espèce. Pour le déplacer, faites-le glisser sur le plan.</p>`;
-    if (st.prefs.legal && sp.cat !== 'grimpante'){
-      h += li ? `<div class="warn">⚠ À ${fmt(li.dist, 2)} m de la limite du terrain. Pour un végétal de plus de 2 m de haut, la distance minimale est de 2 m (0,5 m en dessous), sauf règlement local — art. 671 du Code civil.</div>`
-              : `<div class="ok">✓ Distance aux limites respectée (${sp.h > 2 ? '2 m' : '0,5 m'} minimum).</div>`;
-    }
-    h += `<div class="row"><label>Notes</label><input type="text" data-f="note" value="${esc(it.note || '')}" placeholder="date de plantation, porte-greffe…"></div>`;
+    h += `<div class="cgrid">`;
+    h += `<label>Espèce<select data-f="spname">${Object.entries(CATS).map(([c, info]) => { const gs = groups.filter(g => g.cat === c); return gs.length ? `<optgroup label="${esc(info.label)}">${gs.map(g => `<option value="${esc(g.name)}"${g.name === sp.name ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</optgroup>` : ''; }).join('')}</select></label>`;
+    h += `<label>Variété<span class="pair"><select data-f="sid" style="flex:1">${vars.map(x => `<option value="${x.id}"${x.id === it.sid ? ' selected' : ''}>${x.variety ? esc(x.variety) : '— non précisée —'}</option>`).join('')}</select><button class="btn icon" data-act="addvar" title="Ajouter une variété de ${esc(sp.name)}">＋</button></span></label>`;
+    h += `<label>Nom affiché<input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(sp.name)}"></label>`;
+    h += `<label>Envergure (m)<input type="number" step="0.1" min="0.1" data-f="d" value="${it.d ?? ''}" placeholder="${fmt(sp.d)}"></label>`;
+    h += `<label class="wide">Notes<input type="text" data-f="note" value="${esc(it.note || '')}" placeholder="date de plantation, porte-greffe…"></label>`;
+    h += `</div>`;
+    if (st.prefs.legal && sp.cat !== 'grimpante' && li) h += `<div class="warn mini">⚠ À ${fmt(li.dist, 2)} m de la limite : ${sp.h > 2 ? '2 m' : '0,5 m'} minimum (art. 671 du Code civil).</div>`;
   } else if (it.type === 'zone'){
     const k = ZONES[it.kind];
-    h += `<h3>${esc(it.label || k.label)}</h3>`;
     h += `<div class="row"><label>Type</label><select data-f="kind">${Object.entries(ZONES).map(([kk, z]) => `<option value="${kk}"${kk === it.kind ? ' selected' : ''}>${z.label}</option>`).join('')}</select></div>`;
     h += `<div class="row"><label>Nom</label><input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(k.label)}"></div>`;
     h += `<div class="row"><label>Dimensions</label><div class="pair"><input type="number" step="0.1" min="0.2" data-f="w" value="${it.w}"><input type="number" step="0.1" min="0.2" data-f="h" value="${it.h}"></div></div>`;
@@ -2092,7 +2103,6 @@ function renderInspector(){
     h += `<div class="row"><label>Notes</label><input type="text" data-f="note" value="${esc(it.note || '')}"></div>`;
   } else if (it.type === 'line'){
     const k = LINES[it.kind];
-    h += `<h3>${esc(it.label || k.label)}</h3>`;
     h += `<div class="row"><label>Type</label><select data-f="kind">${Object.entries(LINES).map(([kk, l]) => `<option value="${kk}"${kk === it.kind ? ' selected' : ''}>${l.label}</option>`).join('')}</select></div>`;
     h += `<div class="row"><label>Nom</label><input type="text" data-f="label" value="${esc(it.label || '')}" placeholder="${esc(k.label)}"></div>`;
     if (k.editW) h += `<div class="row"><label>Largeur</label><div class="pair"><input type="number" step="0.1" min="0.1" data-f="width" value="${it.width || k.w}"><span style="align-self:center">m</span></div></div>`;
@@ -2100,7 +2110,10 @@ function renderInspector(){
     h += `<p class="note">Longueur : <b>${fmt(L, 1)} m</b>${k.editW ? ` · surface ≈ ${fmt(L * (it.width || k.w), 1)} m²` : ''} · ${it.points.length} points. Faites glisser les points pour modifier le tracé.</p>`;
     h += `<div class="row"><label>Notes</label><input type="text" data-f="note" value="${esc(it.note || '')}"></div>`;
   }
-  if (it) h += `<div class="acts"><button class="btn" data-act="dup">Dupliquer</button><button class="btn danger" data-act="del">Supprimer</button>${isMobile() ? '<button class="btn" data-act="close">Fermer</button>' : ''}</div>`;
+  if (it){
+    const title = it.type === 'plant' ? spHTML(spById(it.sid)) : it.type === 'note' ? (isBadge(it) ? 'Repère' : 'Étiquette') : esc(it.label || (it.type === 'zone' ? ZONES[it.kind] : LINES[it.kind]).label);
+    h = `<div class="ehd"><h3>${title}</h3><button class="btn icon" data-act="dup" title="Dupliquer">⧉</button><button class="btn icon danger" data-act="del" title="Supprimer">🗑</button><button class="btn icon" data-act="close" title="Fermer">✕</button></div>` + h;
+  }
   $('#selPanel').innerHTML = h;
   $('#iTitle').textContent = !it ? 'Terrain' : it.type === 'plant' ? 'Végétal sélectionné' : 'Élément sélectionné';
   renderInventory();
@@ -2169,7 +2182,7 @@ $('#selPanel').addEventListener('click', e => {
   if (a.dataset.act === 'addvar'){ const it = itemById(sel), sp = it && spById(it.sid); if (sp) openConfig({mode:'addvar', name:sp.name, assign:true}); return; }
   if (a.dataset.act === 'del') deleteSel();
   if (a.dataset.act === 'dup') duplicateSel();
-  if (a.dataset.act === 'close'){ closeSheets(); setSel(null); }
+  if (a.dataset.act === 'close'){ if (isMobile()) closeSheets(); setSel(null); }
 });
 
 function plantStats(){
