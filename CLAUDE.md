@@ -8,7 +8,8 @@ Dépôt des mini apps publiques de l33ko, publiées sur **https://app.synapsium.
 
 1. **Reformuler le besoin** en quelques lignes et poser les questions qui changent le design (pour qui, sur quel appareil, ce qui compte le plus). Ne pas écrire de code de l'app à ce stade.
 2. **Proposer 2 ou 3 pistes de maquettes vraiment différentes** (disposition, parcours, manière d'interagir — pas seulement des couleurs), chacune montrée **sur iPhone et sur ordinateur**, avec des données fictives réalistes, en français, dans le style SynApps. Les principaux enchaînements d'écrans peuvent être cliquables, sans logique réelle derrière.
-3. Les publier sur une **branche `maquettes-<sujet>`**, dans `maquettes/<sujet>/index.html` (une seule page qui présente toutes les pistes côte à côte, chacune avec ses points forts et ses limites). **Pas de pull request** : cette branche n'est jamais fusionnée.
+   Chaque piste est dessinée par un agent **`maquettiste`** distinct, lancés **en parallèle**, chacun avec un angle différent (voir « Agents »). Chaque piste est un fichier `maquettes/<sujet>/piste-<lettre>.html`.
+3. Les publier sur une **branche `maquettes-<sujet>`**, avec `maquettes/<sujet>/index.html` : une page qui présente toutes les pistes côte à côte (chacune dans un cadre iPhone et un cadre ordinateur, avec ses points forts et ses limites, et un lien pour l'ouvrir en grand). **Pas de pull request** : cette branche n'est jamais fusionnée.
 4. Donner au propriétaire le lien de la version test : `https://maquettes-<sujet>.synapps-bhl.pages.dev/maquettes/<sujet>/`
 5. **Attendre son choix explicite** (« piste B », « A avec le menu de C », retouches…). Les retouches se font sur la même branche, la version test se met à jour.
 6. Une fois la maquette validée, coder sur une **nouvelle branche** selon la règle n°1, en respectant la maquette choisie. Rappeler le lien de la maquette dans la pull request et signaler tout écart qui s'est imposé en cours de route.
@@ -17,11 +18,12 @@ Dépôt des mini apps publiques de l33ko, publiées sur **https://app.synapsium.
 
 1. **Ne jamais pousser directement sur `main`**, ni fusionner une pull request de sa propre initiative.
 2. Travailler sur une **branche dédiée** au nom parlant (ex. `jardin-panneau-mobile`), créée à partir de `origin/main` à jour.
-3. Pousser la branche et **ouvrir une pull request sans la fusionner**.
+3. Pousser la branche et **ouvrir une pull request sans la fusionner**. Avant de la présenter, faire passer la **relecture indépendante** (voir « Agents ») et corriger ce qu'elle trouve.
 4. Donner au propriétaire :
    - le **lien de la version test** (voir ci-dessous) vers l'app concernée ;
    - un résumé simple de ce qui change et de ce qu'il faut tester ;
-   - si utile, des captures d'écran (ordinateur et iPhone).
+   - les captures d'écran iPhone et ordinateur du `testeur-appareils` ;
+   - le verdict des agents en une ligne (et ce qui a été corrigé suite à leur relecture).
 5. **Attendre une validation explicite** (« validé », « ok pour la prod »…) avant de fusionner (squash).
    Une demande de correction se fait sur la même branche : la version test se met à jour.
 6. Après la fusion, rappeler que la mise en ligne prend quelques minutes et que le bandeau « Une nouvelle version est disponible » proposera la mise à jour.
@@ -51,6 +53,22 @@ La version test a sa propre adresse : ses données locales (plans, réglages…)
 - Une Edge Function modifiée se déploie de la même façon : d'abord dans Synapps_test, puis dans Synapps_public au moment de la mise en production.
 
 Si la version test n'est pas disponible, publier la page modifiée en aperçu privé et le signaler, sans fusionner pour autant.
+
+## Agents
+
+Des agents spécialisés sont définis dans `.claude/agents/`. Ce sont d'autres instances de Claude, lancées avec l'outil Agent, qui démarrent **sans connaître le travail en cours** : c'est ce qui rend leur regard utile. Leur donner dans la demande tout ce dont ils ont besoin (branche, but de la modification, apps concernées, parcours à tester).
+
+| Agent | Rôle | Quand |
+|---|---|---|
+| `relecteur` | Relit la branche à froid : bugs, règles du dépôt, secrets. Rend un verdict, ne modifie rien. | **Toujours**, avant de demander la validation. |
+| `testeur-appareils` | Ouvre les pages modifiées dans un iPhone et un ordinateur simulés, relève les erreurs, fait les captures. | Dès qu'une page change. |
+| `gardien-supabase` | Vérifie qu'un script SQL ou une Edge Function est sûr pour la production et prépare le script ponctuel. | Dès qu'un `.sql` ou une Edge Function change. |
+| `maquettiste` | Dessine **une** piste de maquette. | Règle n°0 : un par piste, en parallèle. |
+
+- **Relecture indépendante** : lancer `relecteur` et `testeur-appareils` (et `gardien-supabase` si besoin) **en même temps**, une fois le travail terminé et poussé. Corriger les points bloquants sur la même branche, puis relancer l'agent concerné si la correction est importante.
+- Les agents ne poussent, ne fusionnent et ne publient rien : la session principale reste seule responsable de la branche et de la pull request.
+- Pour une toute petite retouche (un texte, une couleur), le `testeur-appareils` seul suffit.
+- **Audit sur demande** : le propriétaire peut demander un passage d'agents sur plusieurs apps à la fois (un agent par app, en parallèle), par exemple pour l'accessibilité ou l'affichage sur iPhone.
 
 ## Organisation du dépôt
 
