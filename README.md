@@ -8,6 +8,7 @@ La page d'accueil ([`index.html`](index.html)) présente toutes les applications
 |---|---|---|
 | Mon cahier du CP | [`cahier-du-cp/`](cahier-du-cp/) | Lecture, écriture et calcul pour les enfants de CP. |
 | Recettes | [`recettes/`](recettes/) | Carnet de recettes partagé en famille, avec import depuis un lien. |
+| Synapse | [`synapse/`](synapse/) | Entraînement cérébral : 5 exercices au hasard par jour, 20 jeux, suivi de performance par thème. |
 | Mon jardin | [`mon-jardin/`](mon-jardin/) | Éditeur de plan de jardin à l'échelle, façon paysagiste. |
 | Lego Builder | [`lego-builder/`](lego-builder/) | Constructions Lego en 3D à monter pas à pas, pour les 8-10 ans. |
 | Pixel arts | [`pixel-arts/`](pixel-arts/) | Modèles de pixel art à recopier sur papier ou en perles à repasser. |
@@ -35,6 +36,18 @@ Le carnet de recettes de la famille, partagé entre plusieurs personnes et appar
 ## Mises à jour
 
 Les navigateurs gardent une copie des pages : après une mise en ligne, un appareil peut continuer d'afficher l'ancienne version (surtout sur iPhone et depuis l'écran d'accueil). Chaque app vérifie donc, à l'ouverture et quand on y revient, si son code en ligne a changé ; si oui, un bandeau « Une nouvelle version est disponible » propose **Mettre à jour**, qui recharge la page en contournant la copie gardée en mémoire.
+
+## Synapse
+
+Un entraînement cérébral court, façon Peak : chaque jour, 5 exercices tirés au hasard (le même tirage sur tous les appareils), environ 7 minutes.
+
+- **20 jeux en 7 thèmes** : mémoire, attention, vitesse, calcul mental, logique, visuo-spatial, langage. Chaque jeu dure 45 secondes à 1 minute et ajuste sa difficulté (niveau de 1 à 20).
+- **Accueil** : séance du jour, suivi quotidien (série et semaine), score global et une tuile par thème.
+- **Jeux** : tous les jeux, pour s'entraîner librement.
+- **Performance** : courbe par thème et globale (7 jours, 30 jours, tout), records par jeu, historique.
+- **Compte** (facultatif) : connexion par e-mail, sans mot de passe (même compte que Recettes et Mon jardin). Les résultats sont sauvegardés et retrouvés sur tous les appareils ; sans compte, ils restent dans le navigateur. Le suivi mesure des progrès dans les exercices, pas un QI.
+
+Pour activer la sauvegarde, exécuter [`synapse/supabase.sql`](synapse/supabase.sql) dans le SQL Editor du projet Supabase public (table `synapse_profil`, une ligne par compte, visible uniquement par son propriétaire).
 
 ## Mon jardin
 
