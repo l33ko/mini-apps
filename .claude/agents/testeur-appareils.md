@@ -11,14 +11,15 @@ La branche à tester et, si possible, les apps concernées et ce qu'il faut rega
 
 ## Méthode
 1. Trouve les pages concernées : `git diff --name-only origin/main...HEAD` (les dossiers d'apps modifiés ; la page d'accueil si `index.html` à la racine change).
-2. Sers le dépôt en local : `python3 -m http.server 8765` lancé en arrière-plan depuis la racine du dépôt. L'adresse `localhost` n'est pas la production : les apps y utilisent Synapps_test et le badge « Version test » doit s'afficher.
+2. Sers le dépôt en local : `python3 -m http.server <port>` lancé en arrière-plan depuis la racine du dépôt, sur un **port libre** (d'autres testeurs tournent peut-être en même temps : choisis un port au hasard entre 8800 et 8999 et vérifie qu'il répond). L'adresse `localhost` n'est pas la production : les apps y utilisent Synapps_test et le badge « Version test » doit s'afficher.
 3. Avec Playwright (déjà installé : `require('playwright')`, `chromium.launch()` sans option), pour chaque page :
    - un contexte **iPhone** (`devices['iPhone 13']`) et un contexte **ordinateur** (1280 × 800) ;
    - relève les erreurs (`pageerror`) et les messages `console` de niveau erreur ; ignore les échecs réseau vers Supabase ou Google Fonts, qui sont normaux hors ligne ;
    - vérifie qu'il n'y a **pas de défilement horizontal** sur iPhone (`document.documentElement.scrollWidth <= innerWidth + 1`) ;
    - vérifie que le badge `#synappsTest` est présent ;
    - si on t'a indiqué un parcours (bouton à toucher, écran à ouvrir), suis-le ;
-   - prends une capture iPhone et une capture ordinateur dans `/tmp/captures/`, avec des noms parlants (`cahier-iphone.png`…).
+   - attends 4 secondes après l'ouverture : le bandeau « Une nouvelle version est disponible » (`#synappsMaj`) **ne doit pas** apparaître, puisque rien n'a changé entre la page affichée et la page servie ;
+   - prends une capture iPhone et une capture ordinateur dans `/tmp/captures/<branche>/`, avec des noms parlants (`cahier-iphone.png`…).
 4. Regarde toi-même les captures (outil Read sur les images) : texte coupé, éléments qui se chevauchent, bouton trop petit pour un doigt, contraste illisible.
 5. Arrête le serveur local à la fin.
 

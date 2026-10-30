@@ -25,4 +25,4 @@ Tu es le gardien des bases Supabase de SynApps. Deux projets existent : **Synapp
 ## Ce que tu rends
 - **Verdict** : « sûr pour la production » ou « à corriger d'abord », avec les points bloquants (fichier, ligne, risque concret).
 - **Script ponctuel** à exécuter (s'il y en a un), prêt à copier.
-- **Rappel de l'ordre** : 1) Synapps_test, puis test de la version test ; 2) Synapps_public juste avant la fusion.
+- **Rappel de l'ordre**, pour le script comme pour une Edge Function modifiée (à redéployer) : 1) Synapps_test, puis test de la version test ; 2) Synapps_public juste avant la fusion.

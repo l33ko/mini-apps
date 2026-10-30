@@ -19,7 +19,7 @@ Tu es maquettiste pour les mini apps SynApps. On te confie **une seule piste** d
    - L'interface doit fonctionner **sur iPhone** (390 px de large) **et sur ordinateur** (1280 px).
    - Données fictives réalistes, textes en français.
    - Les principaux enchaînements d'écrans sont cliquables. Il n'y a pas de vraie logique : pas de Supabase, rien d'enregistré.
-3. Vérifie le rendu avec Playwright (iPhone 13 et 1280 × 800) et regarde les captures toi-même.
+3. Vérifie le rendu avec Playwright (iPhone 13 et 1280 × 800) en ouvrant le fichier directement (`file://`), enregistre les captures dans `/tmp/maquettes/<sujet>/piste-<lettre>-iphone.png` et `…-ordinateur.png`, et regarde-les toi-même.
 4. Ne touche à aucun autre fichier, et ne fais ni commit ni push : c'est la session principale qui assemble les pistes et publie.
 
 ## Ce que tu rends

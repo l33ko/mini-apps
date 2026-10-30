@@ -18,11 +18,11 @@ Dépôt des mini apps publiques de l33ko, publiées sur **https://app.synapsium.
 
 1. **Ne jamais pousser directement sur `main`**, ni fusionner une pull request de sa propre initiative.
 2. Travailler sur une **branche dédiée** au nom parlant (ex. `jardin-panneau-mobile`), créée à partir de `origin/main` à jour.
-3. Pousser la branche et **ouvrir une pull request sans la fusionner**. Avant de la présenter, faire passer la **relecture indépendante** (voir « Agents ») et corriger ce qu'elle trouve.
+3. Pousser la branche et **ouvrir une pull request sans la fusionner**. Avant de la présenter, faire passer la **relecture indépendante** (voir « Agents » ; allégée pour une toute petite retouche) et corriger ce qu'elle trouve.
 4. Donner au propriétaire :
    - le **lien de la version test** (voir ci-dessous) vers l'app concernée ;
    - un résumé simple de ce qui change et de ce qu'il faut tester ;
-   - les captures d'écran iPhone et ordinateur du `testeur-appareils` ;
+   - les captures d'écran iPhone et ordinateur du `testeur-appareils` (si une page a changé) ;
    - le verdict des agents en une ligne (et ce qui a été corrigé suite à leur relecture).
 5. **Attendre une validation explicite** (« validé », « ok pour la prod »…) avant de fusionner (squash).
    Une demande de correction se fait sur la même branche : la version test se met à jour.
@@ -60,14 +60,14 @@ Des agents spécialisés sont définis dans `.claude/agents/`. Ce sont d'autres 
 
 | Agent | Rôle | Quand |
 |---|---|---|
-| `relecteur` | Relit la branche à froid : bugs, règles du dépôt, secrets. Rend un verdict, ne modifie rien. | **Toujours**, avant de demander la validation. |
+| `relecteur` | Relit la branche à froid : bugs, règles du dépôt, secrets. Rend un verdict, ne modifie rien. | Avant chaque demande de validation, sauf toute petite retouche (voir plus bas). |
 | `testeur-appareils` | Ouvre les pages modifiées dans un iPhone et un ordinateur simulés, relève les erreurs, fait les captures. | Dès qu'une page change. |
 | `gardien-supabase` | Vérifie qu'un script SQL ou une Edge Function est sûr pour la production et prépare le script ponctuel. | Dès qu'un `.sql` ou une Edge Function change. |
 | `maquettiste` | Dessine **une** piste de maquette. | Règle n°0 : un par piste, en parallèle. |
 
 - **Relecture indépendante** : lancer `relecteur` et `testeur-appareils` (et `gardien-supabase` si besoin) **en même temps**, une fois le travail terminé et poussé. Corriger les points bloquants sur la même branche, puis relancer l'agent concerné si la correction est importante.
 - Les agents ne poussent, ne fusionnent et ne publient rien : la session principale reste seule responsable de la branche et de la pull request.
-- Pour une toute petite retouche (un texte, une couleur), le `testeur-appareils` seul suffit.
+- **Toute petite retouche** (un texte, une couleur, une icône) : le `testeur-appareils` seul suffit, sans `relecteur`.
 - **Audit sur demande** : le propriétaire peut demander un passage d'agents sur plusieurs apps à la fois (un agent par app, en parallèle), par exemple pour l'accessibilité ou l'affichage sur iPhone.
 
 ## Organisation du dépôt
@@ -75,6 +75,6 @@ Des agents spécialisés sont définis dans `.claude/agents/`. Ce sont d'autres 
 - Une app = un dossier avec un seul `index.html` autonome (HTML, CSS, JS dans le fichier, sans outil de build). Page d'accueil : `index.html` à la racine.
 - Apps : `cahier-du-cp`, `lego-builder`, `mon-jardin`, `pixel-arts`, `recettes`, `retro-console`, `synapse`.
 - Interface et textes **en français**, pensés pour iPhone autant que pour ordinateur.
-- Chaque page se termine par le script « SynApps — nouvelle version disponible ? » (bandeau de mise à jour contre le cache) : le conserver dans toute nouvelle page.
+- Chaque page se termine par le script « SynApps — nouvelle version disponible ? » (bandeau de mise à jour contre le cache) : le conserver dans toute nouvelle page. Il compare les scripts et styles de la page affichée avec ceux de la page en ligne : **tout script placé après lui** (comme celui du badge « Version test ») doit porter l'attribut `data-runtime`, sinon le bandeau s'affiche à tort à chaque ouverture.
 - Synchronisation des apps publiques : projets Supabase **Synapps_public** / **Synapps_test** (voir plus haut ; URL et clé publique *publishable* dans la constante `SB` de chaque app), session commune `synapps-auth`, connexion par lien reçu par e-mail (envoi via Brevo). Les scripts `supabase.sql` de chaque app sont à exécuter par le propriétaire dans le SQL Editor. Ne jamais mettre de clé secrète (`service_role`, `sb_secret_…`) dans le dépôt.
 - Messages de commit et descriptions de pull request en français.
