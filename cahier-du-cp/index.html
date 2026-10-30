@@ -468,7 +468,7 @@ function drawCloud(){const back=`<button class="chip" onclick="cloudBack()">← 
  if(!CLOUD())h+=`<p class="sub">La synchronisation n’est pas activée pour cette application. Utilise le code de sauvegarde.</p><div class="row"><button class="chip" onclick="backup(${CLB==='p'?1:0})">💾 Code de sauvegarde</button></div>${back}`;
  else if(AUTH)h+=`<p class="sub">Connecté avec <b>${esc(AUTH.email)}</b>.<br>Tes joueurs, étoiles et niveaux sont enregistrés et retrouvés sur tous tes appareils.</p>${CL.last?`<p class="sub">Dernière synchronisation : ${CL.last}</p>`:''}<button class="again" onclick="cloudSync()">🔄 Synchroniser maintenant</button><p class="msg" id="cm">${esc(CL.msg)}</p><div class="row"><button class="chip" onclick="cloudOut()">Se déconnecter</button></div>${back}`;
  else if(CL.step===1)h+=`<p class="sub">Entre ton e-mail : tu recevras un lien de connexion pour retrouver tes données sur n’importe quel appareil.</p><input id="em" class="inp" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="ton@email.fr" value="${esc(CL.email)}" style="width:100%;margin-bottom:10px" onkeydown="if(event.key==='Enter')cloudSend()"><button class="again" onclick="cloudSend()">📧 Recevoir l’e-mail</button><p class="msg" id="cm">${esc(CL.msg)}</p>${back}`;
- else h+=`<p class="sub">Un e-mail a été envoyé à <b>${esc(CL.email)}</b>.<br>Ouvre-le <b>sur cet appareil</b> et touche le lien : tu seras connecté automatiquement. Regarde aussi les courriers indésirables.</p><p class="sub" style="font-size:.9rem">Si l’e-mail contient un code à la place d’un lien, saisis-le ici :</p><input id="cd" class="inp" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Code" style="width:100%;margin-bottom:10px;letter-spacing:.2em" onkeydown="if(event.key==='Enter')cloudCheck()"><button class="again" onclick="cloudCheck()">✔️ Valider le code</button><p class="msg" id="cm">${esc(CL.msg)}</p><div class="row"><button class="chip" onclick="CL.step=1;CL.msg='';drawCloud()">Changer d’e-mail</button><button class="chip" onclick="cloudSend()">Renvoyer l’e-mail</button></div>${back}`;
+ else h+=`<p class="sub">Un e-mail a été envoyé à <b>${esc(CL.email)}</b>.<br>Ouvre-le <b>sur cet appareil</b> et touche le lien : tu seras connecté automatiquement. Regarde aussi les courriers indésirables.</p><p class="msg" id="cm">${esc(CL.msg)}</p><div class="row"><button class="chip" onclick="CL.step=1;CL.msg='';drawCloud()">Changer d’e-mail</button><button class="chip" onclick="cloudSend()">Renvoyer l’e-mail</button></div>${back}`;
  openOv('other',h)}
 function cmsg(t){CL.msg=t;const m=document.getElementById('cm');if(m)m.textContent=t}
 async function cloudSend(){if(CL.busy)return;const i=document.getElementById('em'),em=(i?i.value:CL.email).trim().toLowerCase();
@@ -476,12 +476,6 @@ async function cloudSend(){if(CL.busy)return;const i=document.getElementById('em
  CL.email=em;CL.busy=true;cmsg('Envoi en cours…');
  try{await sb('/auth/v1/otp'+(/^https:/.test(location.href)?'?redirect_to='+encodeURIComponent(location.origin+location.pathname):''),{method:'POST',body:JSON.stringify({email:em,create_user:true})});CL.step=2;CL.msg='';CL.busy=false;drawCloud()}
  catch(e){CL.busy=false;cmsg(cloudErr(e))}}
-async function cloudCheck(){if(CL.busy)return;const t=(document.getElementById('cd').value||'').replace(/\s+/g,'');if(t.length<6){cmsg('Entre le code reçu par e-mail.');return}
- CL.busy=true;cmsg('Vérification…');
- try{const r=await sb('/auth/v1/verify',{method:'POST',body:JSON.stringify({type:'email',email:CL.email,token:t})});setAuth(r);CL.step=1;
-  let n=0;try{n=await syncNow(false)}catch(e){}
-  CL.busy=false;sfx(true);CL.msg=n?n+' joueur'+(n>1?'s':'')+' retrouvé'+(n>1?'s':'')+' ✔️':'Connecté ✔️';drawCloud()}
- catch(e){CL.busy=false;sfx(false);cmsg(cloudErr(e))}}
 async function cloudSync(){cmsg('Synchronisation…');try{const n=await syncNow(false);sfx(true);CL.msg=n?n+' joueur'+(n>1?'s':'')+' mis à jour ✔️':'Tout est à jour ✔️';drawCloud()}catch(e){sfx(false);if(!AUTH)drawCloud();else cmsg(cloudErr(e))}}
 function cloudOut(){logoutCloud();CL={step:1,email:'',msg:'',busy:false,last:''};drawCloud()}
 function cloudBack(){if(CLB==='p'&&P)return parentPanel();closeOvT();if(!Q){P?menu():who()}}
