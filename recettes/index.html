@@ -195,9 +195,16 @@ async function token() {
   return AUTH.access_token;
 }
 const sb = createClient(SB.url, SB.key, { accessToken: async () => AUTH ? token() : null });
-const authErr = e => e?.status === 429 || /rate|seconds/i.test(e?.message) ? 'Trop d’essais. Réessaie dans quelques minutes.'
-  : e?.status && e.status < 500 && /otp|token|expired|invalid/i.test(e.message) ? 'Code incorrect ou expiré. Redemande un e-mail.'
-  : 'Connexion impossible. Vérifie internet et réessaie.';
+function authErr(e) {
+  const m = e?.message || '';
+  const sec = m.match(/after (\d+) seconds?/i);
+  if (sec) return `Un e-mail vient déjà d’être envoyé. Attends ${sec[1]} secondes avant d’en redemander un.`;
+  if (/email rate limit|over_email_send_rate_limit/i.test(m) || (e?.status === 429 && /email/i.test(m)))
+    return 'Limite d’envoi d’e-mails atteinte pour l’instant. Réessaie dans un moment.';
+  if (e?.status === 429 || /rate/i.test(m)) return 'Trop d’essais. Réessaie dans quelques minutes.';
+  if (e?.status && e.status < 500 && /otp|token|expired|invalid/i.test(m)) return 'Lien expiré ou déjà utilisé. Redemande un e-mail.';
+  return 'Connexion impossible. Vérifie internet et réessaie.';
+}
 function dbErr(e) {
   const m = e?.message || String(e);
   if (/schema cache|does not exist|Could not find the (table|function)/i.test(m))
