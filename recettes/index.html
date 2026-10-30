@@ -447,7 +447,13 @@ function drawResults() {
       <div style="display:flex;flex-direction:column;gap:10px;max-width:300px;margin:0 auto">
       <a class="btn" href="#/import">🔗 Importer depuis un lien</a>
       <a class="btn ghost" href="#/new">✎ Écrire une recette</a>
+      <button class="btn ghost" id="ex">🍰 Ajouter des recettes d’exemple</button>
       ${fam.nb_membres <= 1 ? '<a class="btn ghost" href="#/famille">👥 Inviter ma famille</a>' : ''}</div></div>`;
+    document.getElementById('ex').onclick = async e => {
+      e.target.disabled = true;
+      try { await q(sb.rpc('ajouter_exemples', { f: fam.id })); await loadFamily(); drawResults(); }
+      catch (err) { e.target.disabled = false; alert(dbErr(err)); }
+    };
     return;
   }
   if (!list.length) { res.innerHTML = `<div class="empty"><div class="big">🤷</div><p>Aucune recette ne correspond.</p></div>`; return; }
@@ -517,7 +523,9 @@ function renderDetail(r, keep = false) {
       <ol class="steps" id="steps">${steps.map((s, i) => /^—.*—$/.test(s)
         ? `<li class="sec">${esc(s.replace(/^—\s*|\s*—$/g, ''))}</li>` : `<li data-i="${i}" class="${S.st.has(i) ? 'done' : ''}">${esc(s)}</li>`).join('')}</ol></div>` : ''}
     ${r.notes ? `<div class="panel"><h2>Notes</h2><div class="notes">${esc(r.notes)}</div></div>` : ''}
-    ${auteur ? `<p class="muted by">Ajoutée par ${esc(auteur)}${modif ? ` · modifiée par ${esc(modif)}` : ''}</p>` : ''}
+    ${r.exemple ? '<p class="muted by">Recette d’exemple SynApps : modifie-la ou supprime-la librement.</p>'
+      : auteur ? `<p class="muted by">Ajoutée par ${esc(auteur)}${modif ? ` · modifiée par ${esc(modif)}` : ''}</p>`
+      : modif ? `<p class="muted by">Modifiée par ${esc(modif)}</p>` : ''}
   </div>`;
 
   const drawIng = () => {

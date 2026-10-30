@@ -22,6 +22,7 @@ Le carnet de recettes de la famille, partagé entre plusieurs personnes et appar
 - **Temps réel** : une recette ajoutée ou modifiée sur un téléphone apparaît aussitôt sur les autres.
 - **Import depuis un lien** (Marmiton, 750g, blogs…) : la recette est extraite et la fiche créée automatiquement.
 - **Fiche** : portions ajustables (quantités recalculées), ingrédients et étapes à cocher, écran maintenu allumé, « ajoutée par … ».
+- **Recettes d’exemple** : chaque nouveau carnet démarre avec 5 recettes (gougères, crackers aux graines, gaufres, gâteau au chocolat, tarte au citron meringuée), rédigées pour SynApps. Elles sont dans la table `recettes_exemples` ; un carnet existant peut les ajouter depuis l’écran vide.
 - **Mon compte** : export des recettes en `.json`, suppression du compte. Page [confidentialité](recettes/confidentialite.html).
 
 ### Mise en place (projet Supabase public)
