@@ -68,6 +68,15 @@ h1{font-size:2rem;margin:.2em 0 0;line-height:1.2}
 .inp{font:inherit;font-size:1.4rem;padding:10px 14px;border:3px solid var(--sh);border-radius:14px;background:var(--card);color:var(--ink);flex:1;min-width:0}
 .ptxt{font-size:1.25rem;line-height:1.5;margin:0}
 .mc:disabled{opacity:1}
+.slots{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:6px 0}
+.slot{width:2rem;height:2.7rem;border-bottom:4px solid var(--sh);display:inline-flex;align-items:flex-end;justify-content:center;font-size:2rem;font-weight:700;line-height:1.3}
+.slot.r{color:var(--good)}.slot.bad{color:var(--bad)}
+.kr{display:flex;gap:4px;justify-content:center;margin-bottom:6px}
+.kk{font:inherit;color:inherit;flex:1 1 0;min-width:0;max-width:46px;height:50px;padding:0;border:3px solid var(--sh);border-radius:10px;background:var(--card);box-shadow:0 3px 0 var(--sh);font-size:1.4rem;font-weight:700;cursor:pointer}
+.kk:active{transform:translateY(2px);box-shadow:0 1px 0 var(--sh)}
+.kk:disabled{opacity:.25;box-shadow:none}
+.kk.acc{background:var(--c4)}.kk.del{background:var(--c6)}
+.kr.bank{flex-wrap:wrap}.kr.bank .kk{flex:0 0 auto;width:52px;max-width:none;height:58px;font-size:1.7rem}
 .h2{font-size:1.3rem;margin:22px 0 8px}
 .sym{display:inline-flex;align-items:center;justify-content:center;width:2.7rem;height:2.7rem;border-radius:12px;color:#fff;font-size:2rem;line-height:1;font-weight:700}
 .lvgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
@@ -160,16 +169,54 @@ function menu(){
 
 const R=(a,b)=>a+rnd(b-a+1);
 const gl=f=>{let r,i=0;do{r=f();i++}while(!r&&i<80);return r};
+const WSIM=[
+ [['pain','🍞'],['bain','🛁'],['main','✋'],['vin','🍷']],
+ [['bateau','⛵'],['gâteau','🍰'],['château','🏰'],['chapeau','🎩'],['cadeau','🎁']],
+ [['souris','🐭'],['cerise','🍒'],['valise','🧳'],['chemise','👕']],
+ [['poisson','🐟'],['maison','🏠'],['ballon','⚽'],['pantalon','👖'],['champignon','🍄']],
+ [['poule','🐔'],['poulpe','🐙'],['pouce','👍'],['boule','🔮']],
+ [['feu','🔥'],['bleu','🔵'],['jeu','🎲'],['yeux','👀']],
+ [['chat','🐱'],['rat','🐀'],['plat','🍽️'],['bras','💪']],
+ [['dent','🦷'],['vent','💨'],['gant','🧤'],['tente','⛺']],
+ [['lit','🛏️'],['livre','📖'],['lion','🦁'],['lampe','💡']],
+ [['rose','🌹'],['robe','👗'],['roi','👑'],['rat','🐀']],
+ [['chien','🐶'],['cheval','🐴'],['chaise','🪑'],['chèvre','🐐']]];
 function genLec(){
- const L=lv('lec'),pool=wpool(L),w=pick(pool),listen=Math.random()<(L>=5?.45:.3)&&!!window.speechSynthesis;
+ const L=lv('lec'),pool=wpool(L),sim=L>=7&&Math.random()<[.35,.5,.65,.8][L-7],g=sim?pick(WSIM):null,w=sim?pick(g):pick(pool),
+  listen=Math.random()<(sim?.6:L>=5?.45:.3)&&!!window.speechSynthesis;
  const sc=x=>(x[0][0]===w[0][0]?0:3)+Math.abs(x[0].length-w[0].length)+Math.random();
  let dis=shuffle(pool.filter(x=>x!==w));
  if(L>=6)dis=dis.map(x=>[sc(x),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+ if(sim)dis=[...shuffle(g.filter(x=>x!==w)),...dis.filter(x=>!g.some(y=>y[0]===x[0]))];
  dis=dis.slice(0,L>=5?3:2);
  const opts=shuffle([w,...dis]).map(o=>({h:o[0],ok:o===w,f:'script'}));
  return {nr:listen?'Écoute le mot, puis touche-le.':'Trouve le mot qui correspond à l’image.',btn:w[0],nb:listen,sp:listen?['Écoute le mot, puis touche-le.',w[0]]:null,q:listen?`<button class="big" onclick="say('${w[0]}')" aria-label="Écouter">🔊</button><p>Écoute, puis trouve le mot</p>`:`<div class="emo">${w[1]}</div><p>Quel est ce mot ?</p>`,opts,say:listen?w[0]:null,hint:listen?w[1]:null,three:opts.length===3};
 }
+const AZ=['azertyuiop','qsdfghjklm','wxcvbn'],ACC='éèêàâçîôù';
 function genEcr(){
+ const L=lv('ecr'),mx=L<=2?4:L<=4?5:L<=6?7:12,pl=wpool(L).filter(x=>x[0].length<=mx),r=Math.random();
+ let mode=L<=2?(r<.5?'match':'copy'):L<=4?(r<.35?'match':'copy'):L<=6?(r<.25?'match':r<.65?'copy':'pic'):(r<.15?'match':r<.5?'copy':r<.75?'pic':'dic');
+ if(mode==='dic'&&!window.speechSynthesis)mode='pic';
+ if(mode==='match')return genEcrM();
+ const [w,e]=pick(pl),cur=Math.random()<.6,kb=L>=7,ex=L<=2?2:L<=4?3:4,
+  bank=kb?null:shuffle([...w,...shuffle([...'abcdefghijlmnoprstuv'].filter(c=>!w.includes(c))).slice(0,ex)]).map(ch=>({ch,used:false}));
+ const top=mode==='copy'?`<div class="emo">${e}</div><div class="word ${cur?'cursive':'script'}">${w}</div><p>Écris le mot</p>`:mode==='pic'?`<div class="emo">${e}</div><p>Regarde l’image et écris le mot</p>`:`<button class="big" onclick="say('${w}')" aria-label="Écouter">🔊</button>${L<=8?`<div class="emo" style="font-size:3.5rem">${e}</div>`:''}<p>Écoute le mot et écris-le</p>`;
+ const nr=mode==='copy'?'Écris le mot.':mode==='pic'?'Regarde l’image et écris le mot.':'Écoute le mot et écris-le.';
+ return {type:'txt',w,kb,bank,v:[],top,nr,nb:mode!=='copy',btn:w,sp:mode==='dic'?[nr,w]:null}}
+function drawTxt(c,m){const sl=[...c.w].map((x,i)=>`<span class="slot ${c.rev?'r':c.bad&&c.v[i]?'bad':''}">${c.rev?x:c.v[i]?c.v[i].ch:''}</span>`).join('');
+ const keys=c.kb?AZ.map((r,k)=>`<div class="kr">${[...r].map(ch=>`<button class="kk" onclick="tk2('${ch}')">${ch}</button>`).join('')}${k===2?'<button class="kk del" onclick="tdel()" aria-label="Effacer">⌫</button>':''}</div>`).join('')+`<div class="kr">${[...ACC].map(ch=>`<button class="kk acc" onclick="tk2('${ch}')">${ch}</button>`).join('')}</div>`
+  :`<div class="kr bank">${c.bank.map((b,i)=>`<button class="kk" ${b.used?'disabled':''} onclick="tk1(${i})">${b.ch}</button>`).join('')}<button class="kk del" onclick="tdel()" aria-label="Effacer">⌫</button></div>`;
+ app.innerHTML=hdr(Q.n/Q.N,`${Q.n+1}/${Q.N}`)+`<div class="q" style="background:var(${m.c})">${c.top}<div class="slots">${sl}</div>${spk(c)}</div>${keys}<div class="fb" id="fb" aria-live="polite"></div>`}
+function tk1(i){const c=Q.cur;if(Q.done||c.v.length>=c.w.length||c.bank[i].used)return;c.bank[i].used=true;c.v.push({ch:c.bank[i].ch,bi:i});tchk()}
+function tk2(ch){const c=Q.cur;if(Q.done||c.v.length>=c.w.length)return;c.v.push({ch,bi:-1});tchk()}
+function tdel(){const c=Q.cur;if(Q.done||!c.v.length)return;const x=c.v.pop();if(x.bi>=0)c.bank[x.bi].used=false;drawTxt(c,curM())}
+function tchk(){const c=Q.cur;drawTxt(c,curM());if(c.v.length<c.w.length)return;
+ if(c.v.map(x=>x.ch).join('')===c.w){Q.done=true;if(!Q.tries)Q.score++;sfx(true);c.rev=true;drawTxt(c,curM());say(c.w);setTimeout(()=>{Q.n++;next()},1500);return}
+ Q.tries++;Q.done=true;sfx(false);
+ if(Q.tries>=3){c.rev=true;drawTxt(c,curM());const f=document.getElementById('fb');if(f)f.textContent='Voici le mot';say(['Voici le mot.',c.w]);setTimeout(()=>{Q.n++;next()},2300);return}
+ c.bad=true;drawTxt(c,curM());fbk('Essaie encore 💪');
+ setTimeout(()=>{c.v=[];c.bad=false;if(c.bank)c.bank.forEach(b=>b.used=false);Q.done=false;drawTxt(c,curM())},1300)}
+function genEcrM(){
  const L=lv('ecr'),mx=L<=2?4:L<=4?5:L<=6?7:12,all=wpool(L).map(x=>x[0]),w=pick(all.filter(x=>x.length<=mx)),toCur=Math.random()<.5;
  let dis=shuffle(all.filter(x=>x!==w));
  if(L>=5)dis.sort((a,b)=>Math.abs(a.length-w.length)-Math.abs(b.length-w.length));
@@ -228,7 +275,7 @@ function gen(id){return id==='lec'?genLec():id==='ecr'?genEcr():id==='pho'?genPh
 function start(id){if(STARTERS[id])return STARTERS[id]();Q={id,n:0,score:0,N:10};next()}
 function next(){if(Q.n>=Q.N)return end();Q.cur=gen(Q.id);Q.tries=0;Q.done=false;Q.hinted=false;draw();setTimeout(()=>{if(NAR()&&Q&&Q.cur&&!Q.done&&(Q.cur.sp||Q.cur.nr))say(Q.cur.sp||Q.cur.nr,Q.cur.rate)},350)}
 function draw(){
- const c=Q.cur,m=MENU.find(x=>x.id===Q.id);if(c.type==='phr')return drawPhr(c,m);if(c.key)return drawKey(c,m);
+ const c=Q.cur,m=MENU.find(x=>x.id===Q.id);if(c.type==='phr')return drawPhr(c,m);if(c.type==='txt')return drawTxt(c,m);if(c.key)return drawKey(c,m);
  app.innerHTML=`<div class="top"><button class="back" onclick="menu()" aria-label="Retour">←</button><div class="bar"><i style="width:${Q.n/Q.N*100}%"></i></div><span class="stars">${Q.n+1}/${Q.N}</span></div>
  <div class="q" style="background:var(${m.c})">${c.q}${c.say&&c.nr===c.say?'':spk(c)}</div>
  <div class="opts ${c.three?'three':''}">`+c.opts.map((o,i)=>`<button class="opt ${o.f||''}" onclick="ans(${i},this)">${o.h}</button>`).join('')+`</div><div class="fb" id="fb" aria-live="polite"></div>`;

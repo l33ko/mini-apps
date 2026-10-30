@@ -7,8 +7,8 @@ L'interface imite un cahier à lignes Seyès, avec de gros boutons faciles à to
 ## Les activités
 
 **Lecture et écriture**
-- **Lecture** : retrouver le mot qui correspond à une image, ou écouter un mot et le retrouver.
-- **Écriture** : reconnaître un mot en écriture attachée (cursive) ou en écriture bâton.
+- **Lecture** : retrouver le mot qui correspond à une image, ou écouter un mot et le retrouver. Aux niveaux 7 à 10, les mots à choisir se ressemblent à l'oreille ou à l'œil (bateau, gâteau, château, chapeau…) pour travailler la discrimination des sons.
+- **Écriture** : exercices variés selon le niveau. Reconnaître un mot en écriture attachée (cursive) ou bâton ; **écrire un mot** en piochant dans des lettres mélangées (niveaux 1 à 6) puis avec un clavier à l'écran, accents compris (niveaux 7 à 10), soit en le recopiant, soit à partir d'une image, soit en l'écoutant (dictée).
 - **Mots à compléter** : retrouver la ou les lettres manquantes d'un mot, avec des sons comme ou, on, ch ou oi aux niveaux avancés.
 - **Phrases** : remettre des étiquettes dans l'ordre pour construire une phrase, avec la majuscule au début et le point à la fin. Chaque étiquette touchée est lue à voix haute.
 
