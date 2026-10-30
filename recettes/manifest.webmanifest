@@ -1,6 +1,6 @@
 {
-  "name": "Recettes · SynApps",
-  "short_name": "Recettes",
+  "name": "Mes recettes · SynApps",
+  "short_name": "Mes recettes",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
