@@ -1952,7 +1952,7 @@ function moveItem(it, dx, dy){
   else if (it.type === 'zone'){ it.cx = r3(it.cx + dx); it.cy = r3(it.cy + dy); }
   else it.points = it.points.map(([x, y]) => [r3(x + dx), r3(y + dy)]);
 }
-function deleteSel(){ if (!sel) return; pushHistory(); st.items = st.items.filter(i => i.id !== sel); sel = null; afterChange(); }
+function deleteSel(){ if (!sel) return; pushHistory(); st.items = st.items.filter(i => i.id !== sel); sel = null; afterChange(); if (isMobile()) closeSheets(); toast("Élément supprimé — ↶ pour annuler"); }
 function duplicateSel(){
   const it = sel && itemById(sel); if (!it) return;
   pushHistory(); const c = clone(it); c.id = uid();
