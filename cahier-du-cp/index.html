@@ -442,7 +442,7 @@ function restoreCode(){const m=document.getElementById('bm2'),o=readCode(documen
  if(!o){m.textContent='Code non reconnu. Vérifie qu’il est complet.';sfx(false);return}
  const n=applyCode(o);sfx(true);m.textContent=n+' joueur'+(n>1?'s':'')+' retrouvé'+(n>1?'s':'')+' ✔️'}
 /* compte et synchronisation (Supabase, e-mail + code) */
-const SB={url:'',key:''};
+const SB={url:'https://qxwypwcxdhhtgmzaskzs.supabase.co',key:'sb_publishable_BZ9SxprfxkC-dUQZori4zA_txbvmngw'};
 const APPID='cahier-du-cp';
 const CLOUD=()=>!!(SB.url&&SB.key);
 let AUTH=null,CL={step:1,email:'',msg:'',busy:false,last:''},CLB='p',SYNCING=false,SYT=0;
