@@ -494,5 +494,48 @@ const STARTERS={mem:startMem,mor:startMor},GAMES=['mem','mor'];
 
 if(P)initSession();tick();P?menu():who();
 </script>
+<script>
+/* SynApps — nouvelle version disponible ?
+   Le navigateur garde une copie des pages (jusqu'à 10 min sur GitHub Pages, parfois bien plus sur iPhone).
+   On compare discrètement le code de la page affichée avec celui en ligne ; s'il a changé, on propose
+   « Mettre à jour », qui recharge la page en contournant la copie gardée en mémoire. */
+(function(){
+  if (!/^https?:$/.test(location.protocol)) return;
+  var KEY = 'synapps-maj:' + location.pathname, last = 0, shown = false;
+  function sig(root){
+    var t = '', els = root.querySelectorAll('script:not([src]),style');
+    for (var i = 0; i < els.length; i++) if (!els[i].hasAttribute('data-runtime')) t += els[i].textContent;
+    var h = 2166136261; for (var j = 0; j < t.length; j++){ h ^= t.charCodeAt(j); h = Math.imul(h, 16777619); }
+    return (h >>> 0).toString(36) + '.' + t.length;
+  }
+  var mine = sig(document);
+  function banner(){
+    if (shown || document.getElementById('synappsMaj')) return; shown = true;
+    var b = document.createElement('div'); b.id = 'synappsMaj';
+    b.setAttribute('style', 'position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;background:#25321e;color:#fff;border-radius:999px;padding:8px 8px 8px 16px;display:flex;align-items:center;gap:10px;font:14px/1.3 system-ui,-apple-system,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:calc(100% - 24px)');
+    b.innerHTML = '<span>Une nouvelle version est disponible</span><button type="button" style="border:0;border-radius:999px;padding:7px 14px;background:#8fd16a;color:#18240f;font:600 14px system-ui,-apple-system,sans-serif;cursor:pointer">Mettre à jour</button><button type="button" aria-label="Plus tard" style="border:0;background:none;color:#cfd8c6;font-size:18px;cursor:pointer;padding:0 6px">×</button>';
+    var bt = b.querySelectorAll('button');
+    bt[0].onclick = function(){ location.replace(location.pathname + '?v=' + Date.now().toString(36) + location.hash); };
+    bt[1].onclick = function(){ b.remove(); };
+    document.body.appendChild(b);
+  }
+  function check(){
+    var now = Date.now(); if (now - last < 5 * 60 * 1000) return; last = now;
+    fetch(location.pathname + '?nocache=' + now.toString(36), {cache:'no-store'}).then(function(r){ return r.ok ? r.text() : null; }).then(function(html){
+      if (!html) return;
+      var theirs = sig(new DOMParser().parseFromString(html, 'text/html'));
+      if (theirs === mine){ try { sessionStorage.removeItem(KEY); } catch(e){} return; }
+      var tried = null; try { tried = sessionStorage.getItem(KEY); } catch(e){}
+      if (tried === theirs) return;                    // déjà rechargé pour cette version : pas de boucle
+      try { sessionStorage.setItem(KEY, theirs); } catch(e){}
+      banner();
+    }).catch(function(){});
+  }
+  // la page vient d'être rechargée par « Mettre à jour » : on nettoie l'adresse
+  if (/[?&]v=/.test(location.search)) try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
+  setTimeout(check, 2500);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) check(); });
+})();
+</script>
 </body>
 </html>
