@@ -81,14 +81,14 @@ Le bouton « Parents » du menu ouvre la configuration, protégée par un petit 
 La synchronisation est facultative. Sans réglage, l'application fonctionne comme avant, avec le code de sauvegarde.
 
 1. Dans un projet [Supabase](https://supabase.com), ouvrir **SQL Editor** et exécuter le fichier [`supabase.sql`](supabase.sql) : il crée la table `app_saves` (une ligne par compte et par application) et ses règles d'accès. Il est conseillé d'utiliser un projet Supabase réservé aux apps publiques, séparé de celui des apps privées.
-2. **Authentication > URL Configuration** : renseigner l'adresse de l'application comme **Site URL** et dans **Redirect URLs** (par exemple `https://l33ko.github.io/synapps/cahier-du-cp/`). Le lien de l'e-mail y ramène l'utilisateur, déjà connecté.
+2. **Authentication > URL Configuration** : renseigner l'adresse de l'application comme **Site URL** et dans **Redirect URLs** (par exemple `https://synapsium.com/cahier-du-cp/`). Le lien de l'e-mail y ramène l'utilisateur, déjà connecté.
 3. Copier l'**URL du projet** et la **clé publique** (anon ou publishable) depuis **Project Settings > API**, puis les renseigner dans la constante `SB` en haut de la partie « compte et synchronisation » du fichier `index.html`. Cette clé est conçue pour être publique : la sécurité repose sur les règles d'accès de la table.
 4. Le service d'e-mails par défaut de Supabase est limité à quelques messages par heure : pour un usage régulier, brancher un SMTP personnalisé (**Authentication > SMTP Settings**).
 
 ## Utiliser l'application
 
 1. Ouvrir `index.html` dans un navigateur, ou publier le dépôt avec GitHub Pages (Settings > Pages, branche `main`, dossier `/ (root)`).
-2. Avec GitHub Pages, l'application est alors disponible à l'adresse `https://l33ko.github.io/synapps/cahier-du-cp/`.
+2. Avec GitHub Pages, l'application est alors disponible à l’adresse `https://synapsium.com/cahier-du-cp/` (domaine personnalisé de GitHub Pages).
 
 ## Notes techniques
 

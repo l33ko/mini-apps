@@ -28,7 +28,7 @@ Le carnet de recettes de la famille, partagé entre plusieurs personnes et appar
 
 1. **SQL Editor** : exécuter [`recettes/supabase.sql`](recettes/supabase.sql) (tables `familles`, `membres_famille`, `recettes`, règles d'accès, temps réel).
 2. **Edge Functions → Deploy a new function → Via Editor** : nom `import-recette`, coller [`recettes/import-recette.ts`](recettes/import-recette.ts), laisser « Verify JWT » activé.
-3. **Authentication → URL Configuration → Redirect URLs** : ajouter `https://l33ko.github.io/synapps/recettes/`.
+3. **Authentication → URL Configuration → Redirect URLs** : ajouter `https://synapsium.com/**` (et `https://l33ko.github.io/synapps/**` tant que l’ancienne adresse sert).
 4. Les modèles d'e-mail « Magic Link » et « Confirm signup » doivent contenir `{{ .Token }}` (déjà fait pour Mon jardin) pour que le code s'affiche.
 
 ## Mon jardin
