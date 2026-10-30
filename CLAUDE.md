@@ -36,15 +36,27 @@ https://<nom-de-branche>.synapps-bhl.pages.dev/<dossier-de-l-app>/
 
 Exemple : `https://jardin-panneau-mobile.synapps-bhl.pages.dev/mon-jardin/`. La branche `main` y est aussi publiée (`https://synapps-bhl.pages.dev/`), simple copie de la production. Les caractères spéciaux du nom de branche deviennent des tirets ; l'adresse exacte figure aussi dans le statut « Cloudflare Pages » de la pull request.
 
-La version test a sa propre adresse : ses données locales (plans, réglages…) sont séparées de celles de la production. La connexion Supabase y fonctionne si `https://*.synapps-bhl.pages.dev/**` figure dans les Redirect URLs du projet Supabase.
+La version test a sa propre adresse : ses données locales (plans, réglages…) sont séparées de celles de la production. Un badge orange « Version test » s'y affiche en bas à gauche.
+
+## Deux projets Supabase : production et test
+
+- **Synapps_public** = production : utilisé uniquement sur `app.synapsium.com` et sa copie `synapps-bhl.pages.dev` (et l'ancienne adresse `l33ko.github.io`).
+- **Synapps_test** = test : utilisé partout ailleurs (versions test, maquettes, ordinateur local). Les tests n'écrivent donc jamais dans les vraies données. Redirect URL à y garder : `https://*.synapps-bhl.pages.dev/**`.
+- Le choix se fait dans la constante `SB` de chaque app, selon `location.hostname`. Toute nouvelle app avec Supabase reprend la même expression ; toute nouvelle page reprend le script du badge « Version test » (placé juste avant `</body>`).
+- **Changement de base de données** (tables, colonnes, règles RLS, fonctions) :
+  1. le script SQL est d'abord exécuté par le propriétaire dans **Synapps_test**, et testé sur la version test ;
+  2. il doit rester **compatible avec la version en ligne** : ajouter des tables ou des colonnes, ne rien supprimer ni renommer tant que la production s'en sert ;
+  3. après validation, juste **avant la fusion**, le propriétaire l'exécute dans **Synapps_public**. Le rappeler explicitement au moment de demander la validation.
+  Le fichier `supabase.sql` de chaque app reste le script complet à jour ; une modification ponctuelle est donnée en plus, à part, pour être exécutée sur une base existante.
+- Une Edge Function modifiée se déploie de la même façon : d'abord dans Synapps_test, puis dans Synapps_public au moment de la mise en production.
 
 Si la version test n'est pas disponible, publier la page modifiée en aperçu privé et le signaler, sans fusionner pour autant.
 
 ## Organisation du dépôt
 
 - Une app = un dossier avec un seul `index.html` autonome (HTML, CSS, JS dans le fichier, sans outil de build). Page d'accueil : `index.html` à la racine.
-- Apps : `cahier-du-cp`, `lego-builder`, `mon-jardin`, `pixel-arts`, `recettes`, `retro-console`.
+- Apps : `cahier-du-cp`, `lego-builder`, `mon-jardin`, `pixel-arts`, `recettes`, `retro-console`, `synapse`.
 - Interface et textes **en français**, pensés pour iPhone autant que pour ordinateur.
 - Chaque page se termine par le script « SynApps — nouvelle version disponible ? » (bandeau de mise à jour contre le cache) : le conserver dans toute nouvelle page.
-- Synchronisation des apps publiques : projet Supabase **Synapps_public** (URL et clé publique *publishable* dans la constante `SB` de chaque app), session commune `synapps-auth`, connexion par lien reçu par e-mail (envoi via Brevo). Les scripts `supabase.sql` de chaque app sont à exécuter par le propriétaire dans le SQL Editor. Ne jamais mettre de clé secrète (`service_role`, `sb_secret_…`) dans le dépôt.
+- Synchronisation des apps publiques : projets Supabase **Synapps_public** / **Synapps_test** (voir plus haut ; URL et clé publique *publishable* dans la constante `SB` de chaque app), session commune `synapps-auth`, connexion par lien reçu par e-mail (envoi via Brevo). Les scripts `supabase.sql` de chaque app sont à exécuter par le propriétaire dans le SQL Editor. Ne jamais mettre de clé secrète (`service_role`, `sb_secret_…`) dans le dépôt.
 - Messages de commit et descriptions de pull request en français.

@@ -3044,7 +3044,7 @@ async function receiveShare(){
    Cette clé est faite pour être publique : chaque compte ne peut lire
    et écrire que ses propres lignes (règles d'accès de supabase.sql).
    ============================================================ */
-const SB = Object.assign({url:'https://qxwypwcxdhhtgmzaskzs.supabase.co', key:'sb_publishable_BZ9SxprfxkC-dUQZori4zA_txbvmngw'}, window.SYNAPPS_SB || {});   // projet Supabase « Synapps_public »
+const SB = Object.assign((/^(app\.synapsium\.com|synapps-bhl\.pages\.dev|l33ko\.github\.io)$/.test(location.hostname) ? {url:'https://qxwypwcxdhhtgmzaskzs.supabase.co',key:'sb_publishable_BZ9SxprfxkC-dUQZori4zA_txbvmngw'} : {url:'https://zlfgcfexvawijldgiqbu.supabase.co',key:'sb_publishable_aLCilH09KKWb4IfJC4Sx1g_df2_RUrC'}), window.SYNAPPS_SB || {});   // Synapps_public en production, Synapps_test dans les versions test
 const CLOUD = () => !!(SB.url && SB.key) && !/claude/i.test(location.hostname);   // les aperçus Claude bloquent les connexions externes
 const AUTH_KEY = 'synapps-auth';                       // session commune à toutes les apps SynApps
 const TOMB_KEY = 'jardin-tomb-v1', SYNC_KEY = 'jardin-sync-v1';
@@ -3324,6 +3324,18 @@ new ResizeObserver(() => { const r = stage.getBoundingClientRect(); if (!lastW) 
   if (/[?&]v=/.test(location.search)) try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
   setTimeout(check, 2500);
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) check(); });
+})();
+</script>
+<script>
+/* SynApps — badge « Version test »
+   Hors de la production (app.synapsium.com et sa copie synapps-bhl.pages.dev), la page est une version test :
+   ses données en ligne vont dans le projet Supabase « Synapps_test », jamais dans les vraies données. */
+(function(){
+  if (!/^https?:$/.test(location.protocol) || /^(app\.synapsium\.com|synapps-bhl\.pages\.dev|l33ko\.github\.io)$/.test(location.hostname)) return;
+  var b = document.createElement('div'); b.id = 'synappsTest'; b.textContent = 'Version test';
+  b.title = 'Version test : les données en ligne vont dans Synapps_test, pas dans les vraies données.';
+  b.setAttribute('style', 'position:fixed;left:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:2147482999;pointer-events:none;background:#f38020;color:#fff;border-radius:999px;padding:3px 10px;font:700 12px/1.4 system-ui,-apple-system,sans-serif;letter-spacing:.03em;box-shadow:0 2px 8px rgba(0,0,0,.2);opacity:.92');
+  (document.body || document.documentElement).appendChild(b);
 })();
 </script>
 </body>
