@@ -1617,8 +1617,9 @@ svg.addEventListener('pointerdown', e => {
   try { svg.setPointerCapture(e.pointerId); } catch(_){}
   pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
   if (pointers.size === 2){
-    // pincement : on annule l'action en cours
+    // pincement : on annule l'action en cours (et la sélection faite par le premier doigt)
     if (op && op.moved && op.snap0){ restore(op.snap0); undoStack.pop(); updateUndo(); }
+    if (op && op.type === 'move' && 'prevSel' in op && sel !== op.prevSel){ sel = op.prevSel; renderInspector(); }
     op = null;
     const [a, b] = [...pointers.values()];
     const r = svg.getBoundingClientRect();
@@ -1639,7 +1640,12 @@ svg.addEventListener('pointerdown', e => {
   if (h && (h.kind === 'gv' || h.kind === 'gm')){ op = {type:'gedit', h, orig:clone(gPoly()), sx, sy, moved:false}; return; }
   if (h){ op = {type:'handle', h, id:sel, orig:clone(itemById(sel)), sx, sy, moved:false}; return; }
   const it = hitTest(wx, wy);
-  if (it){ setSel(it.id); op = {type:'move', id:it.id, wx, wy, sx, sy, orig:clone(it), moved:false}; }
+  if (it){
+    // sur mobile, le bloc éditable ne s'ouvre qu'au relâcher d'un simple toucher (pas pendant un pincement)
+    const touch = isMobile(), prevSel = sel;
+    setSel(it.id, !touch); op = {type:'move', id:it.id, wx, wy, sx, sy, orig:clone(it), moved:false};
+    if (touch){ op.prevSel = prevSel; op.openSheet = true; }
+  }
   else {
     if (sel) setSel(null);
     if (isMobile()) closeSheets();
@@ -1667,7 +1673,7 @@ svg.addEventListener('pointermove', e => {
   if (op.type === 'pan'){ view.x = op.vx + sx - op.sx; view.y = op.vy + sy - op.sy; applyViewTransform(); return; }
   if (op.type === 'zoneDraw'){ op.x1 = snapv(wx); op.y1 = snapv(wy); render(); return; }
   if (!op.moved){
-    if (Math.hypot(sx - op.sx, sy - op.sy) < 3) return;
+    if (Math.hypot(sx - op.sx, sy - op.sy) < (e.pointerType === 'touch' ? 8 : 3)) return;
     op.snap0 = snapshot(); pushHistory(); op.moved = true;
   }
   if (op.type === 'gedit'){
@@ -1738,8 +1744,9 @@ function endPointer(e){
     gSelV = null; if (o.moved){ save(); syncHeader(); render(); renderInspector(); renderToolChip(); }
     return;
   }
-  const changed = op.moved; op = null;
+  const changed = op.moved, openIt = op.openSheet && !changed && sel === op.id; op = null;
   if (changed){ save(); render(); renderInspector(); }
+  if (openIt && e.type === 'pointerup') openInspector('edit');
 }
 svg.addEventListener('pointerup', endPointer);
 svg.addEventListener('pointercancel', endPointer);
@@ -1855,11 +1862,11 @@ function addZoneAt(kind, wx, wy){
   st.items.push(z); sel = z.id; afterChange();
 }
 
-function setSel(id){
+function setSel(id, sheet = true){
   sel = id; const it = id && itemById(id);
   if (it && it.type === 'plant'){ const sp = spById(it.sid); if (sp) invOpenSet('c:' + sp.cat, true); }
   render(); renderInspector();
-  if (id && isMobile()) openInspector('edit');
+  if (id && isMobile() && sheet) openInspector('edit');
   if (id && !isMobile()){ const r = $('#invPanel tr.on'); if (r) r.scrollIntoView({block:'nearest'}); }
 }
 function setTool(t){
