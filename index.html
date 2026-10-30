@@ -29,6 +29,15 @@ a.card:hover{transform:translateY(-4px);box-shadow:0 10px 24px var(--shadow)}
 .go{margin-top:2px;font-weight:800;font-size:15px}
 footer{text-align:center;color:var(--soft);font-size:14px;line-height:1.5;padding:0 20px 34px}
 footer b{color:var(--ink);font-size:15px;letter-spacing:.02em}
+.tip{margin:0 max(20px,calc((100% - 960px)/2)) 34px;padding:18px 20px 20px;background:var(--card);border:2px dashed var(--line);border-radius:22px}
+.tip h2{margin:0;font-size:22px;line-height:1.15}
+.tip>p{margin:4px 0 14px;color:var(--soft);font-size:15px;line-height:1.4}
+.ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.way{background:var(--bg);border:2px solid transparent;border-radius:16px;padding:12px 14px;font-size:15px;line-height:1.45;color:var(--soft)}
+.way>b:first-child{display:block;color:var(--ink);font-size:16px;margin-bottom:2px}
+.way.me{border-color:#ff6b5b;background:#fff1ec}
+.way.me>b:first-child::after{content:" · ton appareil";color:#ff6b5b;font-weight:700;font-size:13px}
+.k{display:inline-block;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:8px;padding:0 6px;background:#fff;color:var(--ink);font-weight:700;line-height:1.3}
 </style>
 </head>
 <body>
@@ -37,6 +46,15 @@ footer b{color:var(--ink);font-size:15px;letter-spacing:.02em}
   <p>De petites applications, simples et gratuites, sur ordinateur comme sur téléphone.</p>
 </header>
 <main id="apps"></main>
+<section class="tip" id="tip">
+  <h2>Garde tes apps sous la main</h2>
+  <p>Ouvre l’app de ton choix, puis crée un raccourci : elle aura sa propre icône et s’ouvrira d’un seul geste, comme une vraie application. Tu peux aussi le faire pour cette page, pour retrouver toutes les apps.</p>
+  <div class="ways">
+    <div class="way" data-os="ios"><b>iPhone, iPad</b>Dans Safari, touche <span class="k">Partager</span> (le carré avec une flèche), puis <b>« Sur l’écran d’accueil »</b>.</div>
+    <div class="way" data-os="android"><b>Android</b>Dans Chrome, touche le menu <span class="k">⋮</span>, puis <b>« Ajouter à l’écran d’accueil »</b>.</div>
+    <div class="way" data-os="desk"><b>Ordinateur</b>Ajoute la page à tes favoris : <span class="k">⌘ D</span> sur Mac, <span class="k">Ctrl D</span> sur PC.</div>
+  </div>
+</section>
 <footer><b>Gratuit · Sans publicité · Sans mot de passe</b><br>Sans compte, tout reste sur ton appareil. Avec un e-mail, tu retrouves tes données partout et tu partages tes recettes en famille.</footer>
 <script>
 // Icônes en pixel art (32 × 32)
@@ -106,6 +124,11 @@ document.getElementById("apps").innerHTML=APPS.map(a=>`
   <div class="body"><h2>${a.t}</h2><p>${a.d}</p>
    <div class="go">Ouvrir →</div></div>
  </a>`).join("");
+// Raccourcis : met en avant l'appareil utilisé, et se cache si SynApps est déjà ouvert depuis l'écran d'accueil
+(()=>{const t=document.getElementById("tip"),u=navigator.userAgent;
+ if(navigator.standalone||matchMedia("(display-mode: standalone)").matches){t.hidden=true;return}
+ const os=/iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)?"ios":/Android/.test(u)?"android":"desk";
+ const w=t.querySelector(`[data-os="${os}"]`);w.classList.add("me");w.parentNode.prepend(w)})();
 </script>
 <script>
 /* SynApps — nouvelle version disponible ?
