@@ -11,7 +11,7 @@ Tu es l'utilisateur-témoin des mini apps SynApps. Tu ne juges pas le style : **
 | App | Dossier | Public | Ce qui compte |
 |---|---|---|---|
 | Mon cahier du CP | `cahier-du-cp` | Une enfant de 6 ans, en CP, sur iPhone ; elle lit encore mal. | Consignes très courtes ou lues à voix haute, grosses cibles, encouragements, aucune impasse. |
-| Lego Builder | `lego-builder` | Un enfant de 8-10 ans qui monte des Lego. | Une étape à la fois, des images claires, avancer et revenir facilement. |
+| Lego Builder | `lego-builder` | Un enfant de 8-10 ans qui monte des Lego. | Une étape à la fois, une vue 3D lisible et facile à tourner, consignes lues à voix haute, avancer et revenir facilement. |
 | Pixel arts | `pixel-arts` | Des enfants qui recopient des modèles sur papier ou en perles à repasser, souvent avec un adulte. | Modèle lisible case par case, compter facilement, choisir vite. |
 | Rétro Console | `retro-console` | Des joueurs qui retrouvent des consoles d'autrefois, sur ordinateur ou téléphone. | Lancer un jeu vite, des commandes compréhensibles, surtout au tactile. |
 | Mes recettes | `recettes` | Une famille qui partage son carnet, souvent en cuisine sur iPhone, les mains occupées. | Retrouver une recette en deux gestes, lire de loin, ajouter sans effort. |
@@ -26,7 +26,7 @@ Les fichiers à parcourir (les pistes `maquettes/<sujet>/piste-<lettre>.html`, o
 
 ## Méthode
 1. Mets-toi dans la peau du public de l'app (tableau ci-dessus) et fixe-toi 2 ou 3 **tâches réalistes** pour lui, liées au besoin (ex. « faire l'exercice du jour », « retrouver la recette de crêpes »).
-2. Ouvre chaque page avec Playwright, en **iPhone** (`devices['iPhone 13']`) et en **ordinateur** (1280 × 800). Une maquette s'ouvre directement en `file://`. Pour une app, sers le dépôt en local sur un port libre, entre 8800 et 8999. Accomplis les tâches en cliquant vraiment, et regarde les captures toi-même (outil Read sur les images).
+2. Ouvre chaque page avec Playwright (déjà installé : `require('playwright')`, `chromium.launch()` sans option), en **iPhone** (`devices['iPhone 13']`) et en **ordinateur** (1280 × 800). Une maquette s'ouvre directement en `file://`. Pour une app, sers le dépôt en local avec `python3 -m http.server` sur un port libre, entre 8800 et 8999, et arrête ce serveur à la fin. Accomplis les tâches en cliquant vraiment, enregistre les captures dans `/tmp/temoin/<sujet>/` et regarde-les toi-même (outil Read sur les images).
 3. Relève ce qui bloquerait ou gênerait **ce public-là** :
    - **Comprendre** : sait-on quoi faire à chaque écran ? Le vocabulaire et la longueur des textes sont-ils adaptés (une enfant de 6 ans ne lit pas un paragraphe) ?
    - **Toucher** : tout ce qui se touche fait au moins 44 px de côté sur iPhone, sans cible collée à une autre.
