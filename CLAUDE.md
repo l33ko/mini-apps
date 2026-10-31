@@ -10,7 +10,8 @@ Dépôt des mini apps publiques de l33ko, publiées sur **https://app.synapsium.
 2. **Proposer 2 ou 3 pistes de maquettes vraiment différentes** (disposition, parcours, manière d'interagir — pas seulement des couleurs), chacune montrée **sur iPhone et sur ordinateur**, avec des données fictives réalistes, en français, dans le style SynApps. Les principaux enchaînements d'écrans peuvent être cliquables, sans logique réelle derrière.
    Chaque piste est dessinée par un agent **`maquettiste`** distinct, lancés **en parallèle**, chacun avec un angle différent (voir « Agents »). Chaque piste est un fichier `maquettes/<sujet>/piste-<lettre>.html`.
 3. Les publier sur une **branche `maquettes-<sujet>`**, avec `maquettes/<sujet>/index.html` : une page qui présente toutes les pistes côte à côte (chacune dans un cadre iPhone et un cadre ordinateur, avec ses points forts et ses limites, et un lien pour l'ouvrir en grand). **Pas de pull request** : cette branche n'est jamais fusionnée.
-4. Donner au propriétaire le lien de la version test : `https://maquettes-<sujet>.synapps-bhl.pages.dev/maquettes/<sujet>/`
+   Avant de montrer les pistes, les faire parcourir par l'agent **`utilisateur-temoin`** (dans la peau du public de l'app), corriger ce qui bloque, et joindre ses remarques.
+4. Donner au propriétaire le lien de la version test : `https://maquettes-<sujet>.synapps-bhl.pages.dev/maquettes/<sujet>/`, avec le résumé de l'utilisateur-témoin pour chaque piste.
 5. **Attendre son choix explicite** (« piste B », « A avec le menu de C », retouches…). Les retouches se font sur la même branche, la version test se met à jour.
 6. Une fois la maquette validée, coder sur une **nouvelle branche** selon la règle n°1, en respectant la maquette choisie. Rappeler le lien de la maquette dans la pull request et signaler tout écart qui s'est imposé en cours de route.
 
@@ -64,6 +65,7 @@ Des agents spécialisés sont définis dans `.claude/agents/`. Ce sont d'autres 
 | `testeur-appareils` | Ouvre les pages modifiées dans un iPhone et un ordinateur simulés, relève les erreurs, fait les captures. | Dès qu'une page change. |
 | `gardien-supabase` | Vérifie qu'un script SQL ou une Edge Function est sûr pour la production et prépare le script ponctuel. | Dès qu'un `.sql` ou une Edge Function change. |
 | `maquettiste` | Dessine **une** piste de maquette. | Règle n°0 : un par piste, en parallèle. |
+| `utilisateur-temoin` | Parcourt les pistes ou un écran dans la peau du vrai public de l'app, relève ce qui bloque ou gêne. Ne juge pas le style : chaque app a volontairement le sien. | Règle n°0, avant de montrer les pistes ; en option sur une grosse modification d'écran. |
 
 - **Relecture indépendante** : lancer `relecteur` et `testeur-appareils` (et `gardien-supabase` si besoin) **en même temps**, une fois le travail terminé et poussé. Corriger les points bloquants sur la même branche, puis relancer l'agent concerné si la correction est importante.
 - Les agents ne poussent, ne fusionnent et ne publient rien : la session principale reste seule responsable de la branche et de la pull request.
